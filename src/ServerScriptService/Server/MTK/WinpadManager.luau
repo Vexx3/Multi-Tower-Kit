@@ -52,6 +52,7 @@ local function PlayerTouchedWinpad(playerName: string, towerName: string, ending
 	local valid, reason = AntiCheat:ValidateWin(player, tower, ending)
 	if not valid then
 		Announcements:AntiCheatKick(player.Player, reason)
+		return
 	end
 
 	if player.CurrentTowerRush == "" then

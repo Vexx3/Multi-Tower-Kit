@@ -31,7 +31,7 @@ local TowerRushManager = {}
 	@within TowerRushManager
 	@server
 ]=]
-function TowerRushManager:PlayerLoadTowerRush(playerName: string, towerRushName: string)
+function TowerRushManager:LoadTowerRush(playerName: string, towerRushName: string)
 	local player: Types.PlayerInfo? = DataInfo.PlayerInfo[playerName]
 	local towerRush: Types.TowerRush? = TowerRushes[towerRushName]
 
@@ -55,7 +55,7 @@ function TowerRushManager:PlayerLoadTowerRush(playerName: string, towerRushName:
 
 	local firstTower = towerRush.Towers[1]
 	local towerCount = #towerRush.Towers
-	TowerManager:PlayerLoadTower(playerName, firstTower, true)
+	TowerManager:LoadTower(playerName, firstTower, true)
 	ZapServer.UpdateTowerRush.Fire(player.Player, 1, towerCount)
 end
 
@@ -89,7 +89,7 @@ function TowerRushManager:AdvanceTowerRush(playerName: string)
 
 	player.CurrentTowerRushIndex += 1
 	local towerName = towerRush.Towers[player.CurrentTowerRushIndex]
-	TowerManager:PlayerLoadTower(playerName, towerName, false)
+	TowerManager:LoadTower(playerName, towerName, false)
 	ZapServer.UpdateTowerRush.Fire(player.Player, player.CurrentTowerRushIndex, towerCount)
 end
 

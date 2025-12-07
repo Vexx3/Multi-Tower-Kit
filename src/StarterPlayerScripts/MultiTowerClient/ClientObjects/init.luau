@@ -131,6 +131,7 @@ function ClientObjects:LoadClientObjects(coFolder: Instance, orphaned: boolean, 
 			)
 
 			clientObjects = clientObjectsFolder
+			return
 		end
 
 		clientObjects = coFolder
@@ -148,7 +149,7 @@ function ClientObjects:UnloadClientObjects()
 		objectScope:cleanup(false, true)
 		objectScope = nil
 	end
-
+ 
 	-- ClientObjects may not exist as it is nilable and this function is called when there likely isn't any COs loaded at all
 	-- So we check if its not nil for good measure
 	if clientObjects then

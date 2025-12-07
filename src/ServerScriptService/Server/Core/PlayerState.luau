@@ -7,7 +7,6 @@
 
 local Teams = game:GetService("Teams")
 
-local Teleport = require(".././Utils/Teleport")
 local Types = require("../../../ReplicatedStorage/Shared/Types")
 local Util = require("../../../ReplicatedStorage/Shared/Util")
 local ZapServer = require("../../ZapServer")
@@ -84,7 +83,7 @@ function PlayerState:TeleportToWinroom(player: PlayerInfo, winroomMarker: string
 
 	-- Teleport to the winroom
 	if winroomPart and winroomPart:IsA("BasePart") then
-		Teleport:TeleportPlayerToPartWithWait(player.Player, winroomPart)
+		Util:RespawnAndTeleport(player.Player, winroomPart)
 	end
 
 	player.TouchEventBusy = false

@@ -3,7 +3,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Shared = ReplicatedStorage.Shared
 
-local Teleport = require("../.././Utils/Teleport")
+local Util = require(Shared.Util)
 local args = require(Shared.ConchTypes)
 local conch = require(ReplicatedStorage.Packages.conch_standalone)
 
@@ -17,7 +17,7 @@ return function()
 		end,
 
 		callback = function(who: Player, marker: BasePart)
-			Teleport:TeleportPlayerToPart(who, marker)
+			Util:TeleportPlayerToPart(who, marker)
 			conch.log("info", `Teleported {who.Name} to {marker.Name}`)
 		end,
 	})

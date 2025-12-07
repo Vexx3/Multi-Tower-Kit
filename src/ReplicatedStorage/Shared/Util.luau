@@ -84,6 +84,37 @@ function Util:IsPointInPart(point: Vector3, part: BasePart)
 end
 
 ---------------------------------------------------------------------------------------
+-- Hip offset to make sure teleports dont teleport you inside of the destination
+local hip = CFrame.new(0, 3, 0)
+
+-- Teleports the player's character
+function Util:TeleportPlayerToPart(player: Player, destination: BasePart)
+	local character = player.Character
+	if not character then
+		return
+	end
+
+	character:PivotTo(destination.CFrame * hip)
+end
+
+-- Teleports the player's character, and if it isn't loaded, waits until it is
+function Util:TeleportPlayerToPartWithWait(player: Player, destination: BasePart)
+	local character = player.Character
+	if not character then
+		repeat
+			task.wait(0.05)
+			character = player.Character
+			if player.Character then
+				player.Character:PivotTo(destination.CFrame * hip)
+			end
+		until character
+		return
+	end
+
+	character:PivotTo(destination.CFrame * hip)
+end
+
+---------------------------------------------------------------------------------------
 
 -- Find instances of {Time:seconds} in a string and format it
 function Util:FormatTimeSyntax(text: string)
@@ -128,6 +159,28 @@ function Util:RegisterTouch(part: BasePart, onTouch: (playerName: string, part: 
 			onTouch(playerName, part)
 		end
 	end)
+end
+
+function Util:RespawnAndTeleport(player: Player, spawnPart: BasePart)
+	player:LoadCharacter()
+
+	local character: Model?
+	repeat
+		task.wait(0.05)
+		character = player.Character
+	until player.Character
+
+	if not character then
+		Util:Warn(`Character failed to load for {player.Name}`)
+		return
+	end
+
+	local ForceField = character:FindFirstChildWhichIsA("ForceField")
+	if ForceField then
+		ForceField:Destroy()
+	end
+
+	Util:TeleportPlayerToPartWithWait(player, spawnPart)
 end
 
 return Util

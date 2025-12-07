@@ -4,7 +4,6 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Shared = ReplicatedStorage.Shared
 
 local DataInfo = require("./DataInfo")
-local Teleport = require("../Utils/Teleport")
 local TowerManager = require("./TowerManager")
 local TowerRushManager = require("./TowerRushManager")
 local Types = require(Shared.Types)
@@ -35,7 +34,7 @@ local function Setup(portalPart: BasePart)
 	local TowerPortal = portalPart:FindFirstChild("TowerPortal") :: StringValue
 	if TowerPortal then
 		RegisterStringPortal(portalPart, TowerPortal, function(playerName, value)
-			TowerManager:PlayerLoadTower(playerName, value, true)
+			TowerManager:LoadTower(playerName, value, true)
 		end)
 		return
 	end
@@ -43,7 +42,7 @@ local function Setup(portalPart: BasePart)
 	local TowerRush = portalPart:FindFirstChild("TowerRush") :: StringValue
 	if TowerRush then
 		RegisterStringPortal(portalPart, TowerRush, function(playerName, value)
-			TowerRushManager:PlayerLoadTowerRush(playerName, value)
+			TowerRushManager:LoadTowerRush(playerName, value)
 		end)
 		return
 	end
@@ -56,7 +55,7 @@ local function Setup(portalPart: BasePart)
 				local player: PlayerInfo = DataInfo.PlayerInfo[playerName]
 				if player and not player.TouchEventBusy then
 					player.TouchEventBusy = true
-					Teleport:TeleportPlayerToPart(player.Player, targetPart)
+					Util:TeleportPlayerToPart(player.Player, targetPart)
 					player.TouchEventBusy = false
 				end
 			end)

@@ -16,7 +16,6 @@ local Shared = ReplicatedStorage.Shared
 local Attributes = require("../Utils/Attributes")
 local Config = require(GameData.Config)
 local DataInfo = require("./DataInfo")
-local Teleport = require("../Utils/Teleport")
 local Types = require(Shared.Types)
 local Util = require(Shared.Util)
 local ZapServer = require("../../ZapServer")
@@ -37,7 +36,7 @@ local TowerManager = {}
 	@within TowerManager
 	@param resetTimer boolean -- true to reset tower timer and boost flags
 ]=]
-function TowerManager:PlayerLoadTower(playerName: string, towerName: string, resetTimer: boolean)
+function TowerManager:LoadTower(playerName: string, towerName: string, resetTimer: boolean)
 	-- Get the player and tower info objects being referenced
 	local player: PlayerInfo? = DataInfo.PlayerInfo[playerName]
 	local tower: TowerInfo? = DataInfo.TowerInfo[towerName]
@@ -60,21 +59,7 @@ function TowerManager:PlayerLoadTower(playerName: string, towerName: string, res
 
 		-- Forcefully load the character
 		-- should disrupt natural respawning
-		player.Player:LoadCharacter()
-		repeat
-			task.wait(0.05)
-		until player.Player.Character
-		local character = player.Player.Character
-		if character then
-			-- Destroy the forcefield if present
-			local forceField = character:FindFirstChildOfClass("ForceField")
-			if forceField then
-				forceField:Destroy()
-			end
-
-			-- Teleport the player to the tower
-			Teleport:TeleportPlayerToPartWithWait(player.Player, tower.SpawnLocation)
-		end
+		Util:RespawnAndTeleport(player.Player, tower.SpawnLocation)
 
 		-- Delete the ClientSidedObjects folder from the player if it exists, which in this case, shouldn't
 		local oldCOFolder = player.Player:FindFirstChild("ClientSidedObjects")

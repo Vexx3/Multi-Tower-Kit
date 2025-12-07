@@ -27,7 +27,6 @@ local LeaderstatsManager = require("./Core/LeaderstatsManager")
 local PlayerData = require("./Core/PlayerData")
 local PlayerState = require("./Core/PlayerState")
 local PortalHandler = require("@self/PortalHandler")
-local Teleport = require("./Utils/Teleport")
 local TowerManager = require("@self/TowerManager")
 local TowerRushManager = require("@self/TowerRushManager")
 local Util = require(Shared.Util)
@@ -78,9 +77,9 @@ local function PlayerRequestedRestart(playerInstance: Player)
 		end
 
 		if player.CurrentTowerRush == "" then
-			TowerManager:PlayerLoadTower(playerInstance.Name, player.CurrentTower, true)
+			TowerManager:LoadTower(playerInstance.Name, player.CurrentTower, true)
 		else
-			TowerRushManager:PlayerLoadTowerRush(playerInstance.Name, player.CurrentTowerRush)
+			TowerRushManager:LoadTowerRush(playerInstance.Name, player.CurrentTowerRush)
 		end
 	end
 end
@@ -114,7 +113,7 @@ local function InitMarker(marker: BasePart)
 		Util:RegisterTouch(marker, function(playerName)
 			local player: PlayerInfo = DataInfo.PlayerInfo[playerName]
 			player.Player.Team = Teams.Start
-			Teleport:TeleportPlayerToPart(player.Player, spawnLocation)
+			Util:TeleportPlayerToPart(player.Player, spawnLocation)
 		end)
 	end
 end
