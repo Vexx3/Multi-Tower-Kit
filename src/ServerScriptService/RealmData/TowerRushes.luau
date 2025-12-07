@@ -6,10 +6,22 @@ return {
 		BadgeID = 0,
 		Title = "Example Tower Rush",
 		Difficulty = "Medium",
-		WinroomMarker = "",
+		WinroomMarker = "WinroomSpawn",
 		Towers = {
 			"ETV5",
 			"ETV6",
+		},
+	},
+
+	TowersStorageRush = {
+		BadgeID = 0,
+		Title = "Towers Storage Rush",
+		Difficulty = "Intense",
+		WinroomMarker = "WinroomSpawn",
+		Towers = {
+			"ToUC",
+			"ToQP",
+			"ToNC",
 		},
 	},
 
@@ -17,7 +29,7 @@ return {
 		BadgeID = 0,
 		Title = "Example Tower Rush 2",
 		Difficulty = "Insane",
-		WinroomMarker = "",
+		WinroomMarker = "SCWinroom",
 		Towers = table.create(100, "ETV5"),
 	},
 }

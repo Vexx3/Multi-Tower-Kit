@@ -92,7 +92,7 @@ local Config = {
 	----------------------------------------------------------------
 
 	-- Enables or disables outgoing webhook notifications.
-	WEBHOOKS_ENABLED = false,
+	WEBHOOKS_ENABLED = true,
 
 	-- Template for the standard win announcement webhook.
 	WEBHOOK_NORMAL_MESSAGE = "**{PlayerName}** has beaten **{EndingName} [{DifficultyEmoji}]** in `{Time}`",

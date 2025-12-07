@@ -136,7 +136,10 @@ local function CharacterAdded(character: Model)
 
 	local player: PlayerInfo? = DataInfo.PlayerInfo[character.Name]
 	if player then
-		player.Player.Team = Teams.Start
+		-- Do not overwrite winners; winroom respawn should keep Winners team
+		if player.Player.Team ~= Teams.Winners then
+			player.Player.Team = Teams.Start
+		end
 
 		-- When the player equips a tool
 		character.ChildAdded:Connect(function(item)

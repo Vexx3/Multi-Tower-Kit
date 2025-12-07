@@ -46,14 +46,19 @@ end
 
 	@within Webhook
 ]=]
-function Webhook:SendMessage(player: Types.PlayerInfo, endingName: string, difficultyName: string)
+function Webhook:SendMessage(
+	player: Types.PlayerInfo,
+	endingName: string,
+	difficultyName: string,
+	finalTime: number?
+)
 	if not Config.WEBHOOKS_ENABLED then
 		return
 	end
 
 	local boostList = Util:FormatBoosts(player.BoostItemNames)
 	local endingDifficulty = Util:GetDifficulty(difficultyName)
-	local formattedTime = Util:FormatTimer(player.TowerTimer)
+	local formattedTime = Util:FormatTimer(finalTime or player.TowerTimer)
 
 	local playerName = if Config.USE_DISPLAY_NAME
 		then player.Player.DisplayName
