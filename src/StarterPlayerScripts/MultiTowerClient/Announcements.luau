@@ -1,6 +1,13 @@
 --!strict
 -- Written by fanofpixels
 
+--[=[
+	Displays server and global win announcements on the client, formatting chat
+	output.
+
+	@class ClientAnnouncements
+]=]
+
 type ClientWinMessageInfo = {
 	PlayerName: string,
 	EndingName: string,
@@ -24,10 +31,15 @@ local ZapClient = require(Shared.ZapClient)
 
 local Announcements = {}
 
+--[=[
+	Formats and displays a tower win message from server data.
+
+	@within ClientAnnouncements
+]=]
 function Announcements:DisplayWinMessage(info: ClientWinMessageInfo)
 	-- Convert boost dictionary to list
 	local boostList = Util:FormatBoosts(info.BoostsUsed)
-	
+
 	-- Construct the win message
 	local message = Config.WinMessage
 		:gsub("{PlayerName}", info.PlayerName)
@@ -47,6 +59,11 @@ function Announcements:DisplayWinMessage(info: ClientWinMessageInfo)
 	Announcements:DisplayMessage(finalMessage, info.Color, info.FancyFont)
 end
 
+--[=[
+	Shows a styled chat announcement with color, font, and size overrides.
+
+	@within ClientAnnouncements
+]=]
 function Announcements:DisplayMessage(Message: string, Color: Color3, FancyText: boolean?)
 	-- Format instances of "{Time:???}"
 	Message = Util:FormatTimeSyntax(Message)
@@ -68,9 +85,12 @@ function Announcements:DisplayMessage(Message: string, Color: Color3, FancyText:
 	end
 
 	-- Construct information to use with the font XML tag
-	local colorString = `rgb({math.floor(Color.R * 255)}, {math.floor(Color.G * 255)}, {math.floor(Color.B * 255)})`
+	local colorString =
+		`rgb({math.floor(Color.R * 255)}, {math.floor(Color.G * 255)}, {math.floor(Color.B * 255)})`
 	local faceString = if FancyText then Config.ChatFancyFontFace else Config.ChatFontFace
-	local sizeString = if FancyText then tostring(Config.ChatFancyFontSize) else tostring(Config.ChatFontSize)
+	local sizeString = if FancyText
+		then tostring(Config.ChatFancyFontSize)
+		else tostring(Config.ChatFontSize)
 
 	-- Apply the strings to the tag
 	local finalMessage = Config.ChatFont
@@ -78,7 +98,7 @@ function Announcements:DisplayMessage(Message: string, Color: Color3, FancyText:
 	finalMessage = finalMessage:gsub("{FontFace}", faceString)
 	finalMessage = finalMessage:gsub("{FontSize}", sizeString)
 	finalMessage = finalMessage:gsub("{Message}", Message)
-	
+
 	-- Finally, actually display the message
 	TextChannel:DisplaySystemMessage(finalMessage, "MTKv4System")
 end
@@ -89,7 +109,7 @@ function Announcements:Init()
 	ZapClient.GameAnnouncement.SetCallback(function(...)
 		Announcements:DisplayMessage(...)
 	end)
-	
+
 	ZapClient.GameWinAnnouncement.SetCallback(function(...: ClientWinMessageInfo)
 		Announcements:DisplayWinMessage(...)
 	end)

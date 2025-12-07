@@ -6,7 +6,11 @@ function GetAllButtons(color)
 	local isColor3 = CheckColor3(color)
 	local ButtonTable = {}
 	for _, v in workspace:GetDescendants() do
-		if v.Name == "Button" and v:FindFirstChild("ClientObject") and v:FindFirstChild("Pressed") then
+		if
+			v.Name == "Button"
+			and v:FindFirstChild("ClientObject")
+			and v:FindFirstChild("Pressed")
+		then
 			local Insert = false
 			if color and isColor3 then
 				for _, b in v:GetDescendants() do

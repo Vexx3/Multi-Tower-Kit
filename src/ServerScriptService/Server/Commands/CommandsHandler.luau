@@ -7,8 +7,8 @@ local GameData = ReplicatedStorage.GameData
 local Packages = ReplicatedStorage.Packages
 local Shared = ReplicatedStorage.Shared
 
-local conch = require(Packages.conch_standalone)
 local Config = require(GameData.Config)
+local conch = require(Packages.conch_standalone)
 
 local Commands = script.Parent.Parent.Commands
 
@@ -24,22 +24,22 @@ local CommandsHandler = {}
 
 function CommandsHandler:Init()
 	require(Shared.ConchTypes)
-	
+
 	conch.initiate_default_lifecycle()
-	
+
 	for roleName, permissions in Config.ROLES do
 		conch.set_role_permissions(roleName, table.unpack(permissions))
 	end
-	
+
 	for _, cmdModule: ModuleScript? in Commands:GetDescendants() do
-		if cmdModule:IsA("ModuleScript") then
+		if cmdModule and cmdModule:IsA("ModuleScript") then
 			local cmd = require(cmdModule) :: () -> ()
 			if type(cmd) == "function" then
 				cmd()
 			end
 		end
 	end
-	
+
 	Players.PlayerAdded:Connect(onPlayerAdded)
 end
 

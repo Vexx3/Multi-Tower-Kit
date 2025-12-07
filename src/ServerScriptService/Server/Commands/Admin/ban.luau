@@ -11,14 +11,14 @@ local function resolveUser(userInput: string | number): number?
 		local success, userId = pcall(function()
 			return Players:GetUserIdFromNameAsync(userInput)
 		end)
-		
+
 		if success then
 			return userId
 		else
 			return nil
 		end
 	end
-	
+
 	return nil
 end
 
@@ -27,21 +27,22 @@ return function()
 		description = "Bans a player from the game by UserId or username.",
 		permissions = { "ban-player" },
 		arguments = function()
-			return
-				conch.args.string("user", "UserId or username"),
-				conch.args.optional(conch.args.number("duration", "Seconds (default -1 for permanent)")),
+			return conch.args.string("user", "UserId or username"),
+				conch.args.optional(
+					conch.args.number("duration", "Seconds (default -1 for permanent)")
+				),
 				conch.args.optional(conch.args.string("reason", "Reason for the ban"))
 		end,
-		
+
 		callback = function(userInput: string | number, duration: number?, reason: string?)
 			duration = tonumber(duration) or -1
 			reason = reason or "You have been banned from the game"
-			
+
 			local userId = resolveUser(userInput)
 			if not userId then
 				return
 			end
-			
+
 			local success, err = pcall(function()
 				Players:BanAsync({
 					UserIds = { userId },
@@ -50,7 +51,7 @@ return function()
 					PrivateReason = reason,
 				})
 			end)
-			
+
 			if success then
 				conch.log("info", `Successfully banned: {userInput}`)
 			else

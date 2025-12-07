@@ -1,6 +1,6 @@
-local Loader = require("@self/Loader")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
-Loader.SpawnAll(
-	Loader.LoadDescendants(script.Parent),
-	"Init"
-)
+local Packages = ReplicatedStorage.Packages
+
+local Loader = require(Packages.Loader)
+Loader.SpawnAll(Loader.LoadDescendants(script.Parent), "Init")

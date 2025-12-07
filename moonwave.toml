@@ -1,0 +1,9 @@
+gitSourceBranch = "main"
+
+[[classOrder]]
+section = "MTK Server"
+classes = ["Announcements", "AntiCheat", "LeaderstatsManager", "PlayerData", "PlayerState", "TowerManager", "TowerRushManager", "Webhook"]
+
+[[classOrder]]
+section = "MTK Client"
+classes = ["ClientAnnouncements", "ClientObjects", "GUI"]

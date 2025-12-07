@@ -1,7 +1,15 @@
 --!strict
 -- Written by fanofpixels
 
--- Important 
+--[=[
+	Client-side tower HUD: shows tower name/acronym, rush progress, timer,
+	boosts-used state, restart prompt, and a simple FPS/ping overlay.
+
+	@class GUI
+	@client
+]=]
+
+-- Important
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
@@ -64,7 +72,7 @@ function GUI:SetTowerAcronym(acronym: string)
 
 	TowerAcronym.Text = acronym
 	TowerAcronym.Visible = acronym ~= ""
-	
+
 	if not TowerName then
 		return
 	end
@@ -83,7 +91,7 @@ function GUI:SetTowerAcronym(acronym: string)
 
 		TowerAcronym.TextColor3 = color
 		TowerAcronym.TextStrokeColor3 = stroke
-		
+
 		TowerName.TextColor3 = color
 		TowerName.TextStrokeColor3 = stroke
 	end
@@ -92,10 +100,15 @@ function GUI:SetTowerAcronym(acronym: string)
 	if not properName then
 		return
 	end
-	
+
 	TowerName.Text = properName.Value
 end
 
+--[=[
+	Updates tower rush progress text and toggles visibility when no rush is active.
+
+	@within GUI
+]=]
 function GUI:SetTowerRush(progress: number, max: number)
 	if TowerRushProgress then
 		TowerRushProgress.Text = `{progress}/{max}`
@@ -103,18 +116,35 @@ function GUI:SetTowerRush(progress: number, max: number)
 	end
 end
 
+--[=[
+	Sets the displayed tower timer using formatted seconds.
+
+	@within GUI
+	@param time number
+]=]
 function GUI:SetTowerTimer(time: number)
 	if Timer then
 		Timer.Text = Util:FormatTimer(time)
 	end
 end
 
+--[=[
+	Shows or hides the boosts-used indicator.
+
+	@within GUI
+]=]
 function GUI:SetBoostsUsed(value: boolean)
 	if BoostsUsed then
 		BoostsUsed.Visible = value
 	end
 end
 
+--[=[
+	Fades the restart label based on a normalized progress value.
+
+	@within GUI
+	@param t number -- 0-1 visibility factor
+]=]
 function GUI:SetRestartLabel(t: number)
 	if RestartLabel then
 		RestartLabel.Visible = t > 0
@@ -134,12 +164,18 @@ local function getPlayerFPS()
 	lastIteration = timeFunction()
 
 	for index = #frameUpdateTable, 1, -1 do
-		frameUpdateTable[index + 1] = if frameUpdateTable[index] >= lastIteration - 1 then frameUpdateTable[index] else nil
+		frameUpdateTable[index + 1] = if frameUpdateTable[index] >= lastIteration - 1
+			then frameUpdateTable[index]
+			else nil
 	end
 
 	frameUpdateTable[1] = lastIteration
 
-	return math.floor(if timeFunction() - start >= 1 then #frameUpdateTable else #frameUpdateTable / (timeFunction() - start))
+	return math.floor(
+		if timeFunction() - start >= 1
+			then #frameUpdateTable
+			else #frameUpdateTable / (timeFunction() - start)
+	)
 end
 
 local function getPlayerPing()
@@ -147,12 +183,14 @@ local function getPlayerPing()
 	return math.floor(ping * 1000)
 end
 
-local performance = Icon.new()
-	:lock()
-	:modifyTheme({
-		{"IconLabel", "FontFace", Font.new("rbxasset://fonts/families/Montserrat.json", Enum.FontWeight.Medium)},
-		{"IconLabel", "TextSize", 14}
-	})
+local performance = Icon.new():lock():modifyTheme({
+	{
+		"IconLabel",
+		"FontFace",
+		Font.new("rbxasset://fonts/families/Montserrat.json", Enum.FontWeight.Medium),
+	},
+	{ "IconLabel", "TextSize", 14 },
+})
 
 local function onHeartbeat()
 	local playerFPS = getPlayerFPS()

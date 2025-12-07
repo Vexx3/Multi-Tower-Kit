@@ -12,12 +12,12 @@ return {
 			"ETV6",
 		},
 	},
-	
+
 	ExampleTowerRush2 = {
 		BadgeID = 0,
 		Title = "Example Tower Rush 2",
 		Difficulty = "Insane",
 		WinroomMarker = "",
-		Towers = table.create(100, "ETV5")
-	}
+		Towers = table.create(100, "ETV5"),
+	},
 }

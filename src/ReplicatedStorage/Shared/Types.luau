@@ -94,9 +94,9 @@ export type DifficultyInfo = {
 	FancyFont: boolean,
 	Color: Color3,
 	GlobalAnnouncement: boolean,
-	
+
 	-- webhook emojis
-	DifficultyEmoji: string?
+	DifficultyEmoji: string?,
 }
 
 return nil

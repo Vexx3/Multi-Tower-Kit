@@ -17,11 +17,11 @@ local Kit = Framework.Kit
 
 -- Modules
 local Announcements = require(script.Announcements)
+local ClientObjects = require(script.ClientObjects)
 local Config = require(ReplicatedStorage.GameData.Config)
+local GUI = require(script.GUI)
 local conch = require(ReplicatedStorage.Packages.conch_standalone)
 local conchui = require(ReplicatedStorage.Packages.conch_standalone.roblox_packages.ui)
-local ClientObjects = require(script.ClientObjects)
-local GUI = require(script.GUI)
 -- etoh v6
 local CharacterManager = require(Kit.Managers.CharacterManager)
 local ClientObjectManager = require(Kit.Managers.ClientObjectManager)
@@ -153,22 +153,21 @@ RunService.RenderStepped:Connect(Step)
 do
 	StarterGui:SetCoreGuiEnabled(Enum.CoreGuiType.EmotesMenu, false)
 
-	--PlayerCollision:Init()
 	CharacterManager:Init()
 	ClientObjectManager:Init()
 	FlipManager:Init()
 	GuiManager:Init()
 	LightingManager:Init()
-	
+
 	require(Shared.ConchTypes)
-	
+
 	conch.initiate_default_lifecycle()
 	conchui.bind_to(Config.ADMIN_HOTKEY)
-	
+
 	Announcements:Init()
 
 	local ECOs: boolean, ECOFolder: Folder? = ZapClient.RequestEverpresentCOs.Call()
-	if ECOs and ECOFolder then		
+	if ECOs and ECOFolder then
 		ClientObjects:LoadClientObjects(ECOFolder, true, "EverpresentCOs")
 	end
 

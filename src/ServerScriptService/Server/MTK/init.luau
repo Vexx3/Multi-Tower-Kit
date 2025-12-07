@@ -23,12 +23,13 @@ type EndingInfo = Types.EndingInfo
 type Difficulty = Types.DifficultyInfo
 
 -- Modules
-local LeaderstatsManager = require(".././Core/LeaderstatsManager")
-local PlayerData = require(".././Core/PlayerData")
-local PlayerState = require(".././Core/PlayerState")
+local LeaderstatsManager = require("./Core/LeaderstatsManager")
+local PlayerData = require("./Core/PlayerData")
+local PlayerState = require("./Core/PlayerState")
 local PortalHandler = require("@self/PortalHandler")
-local Teleport = require(".././Utils/Teleport")
+local Teleport = require("./Utils/Teleport")
 local TowerManager = require("@self/TowerManager")
+local TowerRushManager = require("@self/TowerRushManager")
 local Util = require(Shared.Util)
 local WinpadManager = require("@self/WinpadManager")
 local ZapServer = require(ServerScriptService.ZapServer)
@@ -79,7 +80,7 @@ local function PlayerRequestedRestart(playerInstance: Player)
 		if player.CurrentTowerRush == "" then
 			TowerManager:PlayerLoadTower(playerInstance.Name, player.CurrentTower, true)
 		else
-			TowerManager:PlayerLoadTowerRush(playerInstance.Name, player.CurrentTowerRush)
+			TowerRushManager:PlayerLoadTowerRush(playerInstance.Name, player.CurrentTowerRush)
 		end
 	end
 end
@@ -104,7 +105,10 @@ local function InitMarker(marker: BasePart)
 	if marker.Name == "LobbyTP" then
 		-- Find the lobby spawn
 		local spawnLocation = Markers:WaitForChild("SpawnLocation")
-		assert(spawnLocation and spawnLocation:IsA("BasePart"), "Could not intialize LobbyTP because a SpawnLocation couldn't be found")
+		assert(
+			spawnLocation and spawnLocation:IsA("BasePart"),
+			"Could not intialize LobbyTP because a SpawnLocation couldn't be found"
+		)
 
 		-- When touched, teleport the player to the lobby spawn
 		Util:RegisterTouch(marker, function(playerName)
@@ -218,8 +222,10 @@ local function Stepped(_time: number, deltaTime: number)
 		PlayerState:UpdatePlayerInfoStats(v)
 
 		-- Checkpoint detection
-		local prevInterval = math.floor((_time - deltaTime) / Config.CHECKPOINT_INTERVAL) * Config.CHECKPOINT_INTERVAL
-		local currentInterval = math.floor(_time / Config.CHECKPOINT_INTERVAL) * Config.CHECKPOINT_INTERVAL
+		local prevInterval = math.floor((_time - deltaTime) / Config.CHECKPOINT_INTERVAL)
+			* Config.CHECKPOINT_INTERVAL
+		local currentInterval = math.floor(_time / Config.CHECKPOINT_INTERVAL)
+			* Config.CHECKPOINT_INTERVAL
 		if prevInterval < currentInterval then
 			local Character = v.Player.Character
 			-- If the player is in a tower
@@ -240,7 +246,8 @@ local function Stepped(_time: number, deltaTime: number)
 	-- Winpad animation
 	do
 		-- If the animation time of a winpad has passed
-		local prevInterval = math.floor((_time - deltaTime) / Config.WINPAD_INTERVAL) * Config.WINPAD_INTERVAL
+		local prevInterval = math.floor((_time - deltaTime) / Config.WINPAD_INTERVAL)
+			* Config.WINPAD_INTERVAL
 		local currentInterval = math.floor(_time / Config.WINPAD_INTERVAL) * Config.WINPAD_INTERVAL
 		if prevInterval < currentInterval then
 			for _, v in WinpadManager.Winpads do
@@ -263,7 +270,7 @@ function MTK:Init()
 			v.Parent = StarterPack
 		end
 	end
-	
+
 	-- Make sure all tools are tagged with the attribute, since a StringValue isn't secure
 	for _, v in StarterPack:GetChildren() do
 		if not v:IsA("Tool") then
@@ -279,9 +286,10 @@ function MTK:Init()
 		end
 	end
 
-	EverpresentCOs.Parent = ServerStorage :: any
+	EverpresentCOs.Parent = ServerStorage
 
 	TowerManager:InitTowers()
+	WinpadManager:InitWinpads()
 	PortalHandler:InitPortals()
 	InitMarkers()
 

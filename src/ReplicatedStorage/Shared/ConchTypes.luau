@@ -30,23 +30,14 @@ for _, tower in Towers:GetChildren() do
 	end
 end
 
-local badge_name = conch.register_type(
-	"badge_name",
-	conch.args.enum_map(Badges)
-)
+local badge_name = conch.register_type("badge_name", conch.args.enum_map(Badges))
 
-local marker_name = conch.register_type(
-	"marker_name",
-	conch.args.enum_map(markerMap)
-)
+local marker_name = conch.register_type("marker_name", conch.args.enum_map(markerMap))
 
-local tower_name = conch.register_type(
-	"tower_name",
-	conch.args.enum_new(towerArray)
-)
+local tower_name = conch.register_type("tower_name", conch.args.enum_new(towerArray))
 
 return {
 	badge_name = badge_name,
 	marker_name = marker_name,
-	tower_name = tower_name
+	tower_name = tower_name,
 }

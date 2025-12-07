@@ -12,13 +12,13 @@ return function()
 		description = "Awards a badge to a player",
 		permissions = { "givebadge" },
 		arguments = function()
-			return
-				conch.args.player("target", "Player to receive a badge"),
+			return conch.args.player("target", "Player to receive a badge"),
 				args.badge_name("badge", "Badge to award")
 		end,
-		
+
 		callback = function(target: Player, badge: { Name: string, BadgeId: number })
-			local success, result = pcall(BadgeService.AwardBadge, BadgeService, target.UserId, badge.BadgeId)
+			local success, result =
+				pcall(BadgeService.AwardBadge, BadgeService, target.UserId, badge.BadgeId)
 			if success and result then
 				conch.log("info", `Awarded {badge.Name} to {target.Name}`)
 			else

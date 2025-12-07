@@ -1,4 +1,13 @@
 -- @zylx 2025-11-20
+
+--[=[
+	Lightweight wrapper around ProfileStore for loading, caching, and exposing
+	player data sessions.
+
+	@class PlayerData
+	@server
+]=]
+
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
@@ -24,19 +33,19 @@ local function LoadProfile(player: Player)
 			return player.Parent ~= Players
 		end,
 	})
-	
+
 	if profile == nil then
 		return player:Kick("Profile load fail. Please rejoin.")
 	end
-	
+
 	profile:AddUserId(player.UserId)
 	profile:Reconcile()
-	
+
 	profile.OnSessionEnd:Connect(function()
 		Profiles[player] = nil
 		player:Kick("Profile session ended. Please rejoin.")
 	end)
-	
+
 	local isInGame = player.Parent == Players
 	if isInGame then
 		Profiles[player] = profile
@@ -56,14 +65,23 @@ end
 
 local PlayerData = {}
 
+--[=[
+	Returns the cached profile data for a player if it is loaded.
+
+	@within PlayerData
+	@return Config.PlayerData? -- nil if profile failed to load or is missing
+]=]
 function PlayerData:GetData(player: Player): Config.PlayerData?
 	local profile = Profiles[player]
 	if not profile then
 		return nil
 	end
-	
+
 	return profile.Data
 end
+
+-- Starts profile sessions for current players and wires join/leave handlers
+-- for profile lifecycle management.
 
 function PlayerData:Init()
 	for _, player in Players:GetPlayers() do

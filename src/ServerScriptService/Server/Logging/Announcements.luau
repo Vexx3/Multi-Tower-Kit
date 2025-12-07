@@ -1,14 +1,20 @@
 --!strict
--- Written by fanofpixels
 
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
+--[=[
+	Handles in-server announcements, cross-server global win messages, and
+	anti-cheat kick broadcasts.
+
+	@class Announcements
+]=]
+
 local HttpService = game:GetService("HttpService")
 local MessagingService = game:GetService("MessagingService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local GameData = ReplicatedStorage.GameData
 local Shared = ReplicatedStorage.Shared
 
-local ZapServer = require("../../../ZapServer")
+local ZapServer = require("../../ZapServer")
 
 -- Get types
 local Types = require(Shared.Types)
@@ -61,10 +67,22 @@ local latestGlobalMessageID = ""
 
 local Announcements = {}
 
-function Announcements:WinAnnouncement(player: PlayerInfo, endingName: string, difficultyName: string)
+--[=[
+	Broadcasts a tower win locally and optionally globally, then posts to the
+	webhook channel.
+
+	@within Announcements
+]=]
+function Announcements:WinAnnouncement(
+	player: PlayerInfo,
+	endingName: string,
+	difficultyName: string
+)
 	local endingDifficulty = Util:GetDifficulty(difficultyName)
-	
-	local playerName = if Config.USE_DISPLAY_NAME then player.Player.DisplayName else player.Player.Name
+
+	local playerName = if Config.USE_DISPLAY_NAME
+		then player.Player.DisplayName
+		else player.Player.Name
 
 	local info: WinMessageInfo = {
 		-- Unique message ID
@@ -89,7 +107,7 @@ function Announcements:WinAnnouncement(player: PlayerInfo, endingName: string, d
 
 		MessagingService:PublishAsync("GlobalWin", info)
 	end
-	
+
 	BroadcastWinAnnouncement(info)
 	task.spawn(Webhook.SendMessage, Webhook, player, endingName, difficultyName)
 end
@@ -109,17 +127,32 @@ function BroadcastWinAnnouncement(info: WinMessageInfo)
 
 		Global = endingDifficulty.GlobalAnnouncement,
 	}
-	
+
 	ZapServer.GameWinAnnouncement.FireAll(clientMsgInfo)
 end
 
+--[=[
+	Sends a generic server announcement to all players.
+
+	@within Announcements
+	@param fancyText boolean? -- optional fancy font flag
+]=]
 function Announcements:GameAnnouncement(message: string, color: Color3, fancyText: boolean?)
 	ZapServer.GameAnnouncement.FireAll(message, color, fancyText)
 end
 
+--[=[
+	Kicks a player for anti-cheat with a themed message broadcast to the server.
+
+	@within Announcements
+	@param reason string -- kick reason
+]=]
 function Announcements:AntiCheatKick(player: Player, reason: string)
 	local message = KickMessages[math.random(1, #KickMessages)]
-	message = message:gsub("{Player}", if Config.USE_DISPLAY_NAME then player.DisplayName else player.Name)
+	message = message:gsub(
+		"{Player}",
+		if Config.USE_DISPLAY_NAME then player.DisplayName else player.Name
+	)
 
 	Announcements:GameAnnouncement(message, Color3.new(1, 0, 0))
 	player:Kick(reason)
@@ -135,6 +168,8 @@ function GlobalWinMessage(message: Message)
 	BroadcastWinAnnouncement(info)
 end
 
+-- Subscribes to cross-server win announcements so this server can rebroadcast
+-- them to its players.
 function Announcements:Init()
 	MessagingService:SubscribeAsync("GlobalWin", GlobalWinMessage)
 end

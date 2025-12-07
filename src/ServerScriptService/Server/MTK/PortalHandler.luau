@@ -6,6 +6,7 @@ local Shared = ReplicatedStorage.Shared
 local DataInfo = require("./DataInfo")
 local Teleport = require("../Utils/Teleport")
 local TowerManager = require("./TowerManager")
+local TowerRushManager = require("./TowerRushManager")
 local Types = require(Shared.Types)
 local Util = require(Shared.Util)
 
@@ -18,10 +19,14 @@ local Portals = workspace.Portals
 
 local PortalHandler = {}
 
-local function RegisterStringPortal(part: BasePart, stringValue: Instance, onTouch: (playerName: string, value: string) -> ())
+local function RegisterStringPortal(
+	part: BasePart,
+	stringValue: Instance,
+	onTouch: (playerName: string, value: string) -> ()
+)
 	if stringValue and stringValue:IsA("StringValue") then
-		Util:RegisterTouch(part, function(playerName) 
-			onTouch(playerName, stringValue.Value) 
+		Util:RegisterTouch(part, function(playerName)
+			onTouch(playerName, stringValue.Value)
 		end)
 	end
 end
@@ -30,19 +35,19 @@ local function Setup(portalPart: BasePart)
 	local TowerPortal = portalPart:FindFirstChild("TowerPortal") :: StringValue
 	if TowerPortal then
 		RegisterStringPortal(portalPart, TowerPortal, function(playerName, value)
-			TowerManager:PlayerLoadTower(playerName, value, true)			
+			TowerManager:PlayerLoadTower(playerName, value, true)
 		end)
 		return
 	end
-	
+
 	local TowerRush = portalPart:FindFirstChild("TowerRush") :: StringValue
 	if TowerRush then
 		RegisterStringPortal(portalPart, TowerRush, function(playerName, value)
-			TowerManager:PlayerLoadTowerRush(playerName, value)			
+			TowerRushManager:PlayerLoadTowerRush(playerName, value)
 		end)
 		return
-	end	
-	
+	end
+
 	local LobbyTeleporter = portalPart:FindFirstChild("LobbyTeleporter") :: StringValue
 	if LobbyTeleporter then
 		local targetPart = Markers:FindFirstChild(LobbyTeleporter.Value, true) :: BasePart

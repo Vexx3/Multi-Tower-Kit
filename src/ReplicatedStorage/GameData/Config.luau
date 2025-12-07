@@ -8,7 +8,7 @@ local Config = {
 	----------------------------------------------------------------
 	-- GAME BEHAVIOR
 	----------------------------------------------------------------
-	
+
 	--[[
 		The client and server both track tower time, but only the
 		server value is authoritative. To prevent desynchronization,
@@ -24,14 +24,13 @@ local Config = {
 
 	-- Minimum time (in seconds) required between player restarts.
 	RESTART_COOLDOWN = 3,
-	
+
 	--[[
 		Determines whether holding the R key resets the player's
 		position to the first tower in a tower rush, or preserves
 		the player's current tower.
 	]]
 	RESTART_RESETS_TOWER_RUSH = true,
-
 
 	----------------------------------------------------------------
 	-- COSMETIC SETTINGS
@@ -49,7 +48,6 @@ local Config = {
 	-- If enabled, player display names are used instead of usernames
 	-- in announcements and webhook messages.
 	USE_DISPLAY_NAME = false,
-
 
 	----------------------------------------------------------------
 	-- WARNINGS & SAFETY CHECKS
@@ -73,7 +71,6 @@ local Config = {
 	-- with certain tower elements.
 	R15_WARNING = true,
 
-
 	----------------------------------------------------------------
 	-- DATA STORE
 	----------------------------------------------------------------
@@ -90,21 +87,18 @@ local Config = {
 		CompletedTowers = {} :: { [string]: string }, -- stores tower names
 	},
 
-
 	----------------------------------------------------------------
 	-- WEBHOOKS
 	----------------------------------------------------------------
 
 	-- Enables or disables outgoing webhook notifications.
-	WEBHOOKS_ENABLED = true,
+	WEBHOOKS_ENABLED = false,
 
 	-- Template for the standard win announcement webhook.
-	WEBHOOK_NORMAL_MESSAGE =
-		"**{PlayerName}** has beaten **{EndingName} [{DifficultyEmoji}]** in `{Time}`",
-	
+	WEBHOOK_NORMAL_MESSAGE = "**{PlayerName}** has beaten **{EndingName} [{DifficultyEmoji}]** in `{Time}`",
+
 	-- Template for the message boosts used
 	WEBHOOK_BOOSTS_USED = "\nUsed: {BoostList}",
-
 
 	----------------------------------------------------------------
 	-- ADMINISTRATION

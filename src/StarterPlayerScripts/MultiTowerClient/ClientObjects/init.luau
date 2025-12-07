@@ -1,6 +1,13 @@
 --!strict
 -- Written by fanofpixels
 
+--[=[
+	Loads, wires, and unloads client objects for towers, including everpresent
+	objects and custom repository support.
+
+	@class ClientObjects
+]=]
+
 type COScriptContext = ModuleScript | StringValue
 
 local HttpService = game:GetService("HttpService")
@@ -24,6 +31,13 @@ local objectScope
 
 local ClientObjects = {}
 
+--[=[
+	Spawns a client object thread for a script or repo entry.
+
+	@within ClientObjects
+	@param context ModuleScript | StringValue -- either ClientObjectScript or RunRepoScript
+	@param orphaned boolean -- true for everpresent objects that persist across towers
+]=]
 function ClientObjects:LoadClientObjectScript(context: COScriptContext, orphaned: boolean)
 	-- Clone the thread template and set it up
 	local thread = ClientObjectThread:Clone()
@@ -36,6 +50,16 @@ function ClientObjects:LoadClientObjectScript(context: COScriptContext, orphaned
 	thread.Enabled = true
 end
 
+--[=[
+	Loads a folder of client objects into workspace or the everpresent scope,
+	attaches client scripts, applies collision overrides, and sets up kit v6
+	client parts when present.
+
+	@within ClientObjects
+	@param coFolder Instance -- root folder of client objects
+	@param orphaned boolean -- true to load into everpresent scope without touching current tower objects
+	@param acronym string -- tower acronym for repository lookup
+]=]
 function ClientObjects:LoadClientObjects(coFolder: Instance, orphaned: boolean, acronym: string)
 	-- If "orphaned" do not do anything to the ClientObjects variable
 	-- Usually used for loading everpresent COs without touching tower COs
@@ -43,9 +67,9 @@ function ClientObjects:LoadClientObjects(coFolder: Instance, orphaned: boolean, 
 		-- If there are already client objects present, delete them
 		ClientObjects:UnloadClientObjects()
 	end
-	
+
 	local isKitV6 = coFolder:GetAttribute("KitVersion")
-		
+
 	for _, instance in coFolder:GetDescendants() do
 		local v = instance :: Instance
 
@@ -53,11 +77,16 @@ function ClientObjects:LoadClientObjects(coFolder: Instance, orphaned: boolean, 
 			local parent = v.Parent
 			for _, k in parent:GetDescendants() do
 				if k.Name == "ClientObject" and v ~= k then
-					warn("⚠️ Found a double client object value in: " .. parent.Name .. " ⚠️")
+					warn(
+						"⚠️ Found a double client object value in: " .. parent.Name .. " ⚠️"
+					)
 					k:Destroy()
 				end
 			end
-		elseif (v:IsA("ModuleScript") and v.Name == "ClientObjectScript") or (v:IsA("StringValue") and v.Name == "RunRepoScript") then
+		elseif
+			(v:IsA("ModuleScript") and v.Name == "ClientObjectScript")
+			or (v:IsA("StringValue") and v.Name == "RunRepoScript")
+		then
 			ClientObjects:LoadClientObjectScript(v, orphaned)
 		elseif v:IsA("StringValue") and v.Name == "SetCollisionGroup" then
 			if v.Parent and v.Parent:IsA("BasePart") then
@@ -69,7 +98,7 @@ function ClientObjects:LoadClientObjects(coFolder: Instance, orphaned: boolean, 
 			end
 		end
 	end
-	
+
 	if orphaned then
 		local everpresentCOFolder = workspace:FindFirstChild("EverpresentCOs") :: Instance
 		if not everpresentCOFolder then
@@ -85,7 +114,7 @@ function ClientObjects:LoadClientObjects(coFolder: Instance, orphaned: boolean, 
 		)
 	else
 		coFolder.Parent = workspace
-		
+
 		if isKitV6 then
 			local clientObjectsFolder = workspace:FindFirstChild("ClientParts") :: Instance
 			if not clientObjectsFolder then
@@ -100,14 +129,19 @@ function ClientObjects:LoadClientObjects(coFolder: Instance, orphaned: boolean, 
 				acronym,
 				customRepository:FindFirstChild(acronym)
 			)
-			
+
 			clientObjects = clientObjectsFolder
 		end
-		
+
 		clientObjects = coFolder
 	end
 end
 
+--[=[
+    Cleans up all loaded client objects and running threads.
+
+    @within ClientObjects
+]=]
 function ClientObjects:UnloadClientObjects()
 	-- v6
 	if objectScope then

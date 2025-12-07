@@ -4,11 +4,13 @@ local ServerStorage = game:GetService("ServerStorage")
 
 local Shared = ReplicatedStorage.Shared
 
-local Announcements = require("../Announcements")
-local Attributes = require("../../Utils/Attributes")
+local Announcements = require("../Logging/Announcements")
+local AntiCheat = require("./AntiCheat")
+local Attributes = require("../Utils/Attributes")
 local DataInfo = require("./DataInfo")
-local LeaderstatsManager = require("../../Core/LeaderstatsManager")
-local PlayerState = require("../../Core/PlayerState")
+local LeaderstatsManager = require("../Core/LeaderstatsManager")
+local PlayerState = require("../Core/PlayerState")
+local TowerRushManager = require("./TowerRushManager")
 local Types = require(Shared.Types)
 local Util = require(Shared.Util)
 
@@ -18,14 +20,13 @@ type List<T> = Types.List<T>
 type PlayerInfo = Types.PlayerInfo
 type TowerInfo = Types.TowerInfo
 
+local Towers = workspace.Towers
 local WinpadParticles = ServerStorage.WinpadParticles
 
 local WinpadManager = {}
 WinpadManager.Winpads = {} :: List<BasePart>
 
 local function PlayerTouchedWinpad(playerName: string, towerName: string, endingID: string)
-	local TowerManager = require("./TowerManager")
-
 	local player: PlayerInfo = DataInfo.PlayerInfo[playerName]
 	local tower: TowerInfo = DataInfo.TowerInfo[towerName]
 	if not player or not tower then
@@ -38,32 +39,19 @@ local function PlayerTouchedWinpad(playerName: string, towerName: string, ending
 	player.TouchEventBusy = true
 
 	local ending: EndingInfo = tower.Endings[endingID]
-	assert(ending, `{playerName} touched a winpad in {towerName}, but the ending referenced does not exist`)
+	assert(
+		ending,
+		`{playerName} touched a winpad in {towerName}, but the ending referenced does not exist`
+	)
 
 	if player.CurrentTower == "" then
 		player.TouchEventBusy = false
 		return
 	end
 
-	-- Check to see if this ending is from this tower, if it's not, the player is probably cheating
-	if ending.ParentTower ~= player.CurrentTower then
-		Announcements:AntiCheatKick(player.Player, "Touched the winpad of a tower you're not in")
-		return
-	end
-
-	-- Anything checks inside this block do not apply if the player has equipped a debug item
-	if not player.DebugItemUsed then
-		-- If the player completed the tower before the minumum time, they beat the tower too early! they must be cheating
-		if (tower.MinimumTime > 0) and (player.TowerTimer < tower.MinimumTime) then
-			Announcements:AntiCheatKick(player.Player, "Completed the tower too early")
-			return
-		end
-
-		-- If the player hasn't hit the checkpoints in order, they beat the tower out of order!
-		if player.CurrentTowerCheckpoint < tower.CheckpointCount then
-			Announcements:AntiCheatKick(player.Player, "Completed the tower out of order")
-			return
-		end
+	local valid, reason = AntiCheat:ValidateWin(player, tower, ending)
+	if not valid then
+		Announcements:AntiCheatKick(player.Player, reason)
 	end
 
 	if player.CurrentTowerRush == "" then
@@ -98,8 +86,8 @@ local function PlayerTouchedWinpad(playerName: string, towerName: string, ending
 		PlayerState:TeleportToWinroom(player, endingWinroom)
 	else
 		-- The player is doing a tower rush
-		TowerManager:AdvanceTowerRush(playerName)
-	end		
+		TowerRushManager:AdvanceTowerRush(playerName)
+	end
 
 	task.wait(0.1)
 	player.TouchEventBusy = false
@@ -116,19 +104,25 @@ local function Setup(towerName: string, winpad: BasePart)
 		winpad:SetAttribute("EndingID", towerName)
 		endingID = towerName
 	end
-	
+
 	-- Figure out the acronym of the tower this winpad belongs too
 	-- A winpad inside of the tower folder will have this value implicitely figured out automatically (unless explicetely defined otherwise, though I'm not sure why you would want to do that lol)
 	-- A winpad outside of the tower folder must explicitely define this property (or else error)
 	local parentTower = Attributes:GetString(winpad, "ParentTower") or ""
 	if parentTower == "" then
-		assert(towerName ~= "", `Could not setup winpad {winpad:GetFullName()} because its parent tower is undefined`)
+		assert(
+			towerName ~= "",
+			`Could not setup winpad {winpad:GetFullName()} because its parent tower is undefined`
+		)
 		winpad:SetAttribute("ParentTower", towerName)
 	end
 
 	-- Get the tower this winpad says it belongs to
 	local tower: TowerInfo? = DataInfo.TowerInfo[towerName]
-	assert(tower, `Could not set up winpad {winpad:GetFullName()} because its parent tower does not exist`)
+	assert(
+		tower,
+		`Could not set up winpad {winpad:GetFullName()} because its parent tower does not exist`
+	)
 
 	-- Construct the ending object,
 	local ending: EndingInfo = {
@@ -137,32 +131,43 @@ local function Setup(towerName: string, winpad: BasePart)
 		BadgeID = Attributes:GetInt(winpad, "BadgeID") or 0,
 		PreventTowerBadge = Attributes:GetBoolean(winpad, "PreventTowerBadge") or false,
 		ParentTower = towerName,
-		WinroomMarker = Attributes:GetString(winpad, "WinroomMarker") or Attributes:GetString(winpad, "Winroom") or ""
+		WinroomMarker = Attributes:GetString(winpad, "WinroomMarker")
+			or Attributes:GetString(winpad, "Winroom")
+			or "",
 	}
-	
+
 	-- and set it
 	tower.Endings[endingID] = ending
 
 	winpad.Touched:Connect(function(hit)
 		local isPlayer, playerName = Util:IsPlayerPart(hit)
 		local player: PlayerInfo = DataInfo.PlayerInfo[playerName]
-		if not isPlayer and player and player.TouchEventBusy then 
+		if not isPlayer and player and player.TouchEventBusy then
 			return
 		end
-		
+
 		-- Guard clause to prevent player from winning while dead
 		if player and not Util:IsPlayerAlive(player.Player.Character) then
 			return
 		end
-		
+
 		PlayerTouchedWinpad(playerName, towerName, endingID)
 	end)
-	
 end
 
-function WinpadManager:InitWinpad(towerName: string, winpad: BasePart)
+local function InitWinpad(towerName: string, winpad: BasePart)
 	Setup(towerName, winpad)
 	table.insert(WinpadManager.Winpads, winpad)
+end
+
+function WinpadManager:InitWinpads()
+	for _, tower in Towers:GetChildren() do
+		for _, descendant in tower:GetDescendants() do
+			if descendant.Name == "WinPad" and descendant:IsA("BasePart") then
+				InitWinpad(tower.Name, descendant)
+			end
+		end
+	end
 end
 
 return WinpadManager

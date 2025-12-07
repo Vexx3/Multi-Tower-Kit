@@ -1,4 +1,12 @@
 --!strict
+
+--[=[
+	Sends Discord webhook notifications for tower clears, including boosts and
+	formatted time.
+
+	@class Webhook
+]=]
+
 local HttpService = game:GetService("HttpService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
@@ -24,27 +32,33 @@ local function formatWebhookMessage(
 		:gsub("{EndingName}", endingName)
 		:gsub("{DifficultyEmoji}", difficultyEmoji or "")
 		:gsub("{Time}", formattedTime)
-	
+
 	if boostList ~= "" then
-		local boostsMessage = Config.WEBHOOK_BOOSTS_USED
-			:gsub("{BoostList}", boostList)
+		local boostsMessage = Config.WEBHOOK_BOOSTS_USED:gsub("{BoostList}", boostList)
 		formatted = `{formatted}{boostsMessage}`
 	end
-	
+
 	return formatted
 end
 
+--[=[
+	Posts a webhook message for a tower completion if webhooks are enabled.
+
+	@within Webhook
+]=]
 function Webhook:SendMessage(player: Types.PlayerInfo, endingName: string, difficultyName: string)
 	if not Config.WEBHOOKS_ENABLED then
 		return
 	end
-	
+
 	local boostList = Util:FormatBoosts(player.BoostItemNames)
 	local endingDifficulty = Util:GetDifficulty(difficultyName)
 	local formattedTime = Util:FormatTimer(player.TowerTimer)
-	
-	local playerName = if Config.USE_DISPLAY_NAME then player.Player.DisplayName else player.Player.Name
-	
+
+	local playerName = if Config.USE_DISPLAY_NAME
+		then player.Player.DisplayName
+		else player.Player.Name
+
 	local message = formatWebhookMessage(
 		Config.WEBHOOK_NORMAL_MESSAGE,
 		playerName,
@@ -53,25 +67,23 @@ function Webhook:SendMessage(player: Types.PlayerInfo, endingName: string, diffi
 		formattedTime,
 		boostList
 	)
-	
+
 	local isSC = endingDifficulty.GlobalAnnouncement
-		
-	local webhookLink = 
-		if isSC then 
-			HttpService:GetSecret("SC_WEBHOOK") 
-		else 
-			HttpService:GetSecret("NORMAL_WEBHOOK")
-	
+
+	local webhookLink = if isSC
+		then HttpService:GetSecret("SC_WEBHOOK")
+		else HttpService:GetSecret("NORMAL_WEBHOOK")
+
 	local data = {
-		["content"] = message
+		["content"] = message,
 	}
-	
+
 	data = HttpService:JSONEncode(data)
-	
+
 	local success, response = pcall(function()
 		return HttpService:PostAsync(webhookLink, data)
 	end)
-	
+
 	if not success then
 		Util:Warn(`Failed to send webhook message: {response}`)
 	end

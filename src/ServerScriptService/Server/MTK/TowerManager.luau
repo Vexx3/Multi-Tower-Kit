@@ -1,38 +1,43 @@
-local BadgeService = game:GetService("BadgeService")
+--[=[
+	Core server manager for individual tower lifecycle: registers tower metadata,
+	loads client objects, teleports players, and exposes simple APIs for other
+	systems to load towers.
+
+	@class TowerManager
+	@server
+]=]
+
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local ServerScriptService = game:GetService("ServerScriptService")
 local ServerStorage = game:GetService("ServerStorage")
 
 local GameData = ReplicatedStorage.GameData
-local RealmData = ServerScriptService.RealmData
 local Shared = ReplicatedStorage.Shared
 
-local Announcements = require("../Logging/Announcements")
 local Attributes = require("../Utils/Attributes")
 local Config = require(GameData.Config)
 local DataInfo = require("./DataInfo")
-local PlayerState = require("../Core/PlayerState")
 local Teleport = require("../Utils/Teleport")
 local Types = require(Shared.Types)
 local Util = require(Shared.Util)
-local WinpadManager = require("./WinpadManager")
 local ZapServer = require("../../ZapServer")
 
-type Dictionary<T> = Types.Dictionary<T>
 type PlayerInfo = Types.PlayerInfo
 type TowerInfo = Types.TowerInfo
-type TowerRush = Types.TowerRush
 
 local Towers = workspace.Towers
 local ClientObjectsFolder = ServerStorage.TowerClientObjects
 local TowerCheckpoints = ServerStorage.TowerCheckpoints
 
-local TowerRushes: Dictionary<TowerRush> = require(RealmData.TowerRushes)
-
 local TowerManager = {}
 
--- Loads a tower by loading the COs, teleporting the player to the tower, and resetting their timer if needed
-function TowerManager:PlayerLoadTower(playerName: string, towerName: string, resetTimer: boolean)	
+--[=[
+	Load a tower for a player, cloning client objects, teleporting them to the
+	spawn, and optionally resetting their timers and boost state.
+
+	@within TowerManager
+	@param resetTimer boolean -- true to reset tower timer and boost flags
+]=]
+function TowerManager:PlayerLoadTower(playerName: string, towerName: string, resetTimer: boolean)
 	-- Get the player and tower info objects being referenced
 	local player: PlayerInfo? = DataInfo.PlayerInfo[playerName]
 	local tower: TowerInfo? = DataInfo.TowerInfo[towerName]
@@ -96,79 +101,20 @@ function TowerManager:PlayerLoadTower(playerName: string, towerName: string, res
 	end
 end
 
-function TowerManager:PlayerLoadTowerRush(playerName: string, towerRushName: string)
-	-- Get the player and tower rush info objects being referenced
-	local player: PlayerInfo? = DataInfo.PlayerInfo[playerName]
-	local towerRush: TowerRush? = TowerRushes[towerRushName]
-
-	if player and towerRush then
-		-- If the player is already currently loading a tower, don't load this tower rush again
-		if player.IsLoadingTower then
-			return
-		end
-
-		-- Set the player info's appropriate information
-		player.CurrentTowerRush = towerRushName
-		player.CurrentTowerRushIndex = 1
-		player.BoostItemUsed = false
-		player.BoostItemNames = {}
-
-		-- Get the first tower in the tower rush and load it
-		local firstTower = towerRush.Towers[1]
-		local towerCount = #towerRush.Towers
-		TowerManager:PlayerLoadTower(playerName, firstTower, true)
-		ZapServer.UpdateTowerRush.Fire(player.Player, 1, towerCount)
-	end
-
-	if not towerRush then
-		Util:Warn(`Unknown tower rush "{towerRushName}"`)
-	end
-end
-
-function TowerManager:AdvanceTowerRush(playerName: string)
-	local player: PlayerInfo? = DataInfo.PlayerInfo[playerName]
-	if not player then
-		return
-	end
-
-	local towerRush: TowerRush? = TowerRushes[player.CurrentTowerRush]
-	if not towerRush then
-		return
-	end
-
-	local towerCount = #towerRush.Towers
-	if player.CurrentTowerRushIndex == towerCount then
-		-- The player is at the end of the tower rush
-
-		-- Win announcement
-		Announcements:WinAnnouncement(player, towerRush.Title, towerRush.Difficulty)
-
-		if towerRush.BadgeID ~= 0 then
-			BadgeService:AwardBadge(player.Player.UserId, towerRush.BadgeID)
-		end
-		PlayerState:TeleportToWinroom(player, towerRush.WinroomMarker)
-	else
-		-- The player is not at the end yet
-		-- Advance to the next tower
-		player.CurrentTowerRushIndex += 1
-
-		-- And load it
-		local towerName = towerRush.Towers[player.CurrentTowerRushIndex]
-		TowerManager:PlayerLoadTower(playerName, towerName, false)
-		ZapServer.UpdateTowerRush.Fire(player.Player, player.CurrentTowerRushIndex, towerCount)
-	end
-end
-
 local function InitTower(towerFolder: Instance)
 	local acronym = towerFolder.Name
 
 	-- Get the SpawnLocation
 	local spawnLocation = towerFolder:FindFirstChild("SpawnLocation")
-	assert(spawnLocation and spawnLocation:IsA("BasePart"), `{acronym} does not have a SpawnLocation!`)
+	assert(
+		spawnLocation and spawnLocation:IsA("BasePart"),
+		`{acronym} does not have a SpawnLocation!`
+	)
 
 	-- Get the ClientSidedObjects folder
 	local clientObjects = (
-		towerFolder:FindFirstChild("ClientSidedObjects") or ClientObjectsFolder:FindFirstChild(acronym)
+		towerFolder:FindFirstChild("ClientSidedObjects")
+		or ClientObjectsFolder:FindFirstChild(acronym)
 	)
 
 	-- Get the Checkpoints
@@ -196,7 +142,7 @@ local function InitTower(towerFolder: Instance)
 			local checkpointName = tostring(k)
 			local checkpoint = checkpointsFolder:FindFirstChild(checkpointName)
 			assert(checkpoint, `Could not find checkpoint {checkpointName}`)
-			assert(checkpoint:IsA("BasePart"), `Checkpoint {checkpointName} is not a BasePart`)				
+			assert(checkpoint:IsA("BasePart"), `Checkpoint {checkpointName} is not a BasePart`)
 
 			table.insert(checkpointsList, checkpoint)
 			checkpointCount += 1
@@ -248,17 +194,11 @@ local function InitTower(towerFolder: Instance)
 	-- Register the tower object
 	DataInfo.TowerInfo[acronym] = tower
 
-	-- Initialize the winpads
-	-- We do this after registering it so that the winpad may reference it
-	for _, v in towerFolder:GetDescendants() do
-		if v.Name == "WinPad" and v:IsA("BasePart") then
-			WinpadManager:InitWinpad(acronym, v)
-		end
-	end
-
 	return tower
 end
 
+-- Register all towers found in `workspace.Towers`, building the runtime
+-- metadata used elsewhere by MTK.
 function TowerManager:InitTowers()
 	for _, v in Towers:GetChildren() do
 		InitTower(v)

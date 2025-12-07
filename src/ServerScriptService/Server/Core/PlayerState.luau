@@ -1,3 +1,10 @@
+--[=[
+	Handles per-player state transitions such as resetting run data, updating
+	attributes, and sending players to the winroom after a win.
+
+	@class PlayerState
+]=]
+
 local Teams = game:GetService("Teams")
 
 local Teleport = require(".././Utils/Teleport")
@@ -11,6 +18,13 @@ local Markers = workspace.Markers
 
 local PlayerState = {}
 
+--[=[
+	Pushes the latest tower/rush/timer data into player attributes for client
+	consumption.
+
+	@within PlayerState
+	@server
+]=]
 function PlayerState:UpdatePlayerInfoStats(player: PlayerInfo)
 	local boostList = Util:FormatBoosts(player.BoostItemNames)
 
@@ -22,6 +36,11 @@ function PlayerState:UpdatePlayerInfoStats(player: PlayerInfo)
 	player.Player:SetAttribute("BoostItemNames", boostList)
 end
 
+--[=[
+	Resets in-memory player state for a new run and re-syncs attributes.
+
+	@within PlayerState
+]=]
 function PlayerState:ResetPlayerInfo(player: PlayerInfo)
 	player.TowerTimer = 0
 	player.CurrentTower = ""
@@ -37,7 +56,15 @@ function PlayerState:ResetPlayerInfo(player: PlayerInfo)
 	PlayerState:UpdatePlayerInfoStats(player)
 end
 
-function PlayerState:TeleportToWinroom(player: PlayerInfo, winroomMarker: string)
+--[=[
+	Teleports a player to the winroom, unloads their current tower, and clears
+	their run state.
+
+	@within PlayerState
+	@param winroomMarker string -- Optional marker name; defaults to WinroomSpawn
+]=]
+function PlayerState:TeleportToWinroom(player: PlayerInfo, winroomMarker: string?)
+	winroomMarker = winroomMarker or ""
 	player.TouchEventBusy = true
 
 	-- Send player to the winner team and unload the current tower

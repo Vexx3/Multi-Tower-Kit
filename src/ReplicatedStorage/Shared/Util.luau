@@ -5,7 +5,7 @@ local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 -- Get types
-local Types = require(script.Parent.Types)
+local Types = require("./Types")
 
 type List<T> = Types.List<T>
 type Dictionary<T> = Types.Dictionary<T>
@@ -110,16 +110,16 @@ function Util:FormatBoosts(boosts: Dictionary<string>)
 	for _, boostName in boosts do
 		table.insert(boostList, boostName)
 	end
-	
+
 	local hasBoosts = if #boostList > 0 then table.concat(boostList, ", ") else ""
-	
+
 	return hasBoosts
 end
 
 -- made it as a function so it doesn't always get repeated. rn they are only used on markers and portals
 function Util:RegisterTouch(part: BasePart, onTouch: (playerName: string, part: BasePart) -> ())
 	if not part or not part:IsA("BasePart") then
-		return 
+		return
 	end
 
 	part.Touched:Connect(function(hit)

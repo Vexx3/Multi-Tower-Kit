@@ -27,8 +27,7 @@ return function()
 		description = "Unban a player by UserId or username.",
 		permissions = { "ban-player" },
 		arguments = function()
-			return
-				conch.args.string("user", "UserId or username")
+			return conch.args.string("user", "UserId or username")
 		end,
 
 		callback = function(userInput: string | number)
@@ -36,14 +35,14 @@ return function()
 			if not userId then
 				return
 			end
-			
+
 			local success, err = pcall(function()
 				Players:UnbanAsync({
 					UserIds = { userId },
-					ApplyToUniverse = true
+					ApplyToUniverse = true,
 				})
 			end)
-			
+
 			if success then
 				conch.log("normal", `Successfully unbanned: {userInput}`)
 			else
