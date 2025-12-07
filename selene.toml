@@ -1,0 +1,9 @@
+std = "roblox"
+exclude = [
+    "src/ReplicatedStorage/Packages/*",
+    "src/ReplicatedStorage/Framework/*",
+    "src/StarterPlayerScripts/PlayerModule/*",
+    "src/StarterPlayerScripts/MultiTowerClient/ScriptRepo/*"
+]
+[rules]
+global_usage = "allow"

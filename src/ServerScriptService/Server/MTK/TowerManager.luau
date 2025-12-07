@@ -1,0 +1,268 @@
+local BadgeService = game:GetService("BadgeService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local ServerScriptService = game:GetService("ServerScriptService")
+local ServerStorage = game:GetService("ServerStorage")
+
+local GameData = ReplicatedStorage.GameData
+local RealmData = ServerScriptService.RealmData
+local Shared = ReplicatedStorage.Shared
+
+local Announcements = require("../Logging/Announcements")
+local Attributes = require("../Utils/Attributes")
+local Config = require(GameData.Config)
+local DataInfo = require("./DataInfo")
+local PlayerState = require("../Core/PlayerState")
+local Teleport = require("../Utils/Teleport")
+local Types = require(Shared.Types)
+local Util = require(Shared.Util)
+local WinpadManager = require("./WinpadManager")
+local ZapServer = require("../../ZapServer")
+
+type Dictionary<T> = Types.Dictionary<T>
+type PlayerInfo = Types.PlayerInfo
+type TowerInfo = Types.TowerInfo
+type TowerRush = Types.TowerRush
+
+local Towers = workspace.Towers
+local ClientObjectsFolder = ServerStorage.TowerClientObjects
+local TowerCheckpoints = ServerStorage.TowerCheckpoints
+
+local TowerRushes: Dictionary<TowerRush> = require(RealmData.TowerRushes)
+
+local TowerManager = {}
+
+-- Loads a tower by loading the COs, teleporting the player to the tower, and resetting their timer if needed
+function TowerManager:PlayerLoadTower(playerName: string, towerName: string, resetTimer: boolean)	
+	-- Get the player and tower info objects being referenced
+	local player: PlayerInfo? = DataInfo.PlayerInfo[playerName]
+	local tower: TowerInfo? = DataInfo.TowerInfo[towerName]
+	if player and tower then
+		-- If the player is already currently loading a tower, don't do it twice
+		if player.IsLoadingTower then
+			return
+		end
+
+		-- Set the player object's properties appropriately
+		if resetTimer then
+			player.TowerTimer = 0
+			player.BoostItemUsed = false
+			player.BoostItemNames = {}
+		end
+		player.CurrentTower = towerName
+		player.CurrentTowerCheckpoint = 1
+		-- "this player is currently loading a tower, do not attempt to load a tower while this tower loading is in progress"
+		player.IsLoadingTower = true
+
+		-- Forcefully load the character
+		-- should disrupt natural respawning
+		player.Player:LoadCharacter()
+		repeat
+			task.wait(0.05)
+		until player.Player.Character
+		local character = player.Player.Character
+		if character then
+			-- Destroy the forcefield if present
+			local forceField = character:FindFirstChildOfClass("ForceField")
+			if forceField then
+				forceField:Destroy()
+			end
+
+			-- Teleport the player to the tower
+			Teleport:TeleportPlayerToPartWithWait(player.Player, tower.SpawnLocation)
+		end
+
+		-- Delete the ClientSidedObjects folder from the player if it exists, which in this case, shouldn't
+		local oldCOFolder = player.Player:FindFirstChild("ClientSidedObjects")
+		if oldCOFolder then
+			oldCOFolder:Destroy()
+		end
+
+		-- Send over the client objects if they exist
+		-- (If they don't, the tower is truely purist)
+		local purist = true
+		if tower.ClientObjects then
+			purist = false
+			local coFolder = tower.ClientObjects:Clone()
+			coFolder.Name = "ClientSidedObjects"
+			coFolder.Parent = player.Player
+		end
+		ZapServer.LoadTower.Fire(player.Player, towerName, purist, resetTimer)
+
+		player.IsLoadingTower = false
+	end
+
+	if not tower then
+		Util:Warn(`Unknown tower "{towerName}"`)
+	end
+end
+
+function TowerManager:PlayerLoadTowerRush(playerName: string, towerRushName: string)
+	-- Get the player and tower rush info objects being referenced
+	local player: PlayerInfo? = DataInfo.PlayerInfo[playerName]
+	local towerRush: TowerRush? = TowerRushes[towerRushName]
+
+	if player and towerRush then
+		-- If the player is already currently loading a tower, don't load this tower rush again
+		if player.IsLoadingTower then
+			return
+		end
+
+		-- Set the player info's appropriate information
+		player.CurrentTowerRush = towerRushName
+		player.CurrentTowerRushIndex = 1
+		player.BoostItemUsed = false
+		player.BoostItemNames = {}
+
+		-- Get the first tower in the tower rush and load it
+		local firstTower = towerRush.Towers[1]
+		local towerCount = #towerRush.Towers
+		TowerManager:PlayerLoadTower(playerName, firstTower, true)
+		ZapServer.UpdateTowerRush.Fire(player.Player, 1, towerCount)
+	end
+
+	if not towerRush then
+		Util:Warn(`Unknown tower rush "{towerRushName}"`)
+	end
+end
+
+function TowerManager:AdvanceTowerRush(playerName: string)
+	local player: PlayerInfo? = DataInfo.PlayerInfo[playerName]
+	if not player then
+		return
+	end
+
+	local towerRush: TowerRush? = TowerRushes[player.CurrentTowerRush]
+	if not towerRush then
+		return
+	end
+
+	local towerCount = #towerRush.Towers
+	if player.CurrentTowerRushIndex == towerCount then
+		-- The player is at the end of the tower rush
+
+		-- Win announcement
+		Announcements:WinAnnouncement(player, towerRush.Title, towerRush.Difficulty)
+
+		if towerRush.BadgeID ~= 0 then
+			BadgeService:AwardBadge(player.Player.UserId, towerRush.BadgeID)
+		end
+		PlayerState:TeleportToWinroom(player, towerRush.WinroomMarker)
+	else
+		-- The player is not at the end yet
+		-- Advance to the next tower
+		player.CurrentTowerRushIndex += 1
+
+		-- And load it
+		local towerName = towerRush.Towers[player.CurrentTowerRushIndex]
+		TowerManager:PlayerLoadTower(playerName, towerName, false)
+		ZapServer.UpdateTowerRush.Fire(player.Player, player.CurrentTowerRushIndex, towerCount)
+	end
+end
+
+local function InitTower(towerFolder: Instance)
+	local acronym = towerFolder.Name
+
+	-- Get the SpawnLocation
+	local spawnLocation = towerFolder:FindFirstChild("SpawnLocation")
+	assert(spawnLocation and spawnLocation:IsA("BasePart"), `{acronym} does not have a SpawnLocation!`)
+
+	-- Get the ClientSidedObjects folder
+	local clientObjects = (
+		towerFolder:FindFirstChild("ClientSidedObjects") or ClientObjectsFolder:FindFirstChild(acronym)
+	)
+
+	-- Get the Checkpoints
+	local checkpointsFolder = (
+		towerFolder:FindFirstChild("Checkpoints") or TowerCheckpoints:FindFirstChild(acronym)
+	)
+	-- The checkpoints exist but isn't in ServerStorage
+	if checkpointsFolder and checkpointsFolder.Parent ~= TowerCheckpoints then
+		checkpointsFolder.Name = acronym
+		checkpointsFolder.Parent = TowerCheckpoints
+
+		if Config.CHECKPOINTS_WORKSPACE_WARNING then
+			Util:Warn(
+				`{acronym} is storing it's checkpoints in the workspace! consider moving the checkpoints folder to ServerStorage.TowerCheckpoints`
+			)
+		end
+	end
+
+	local checkpointsList = {}
+	local checkpointCount = 0
+
+	if checkpointsFolder then
+		-- There is a checkpoints folder! get it's contents
+		for k, _ in checkpointsFolder:GetChildren() do
+			local checkpointName = tostring(k)
+			local checkpoint = checkpointsFolder:FindFirstChild(checkpointName)
+			assert(checkpoint, `Could not find checkpoint {checkpointName}`)
+			assert(checkpoint:IsA("BasePart"), `Checkpoint {checkpointName} is not a BasePart`)				
+
+			table.insert(checkpointsList, checkpoint)
+			checkpointCount += 1
+		end
+	end
+	-- No checkpoints found, throw a warning
+	if (checkpointCount == 0) and Config.CHECKPOINTS_MISSING_WARNING then
+		Util:Warn(`{acronym} has no checkpoints!`)
+	end
+
+	-- Construct the tower object
+	local tower: TowerInfo = {
+		Name = Attributes:GetString(towerFolder, "ProperName") or acronym,
+		Difficulty = Attributes:GetString(towerFolder, "Difficulty") or "default",
+		BadgeID = Attributes:GetInt(towerFolder, "BadgeID") or 0,
+		TowerPoints = Attributes:GetInt(towerFolder, "TowerPoints") or 1,
+
+		Folder = towerFolder,
+		SpawnLocation = spawnLocation :: BasePart,
+		ClientObjects = clientObjects,
+
+		Endings = {},
+
+		MinimumTime = Attributes:GetNumber(towerFolder, "MinimumTime") or 0,
+		Checkpoints = checkpointsList,
+		CheckpointCount = checkpointCount,
+	}
+	-- If the tower has client objects (which it most likely has), send it to the COFolder
+	if tower.ClientObjects then
+		tower.ClientObjects.Name = acronym
+
+		-- v6 collision groups
+		for _, instance in tower.ClientObjects:GetDescendants() do
+			if instance:IsA("BasePart") then
+				if instance.CollisionGroup == "Default" then
+					instance.CollisionGroup = "ClientObjects"
+				end
+			end
+		end
+
+		tower.ClientObjects.Parent = ClientObjectsFolder
+	end
+
+	-- Having no minimum time is a security risk, warn the user for that
+	if tower.MinimumTime == 0 and Config.NO_MINIMUM_TIME_WARNING then
+		Util:Warn(`{acronym} has no minumum time, it is vulnerable to being cheesed!`)
+	end
+
+	-- Register the tower object
+	DataInfo.TowerInfo[acronym] = tower
+
+	-- Initialize the winpads
+	-- We do this after registering it so that the winpad may reference it
+	for _, v in towerFolder:GetDescendants() do
+		if v.Name == "WinPad" and v:IsA("BasePart") then
+			WinpadManager:InitWinpad(acronym, v)
+		end
+	end
+
+	return tower
+end
+
+function TowerManager:InitTowers()
+	for _, v in Towers:GetChildren() do
+		InitTower(v)
+	end
+end
+
+return TowerManager

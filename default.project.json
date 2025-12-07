@@ -1,0 +1,37 @@
+{
+  "name": "Multi Tower Kit",
+  "tree": {
+    "$className": "DataModel",
+    "ReplicatedStorage": {
+      "$attributes": {
+        "Emitter2D_Version": 1.26
+      },
+      "$ignoreUnknownInstances": true,
+      "$path": "src/ReplicatedStorage"
+    },
+    "ServerScriptService": {
+      "$ignoreUnknownInstances": true,
+      "$path": "src/ServerScriptService"
+    },
+    "ServerStorage": {
+      "$ignoreUnknownInstances": true,
+      "$path": "src/ServerStorage"
+    },
+    "StarterPlayer": {
+      "StarterPlayerScripts": {
+        "$ignoreUnknownInstances": true,
+        "$path": "src/StarterPlayerScripts"
+      },
+      "$properties": {
+        "AutoJumpEnabled": false,
+        "CameraMaxZoomDistance": 128.0,
+        "GameSettingsAvatar": "R6",
+        "UserEmotesEnabled": false
+      }
+    },
+    "Teams": {
+      "$ignoreUnknownInstances": true,
+      "$path": "src/Teams"
+    }
+  }
+}

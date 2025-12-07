@@ -1,0 +1,118 @@
+{
+  "className": "ParticleEmitter",
+  "properties": {
+    "Lifetime": {
+      "NumberRange": [
+        0.5,
+        1.0
+      ]
+    },
+    "Rate": 500.0,
+    "Color": {
+      "ColorSequence": {
+        "keypoints": [
+          {
+            "time": 0.0,
+            "color": [
+              1.0,
+              0.0,
+              0.015686275
+            ]
+          },
+          {
+            "time": 0.09983361,
+            "color": [
+              1.0,
+              0.0,
+              0.8352941
+            ]
+          },
+          {
+            "time": 0.22462562,
+            "color": [
+              0.5019608,
+              0.0,
+              1.0
+            ]
+          },
+          {
+            "time": 0.33943427,
+            "color": [
+              0.06666667,
+              0.0,
+              1.0
+            ]
+          },
+          {
+            "time": 0.47920132,
+            "color": [
+              0.0,
+              0.81960785,
+              1.0
+            ]
+          },
+          {
+            "time": 0.59567386,
+            "color": [
+              0.0,
+              1.0,
+              0.41568628
+            ]
+          },
+          {
+            "time": 0.7321131,
+            "color": [
+              0.8352941,
+              1.0,
+              0.0
+            ]
+          },
+          {
+            "time": 0.87520796,
+            "color": [
+              1.0,
+              0.7019608,
+              0.0
+            ]
+          },
+          {
+            "time": 1.0,
+            "color": [
+              1.0,
+              0.0,
+              0.0
+            ]
+          }
+        ]
+      }
+    },
+    "LightInfluence": 1.0,
+    "Speed": {
+      "NumberRange": [
+        16.0,
+        16.0
+      ]
+    },
+    "SpreadAngle": [
+      360.0,
+      360.0
+    ],
+    "Size": {
+      "NumberSequence": {
+        "keypoints": [
+          {
+            "time": 0.0,
+            "value": 0.2,
+            "envelope": 0.0
+          },
+          {
+            "time": 1.0,
+            "value": 0.2,
+            "envelope": 0.0
+          }
+        ]
+      }
+    },
+    "SourceAssetId": 3098834330.0
+  }
+}
