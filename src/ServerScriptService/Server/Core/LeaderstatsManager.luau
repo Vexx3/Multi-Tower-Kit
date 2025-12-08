@@ -58,11 +58,7 @@ end
 	@within LeaderstatsManager
 	@param stat number -- amount to add to the Towers stat
 ]=]
-function LeaderstatsManager:UpdatePlayerTowerData(
-	player: Player,
-	towerInfo: Types.TowerInfo,
-	stat: number
-)
+function LeaderstatsManager:SetTowerStat(player: Player, towerInfo: Types.TowerInfo, stat: number)
 	local info: PlayerInfo = Players[player.Name]
 	if not info then
 		return
@@ -73,14 +69,15 @@ function LeaderstatsManager:UpdatePlayerTowerData(
 		return
 	end
 
-	if data.CompletedTowers[towerInfo.Name] then
+	local towerStat = data.TowerStats[towerInfo.Name]
+
+	-- Only award the global Towers stat on the first recorded win for this tower
+	if towerStat and towerStat.Wins and towerStat.Wins > 0 then
 		return
 	end
 
 	data.Towers += stat
 	info.TowerStat.Value = data.Towers
-
-	data.CompletedTowers[towerInfo.Name] = towerInfo.Difficulty
 end
 
 return LeaderstatsManager

@@ -3,6 +3,14 @@
 --                     Multi-Tower Kit Configuration
 --==============================================================--
 
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local Shared = ReplicatedStorage.Shared
+
+local Types = require(Shared.Types)
+
+type TowerStat = Types.TowerStat
+
 local Config = {
 
 	----------------------------------------------------------------
@@ -78,13 +86,13 @@ local Config = {
 	-- Keys used for player data storage. The studio key is used when
 	-- testing in Roblox Studio.
 	DATA_STORE_KEY = "Production",
-	DATA_STORE_KEY_STUDIO = "Test3",
+	DATA_STORE_KEY_STUDIO = "Alpha10",
 
 	-- Default player data template. Only modify this if you fully
 	-- understand the implications on data structure and migration.
 	DEFAULT_PLAYER_DATA = {
 		Towers = 0,
-		CompletedTowers = {} :: { [string]: string }, -- stores tower names
+		TowerStats = {} :: { [string]: TowerStat },
 	},
 
 	----------------------------------------------------------------
@@ -92,7 +100,7 @@ local Config = {
 	----------------------------------------------------------------
 
 	-- Enables or disables outgoing webhook notifications.
-	WEBHOOKS_ENABLED = true,
+	WEBHOOKS_ENABLED = false,
 
 	-- Template for the standard win announcement webhook.
 	WEBHOOK_NORMAL_MESSAGE = "**{PlayerName}** has beaten **{EndingName} [{DifficultyEmoji}]** in `{Time}`",

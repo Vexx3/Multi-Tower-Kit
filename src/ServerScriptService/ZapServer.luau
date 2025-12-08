@@ -102,7 +102,7 @@ local function load(data: {
 	inst: { Instance },
 	outgoing_ids: { number },
 	incoming_ids: { number },
-})
+	})
 	outgoing_buff = data.buff
 	outgoing_used = data.used
 	outgoing_size = data.size
@@ -236,33 +236,6 @@ export type ClientWinMessageInfo = ({
 	["FancyFont"]: (boolean),
 	["Global"]: (boolean),
 })
-export type TowerInfo = ({
-	["Name"]: (string),
-	["Difficulty"]: (string),
-	["BadgeID"]: (number),
-	["Folder"]: (Instance),
-	["SpawnLocation"]: (BasePart),
-	["ClientObjects"]: ((Instance)?),
-	["Endings"]: ({ [(string)]: ({
-		["Name"]: (string),
-		["Difficulty"]: (string),
-		["BadgeID"]: (number),
-		["PreventTowerBadge"]: (boolean),
-		["ParentTower"]: (string),
-		["WinroomMarker"]: (string),
-	}) }),
-	["MinimumTime"]: (number),
-	["Checkpoints"]: ({ (BasePart) }),
-	["CheckpointCount"]: (number),
-})
-export type EndingInfo = ({
-	["Name"]: (string),
-	["Difficulty"]: (string),
-	["BadgeID"]: (number),
-	["PreventTowerBadge"]: (boolean),
-	["ParentTower"]: (string),
-	["WinroomMarker"]: (string),
-})
 
 local function SendEvents()
 	for player, outgoing in player_map do
@@ -332,26 +305,26 @@ table.freeze(polling_queues_unreliable)
 local returns = {
 	SendEvents = SendEvents,
 	UpdateTowerTimer = {
-		Fire = function(Player: Player, time: (number))
+		Fire = function(Player: Player, _time: (number))
 			load_empty()
 			alloc(4)
-			buffer.writeu32(outgoing_buff, outgoing_apos, time)
+			buffer.writef32(outgoing_buff, outgoing_apos, _time)
 			local buff = buffer.create(outgoing_used)
 			buffer.copy(buff, 0, outgoing_buff, 0, outgoing_used)
 			unreliable[1]:FireClient(Player, buff, outgoing_inst)
 		end,
-		FireAll = function(time: (number))
+		FireAll = function(_time: (number))
 			load_empty()
 			alloc(4)
-			buffer.writeu32(outgoing_buff, outgoing_apos, time)
+			buffer.writef32(outgoing_buff, outgoing_apos, _time)
 			local buff = buffer.create(outgoing_used)
 			buffer.copy(buff, 0, outgoing_buff, 0, outgoing_used)
 			unreliable[1]:FireAllClients(buff, outgoing_inst)
 		end,
-		FireExcept = function(Except: Player, time: (number))
+		FireExcept = function(Except: Player, _time: (number))
 			load_empty()
 			alloc(4)
-			buffer.writeu32(outgoing_buff, outgoing_apos, time)
+			buffer.writef32(outgoing_buff, outgoing_apos, _time)
 			local buff = buffer.create(outgoing_used)
 			buffer.copy(buff, 0, outgoing_buff, 0, outgoing_used)
 			for _, player in Players:GetPlayers() do
@@ -360,20 +333,20 @@ local returns = {
 				end
 			end
 		end,
-		FireList = function(List: { [unknown]: Player }, time: (number))
+		FireList = function(List: { [unknown]: Player }, _time: (number))
 			load_empty()
 			alloc(4)
-			buffer.writeu32(outgoing_buff, outgoing_apos, time)
+			buffer.writef32(outgoing_buff, outgoing_apos, _time)
 			local buff = buffer.create(outgoing_used)
 			buffer.copy(buff, 0, outgoing_buff, 0, outgoing_used)
 			for _, player in List do
 				unreliable[1]:FireClient(player, buff, outgoing_inst)
 			end
 		end,
-		FireSet = function(Set: { [Player]: any }, time: (number))
+		FireSet = function(Set: { [Player]: any }, _time: (number))
 			load_empty()
 			alloc(4)
-			buffer.writeu32(outgoing_buff, outgoing_apos, time)
+			buffer.writef32(outgoing_buff, outgoing_apos, _time)
 			local buff = buffer.create(outgoing_used)
 			buffer.copy(buff, 0, outgoing_buff, 0, outgoing_used)
 			for player in Set do
@@ -687,7 +660,7 @@ local returns = {
 			["Color"]: (Color3),
 			["FancyFont"]: (boolean),
 			["Global"]: (boolean),
-		}))
+			}))
 			load_player(Player)
 			alloc(1)
 			buffer.writeu8(outgoing_buff, outgoing_apos, 4)
@@ -755,7 +728,7 @@ local returns = {
 			["Color"]: (Color3),
 			["FancyFont"]: (boolean),
 			["Global"]: (boolean),
-		}))
+			}))
 			load_empty()
 			alloc(1)
 			buffer.writeu8(outgoing_buff, outgoing_apos, 4)
@@ -830,7 +803,7 @@ local returns = {
 			["Color"]: (Color3),
 			["FancyFont"]: (boolean),
 			["Global"]: (boolean),
-		}))
+			}))
 			load_empty()
 			alloc(1)
 			buffer.writeu8(outgoing_buff, outgoing_apos, 4)
@@ -907,7 +880,7 @@ local returns = {
 			["Color"]: (Color3),
 			["FancyFont"]: (boolean),
 			["Global"]: (boolean),
-		}))
+			}))
 			load_empty()
 			alloc(1)
 			buffer.writeu8(outgoing_buff, outgoing_apos, 4)
@@ -982,7 +955,7 @@ local returns = {
 			["Color"]: (Color3),
 			["FancyFont"]: (boolean),
 			["Global"]: (boolean),
-		}))
+			}))
 			load_empty()
 			alloc(1)
 			buffer.writeu8(outgoing_buff, outgoing_apos, 4)

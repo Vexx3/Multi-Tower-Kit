@@ -133,7 +133,26 @@ function Util:FormatTimer(time: number)
 		return if n < 10 then `0{n}` else tostring(n)
 	end
 
-	return `{m}:{pad2(s)}.{pad2(ms)}`
+	return `{pad2(m)}:{pad2(s)}.{pad2(ms)}`
+end
+
+function Util:FormatDuration(time: number)
+	time = math.max(time, 0)
+	local totalSeconds = math.floor(time + 0.5)
+	local seconds = totalSeconds % 60
+	local minutes = math.floor(totalSeconds / 60) % 60
+	local hours = math.floor(totalSeconds / 3600)
+
+	local parts = {}
+	if hours > 0 then
+		table.insert(parts, `{hours}h`)
+	end
+	if minutes > 0 or hours > 0 then
+		table.insert(parts, `{minutes}m`)
+	end
+	table.insert(parts, `{seconds}s`)
+
+	return table.concat(parts, " ")
 end
 
 function Util:FormatBoosts(boosts: Dictionary<string>)

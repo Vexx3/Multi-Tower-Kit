@@ -1,5 +1,4 @@
 --!strict
--- Written by fanofpixels
 
 -- Services
 local Players = game:GetService("Players")
@@ -27,6 +26,7 @@ local LeaderstatsManager = require("./Core/LeaderstatsManager")
 local PlayerData = require("./Core/PlayerData")
 local PlayerState = require("./Core/PlayerState")
 local PortalHandler = require("@self/PortalHandler")
+local TowerData = require("./Core/PlayerData/TowerData")
 local TowerManager = require("@self/TowerManager")
 local TowerRushManager = require("@self/TowerRushManager")
 local Util = require(Shared.Util)
@@ -39,13 +39,30 @@ local Markers = workspace:FindFirstChild("Markers")
 local StarterPackStudio = ServerStorage:FindFirstChild("StarterPackStudio")
 local EverpresentCOs = TowerFolder:FindFirstChild("EverpresentCOs")
 
--- Game data (including modules supplying)
+-- Game data
 local Config = require(ReplicatedStorage.GameData.Config)
 local DataInfo = require("@self/DataInfo")
 local WinpadMaterials: List<Enum.Material> = Enum.Material:GetEnumItems()
 
 local MTK = {}
 MTK.TowerManager = TowerManager
+
+local function getCurrentTowerRunTime(player: PlayerInfo)
+	local startTime = player.CurrentTowerStartTimer or 0
+	return math.max(player.TowerTimer - startTime, 0)
+end
+
+local function recordTimeSpent(player: PlayerInfo)
+	if player.CurrentTower == "" then
+		return
+	end
+
+	local runTime = getCurrentTowerRunTime(player)
+	if runTime > 0 then
+		TowerData:AddTowerTimeSpent(player.Player, player.CurrentTower, runTime)
+	end
+	player.CurrentTowerStartTimer = player.TowerTimer
+end
 
 local function EverpresentCOsRequested(playerInstance: Player): (boolean, Folder?)
 	local player: PlayerInfo? = DataInfo.PlayerInfo[playerInstance.Name]
@@ -67,6 +84,9 @@ end
 
 local function PlayerRequestedRestart(playerInstance: Player)
 	local player: PlayerInfo = DataInfo.PlayerInfo[playerInstance.Name]
+	if not player then
+		return
+	end
 
 	-- If the player is attempting to restart after the cooldown has ended
 	if player.GameTimer - player.LastRestart >= Config.RESTART_COOLDOWN then
@@ -75,6 +95,8 @@ local function PlayerRequestedRestart(playerInstance: Player)
 		if player.CurrentTower == "" then
 			return
 		end
+
+		recordTimeSpent(player)
 
 		if player.CurrentTowerRush == "" then
 			TowerManager:LoadTower(playerInstance.Name, player.CurrentTower, true)
@@ -170,6 +192,7 @@ local function PlayerAdded(player: Player)
 		BoostItemNames = {},
 		BoostItemUsed = false,
 		TowerTimer = 0,
+		CurrentTowerStartTimer = 0,
 
 		CurrentTowerRush = "",
 		CurrentTowerRushIndex = 0,

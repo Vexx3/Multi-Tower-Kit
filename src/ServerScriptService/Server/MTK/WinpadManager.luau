@@ -10,6 +10,7 @@ local Attributes = require("../Utils/Attributes")
 local DataInfo = require("./DataInfo")
 local LeaderstatsManager = require("../Core/LeaderstatsManager")
 local PlayerState = require("../Core/PlayerState")
+local TowerData = require("../Core/PlayerData/TowerData")
 local TowerRushManager = require("./TowerRushManager")
 local Types = require(Shared.Types)
 local Util = require(Shared.Util)
@@ -26,6 +27,11 @@ local WinpadParticles = ServerStorage.WinpadParticles
 local WinpadManager = {}
 WinpadManager.Winpads = {} :: List<BasePart>
 
+local function getCurrentTowerRunTime(player: PlayerInfo)
+	local startTime = player.CurrentTowerStartTimer or 0
+	return math.max(player.TowerTimer - startTime, 0)
+end
+
 local function PlayerTouchedWinpad(playerName: string, towerName: string, endingID: string)
 	local player: PlayerInfo = DataInfo.PlayerInfo[playerName]
 	local tower: TowerInfo = DataInfo.TowerInfo[towerName]
@@ -36,6 +42,7 @@ local function PlayerTouchedWinpad(playerName: string, towerName: string, ending
 	if player.TouchEventBusy then
 		return
 	end
+
 	player.TouchEventBusy = true
 
 	local ending: EndingInfo = tower.Endings[endingID]
@@ -57,7 +64,6 @@ local function PlayerTouchedWinpad(playerName: string, towerName: string, ending
 
 	if player.CurrentTowerRush == "" then
 		-- The player is doing a singular tower
-
 		-- The info that will be used in the win message
 		local endingDifficultyName = tower.Difficulty
 		local endingName = tower.Name
@@ -81,16 +87,18 @@ local function PlayerTouchedWinpad(playerName: string, towerName: string, ending
 
 		-- only adjust tower points if the player won the tower, not the secret ending.
 		if endingID == towerName then
-			LeaderstatsManager:UpdatePlayerTowerData(player.Player, tower, tower.TowerPoints)
-		end
+			local runTime = getCurrentTowerRunTime(player)
+			TowerData:RecordTowerWin(player.Player, towerName, runTime, player.BoostItemUsed)
 
+			LeaderstatsManager:SetTowerStat(player.Player, tower, tower.TowerPoints)
+		end
+		
 		PlayerState:TeleportToWinroom(player, endingWinroom)
 	else
 		-- The player is doing a tower rush
 		TowerRushManager:AdvanceTowerRush(playerName)
 	end
 
-	task.wait(0.1)
 	player.TouchEventBusy = false
 end
 

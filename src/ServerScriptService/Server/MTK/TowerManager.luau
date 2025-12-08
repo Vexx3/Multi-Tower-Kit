@@ -1,3 +1,4 @@
+--!strict
 --[=[
 	Core server manager for individual tower lifecycle: registers tower metadata,
 	loads client objects, teleports players, and exposes simple APIs for other
@@ -16,6 +17,7 @@ local Shared = ReplicatedStorage.Shared
 local Attributes = require("../Utils/Attributes")
 local Config = require(GameData.Config)
 local DataInfo = require("./DataInfo")
+local TowerData = require("../Core/PlayerData/TowerData")
 local Types = require(Shared.Types)
 local Util = require(Shared.Util)
 local ZapServer = require("../../ZapServer")
@@ -52,10 +54,13 @@ function TowerManager:LoadTower(playerName: string, towerName: string, resetTime
 			player.BoostItemUsed = false
 			player.BoostItemNames = {}
 		end
+		player.CurrentTowerStartTimer = player.TowerTimer
 		player.CurrentTower = towerName
 		player.CurrentTowerCheckpoint = 1
 		-- "this player is currently loading a tower, do not attempt to load a tower while this tower loading is in progress"
 		player.IsLoadingTower = true
+
+		TowerData:IncrementTowerAttempt(player.Player, towerName)
 
 		-- Forcefully load the character
 		-- should disrupt natural respawning
@@ -76,8 +81,8 @@ function TowerManager:LoadTower(playerName: string, towerName: string, resetTime
 			coFolder.Name = "ClientSidedObjects"
 			coFolder.Parent = player.Player
 		end
+		
 		ZapServer.LoadTower.Fire(player.Player, towerName, purist, resetTimer)
-
 		player.IsLoadingTower = false
 	end
 

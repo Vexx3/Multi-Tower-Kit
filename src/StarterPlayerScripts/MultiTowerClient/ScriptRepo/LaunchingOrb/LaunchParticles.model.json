@@ -1,14 +1,42 @@
 {
   "className": "ParticleEmitter",
   "properties": {
-    "LightEmission": 1.0,
-    "Lifetime": {
+    "VelocityInheritance": 0.800000011920929,
+    "Size": {
+      "NumberSequence": {
+        "keypoints": [
+          {
+            "time": 0.0,
+            "value": 3.0,
+            "envelope": 0.0
+          },
+          {
+            "time": 1.0,
+            "value": 3.0,
+            "envelope": 0.0
+          }
+        ]
+      }
+    },
+    "RotSpeed": {
       "NumberRange": [
-        2.0,
-        2.0
+        -360.0,
+        360.0
       ]
     },
-    "Rate": 50.0,
+    "LightEmission": 1.0,
+    "Rotation": {
+      "NumberRange": [
+        -360.0,
+        360.0
+      ]
+    },
+    "Speed": {
+      "NumberRange": [
+        6.0,
+        6.0
+      ]
+    },
     "Transparency": {
       "NumberSequence": {
         "keypoints": [
@@ -25,18 +53,10 @@
         ]
       }
     },
-    "Rotation": {
-      "NumberRange": [
-        -360.0,
-        360.0
-      ]
-    },
-    "RotSpeed": {
-      "NumberRange": [
-        -360.0,
-        360.0
-      ]
-    },
+    "SpreadAngle": [
+      360.0,
+      360.0
+    ],
     "Color": {
       "ColorSequence": {
         "keypoints": [
@@ -59,33 +79,13 @@
         ]
       }
     },
-    "Enabled": false,
-    "VelocityInheritance": 0.800000011920929,
-    "Speed": {
+    "Lifetime": {
       "NumberRange": [
-        6.0,
-        6.0
+        2.0,
+        2.0
       ]
     },
-    "SpreadAngle": [
-      360.0,
-      360.0
-    ],
-    "Size": {
-      "NumberSequence": {
-        "keypoints": [
-          {
-            "time": 0.0,
-            "value": 3.0,
-            "envelope": 0.0
-          },
-          {
-            "time": 1.0,
-            "value": 3.0,
-            "envelope": 0.0
-          }
-        ]
-      }
-    }
+    "Rate": 50.0,
+    "Enabled": false
   }
 }

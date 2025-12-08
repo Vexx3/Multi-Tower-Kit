@@ -1,5 +1,4 @@
 --!strict
--- Written by fanofpixels
 
 -- More information about these types can be found in the manual.
 -- 3.0 - Type documentation
@@ -30,6 +29,15 @@ export type TowerInfo = {
 	MinimumTime: number,
 	Checkpoints: List<BasePart>,
 	CheckpointCount: number,
+}
+
+export type TowerStat = {
+	Attempts: number,
+	Wins: number,
+	TotalTimeSpentSeconds: number,
+	TotalTimeSpentFormatted: string,
+	BestWinTimeItemlessSeconds: number?,
+	BestWinTimeItemlessFormatted: string?,
 }
 
 -- The Ending type represents an ending for a tower, this type was created to account for "secret endings" some towers have
@@ -67,6 +75,7 @@ export type PlayerInfo = {
 	Player: Player,
 	GameTimer: number,
 	LastRestart: number,
+	CurrentTowerStartTimer: number,
 
 	-- Tower information
 	CurrentTower: string,

@@ -122,9 +122,9 @@ end
 	@within GUI
 	@param time number
 ]=]
-function GUI:SetTowerTimer(time: number)
+function GUI:SetTowerTimer(_time: number)
 	if Timer then
-		Timer.Text = Util:FormatTimer(time)
+		Timer.Text = Util:FormatTimer(_time)
 	end
 end
 

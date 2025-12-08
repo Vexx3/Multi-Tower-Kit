@@ -1,5 +1,20 @@
 {
   "properties": {
+    "Grip": [
+      0.0,
+      0.0,
+      1.0,
+      -1.0,
+      0.0,
+      0.0,
+      0.0,
+      1.0,
+      0.0,
+      0.0,
+      0.0,
+      -1.0
+    ],
+    "RequiresHandle": false,
     "WorldPivotData": {
       "OptionalCFrame": {
         "position": [
@@ -25,22 +40,7 @@
           ]
         ]
       }
-    },
-    "RequiresHandle": false,
-    "Grip": [
-      0.0,
-      0.0,
-      1.0,
-      -1.0,
-      0.0,
-      0.0,
-      0.0,
-      1.0,
-      0.0,
-      0.0,
-      0.0,
-      -1.0
-    ]
+    }
   },
   "className": "Tool"
 }

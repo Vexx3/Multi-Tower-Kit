@@ -102,7 +102,7 @@ local function load(data: {
 	inst: { Instance },
 	outgoing_ids: { number },
 	incoming_ids: { number },
-})
+	})
 	outgoing_buff = data.buff
 	outgoing_used = data.used
 	outgoing_size = data.size
@@ -174,33 +174,6 @@ export type ClientWinMessageInfo = ({
 	["Color"]: (Color3),
 	["FancyFont"]: (boolean),
 	["Global"]: (boolean),
-})
-export type TowerInfo = ({
-	["Name"]: (string),
-	["Difficulty"]: (string),
-	["BadgeID"]: (number),
-	["Folder"]: (Instance),
-	["SpawnLocation"]: (BasePart),
-	["ClientObjects"]: ((Instance)?),
-	["Endings"]: ({ [(string)]: ({
-		["Name"]: (string),
-		["Difficulty"]: (string),
-		["BadgeID"]: (number),
-		["PreventTowerBadge"]: (boolean),
-		["ParentTower"]: (string),
-		["WinroomMarker"]: (string),
-	}) }),
-	["MinimumTime"]: (number),
-	["Checkpoints"]: ({ (BasePart) }),
-	["CheckpointCount"]: (number),
-})
-export type EndingInfo = ({
-	["Name"]: (string),
-	["Difficulty"]: (string),
-	["BadgeID"]: (number),
-	["PreventTowerBadge"]: (boolean),
-	["ParentTower"]: (string),
-	["WinroomMarker"]: (string),
 })
 
 local function SendEvents()
@@ -362,7 +335,7 @@ unreliable[1].OnClientEvent:Connect(function(buff, inst)
 	incoming_read = 0
 	incoming_ipos = 0
 	local value
-	value = buffer.readu32(incoming_buff, read(4))
+	value = buffer.readf32(incoming_buff, read(4))
 	if unreliable_events[0] then
 		task.spawn(unreliable_events[0], value)
 	else
@@ -378,7 +351,7 @@ table.freeze(polling_queues_unreliable)
 local returns = {
 	SendEvents = SendEvents,
 	UpdateTowerTimer = {
-		SetCallback = function(Callback: (time: (number)) -> ()): () -> ()
+		SetCallback = function(Callback: (_time: (number)) -> ()): () -> ()
 			unreliable_events[0] = Callback
 			for _, value in unreliable_event_queue[0] do
 				task.spawn(Callback, value)
@@ -456,7 +429,7 @@ local returns = {
 			["Color"]: (Color3),
 			["FancyFont"]: (boolean),
 			["Global"]: (boolean),
-		})) -> ()): () -> ()
+			})) -> ()): () -> ()
 			reliable_events[4] = Callback
 			for _, value in reliable_event_queue[4] do
 				task.spawn(Callback, value)
