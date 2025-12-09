@@ -54,7 +54,6 @@ function TowerManager:LoadTower(playerName: string, towerName: string, resetTime
 			player.BoostItemUsed = false
 			player.BoostItemNames = {}
 		end
-		player.CurrentTowerStartTimer = player.TowerTimer
 		player.CurrentTower = towerName
 		player.CurrentTowerCheckpoint = 1
 		-- "this player is currently loading a tower, do not attempt to load a tower while this tower loading is in progress"

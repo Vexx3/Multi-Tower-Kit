@@ -76,10 +76,11 @@ local Announcements = {}
 function Announcements:WinAnnouncement(
 	player: PlayerInfo,
 	endingName: string,
-	difficultyName: string
+	difficultyName: string,
+	timeOverride: number?
 )
 	local endingDifficulty = Util:GetDifficulty(difficultyName)
-	local finalTime = player.TowerTimer -- snapshot so webhook and client use the same value
+	local finalTime = timeOverride or player.TowerTimer -- snapshot so webhook and client use the same value
 
 	local playerName = if Config.USE_DISPLAY_NAME
 		then player.Player.DisplayName

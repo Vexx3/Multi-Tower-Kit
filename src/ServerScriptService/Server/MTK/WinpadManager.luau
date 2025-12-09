@@ -27,11 +27,6 @@ local WinpadParticles = ServerStorage.WinpadParticles
 local WinpadManager = {}
 WinpadManager.Winpads = {} :: List<BasePart>
 
-local function getCurrentTowerRunTime(player: PlayerInfo)
-	local startTime = player.CurrentTowerStartTimer or 0
-	return math.max(player.TowerTimer - startTime, 0)
-end
-
 local function PlayerTouchedWinpad(playerName: string, towerName: string, endingID: string)
 	local player: PlayerInfo = DataInfo.PlayerInfo[playerName]
 	local tower: TowerInfo = DataInfo.TowerInfo[towerName]
@@ -75,7 +70,8 @@ local function PlayerTouchedWinpad(playerName: string, towerName: string, ending
 			endingName = ending.Name
 		end
 
-		Announcements:WinAnnouncement(player, endingName, endingDifficultyName)
+		local runTime = player.TowerTimer
+		Announcements:WinAnnouncement(player, endingName, endingDifficultyName, runTime)
 		-- Award badge(s)
 
 		if tower.BadgeID ~= 0 and not ending.PreventTowerBadge then
@@ -87,18 +83,17 @@ local function PlayerTouchedWinpad(playerName: string, towerName: string, ending
 
 		-- only adjust tower points if the player won the tower, not the secret ending.
 		if endingID == towerName then
-			local runTime = getCurrentTowerRunTime(player)
 			TowerData:RecordTowerWin(player.Player, towerName, runTime, player.BoostItemUsed)
-
 			LeaderstatsManager:SetTowerStat(player.Player, tower, tower.TowerPoints)
 		end
-		
+
 		PlayerState:TeleportToWinroom(player, endingWinroom)
 	else
 		-- The player is doing a tower rush
 		TowerRushManager:AdvanceTowerRush(playerName)
 	end
 
+	task.wait(0.1)
 	player.TouchEventBusy = false
 end
 

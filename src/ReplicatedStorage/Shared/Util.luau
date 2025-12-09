@@ -124,24 +124,26 @@ function Util:FormatTimeSyntax(text: string)
 	end)
 end
 
+function Util.pad2(n: number)
+	return if n < 10 then `0{n}` else tostring(n)
+end
+
 function Util:FormatTimer(time: number)
 	local ms = math.floor((time % 1) * 100)
 	local s = math.floor(time % 60)
 	local m = math.floor(time / 60)
 
-	local function pad2(n: number)
-		return if n < 10 then `0{n}` else tostring(n)
-	end
-
-	return `{pad2(m)}:{pad2(s)}.{pad2(ms)}`
+	return `{Util.pad2(m)}:{Util.pad2(s)}.{Util.pad2(ms)}`
 end
 
 function Util:FormatDuration(time: number)
-	time = math.max(time, 0)
-	local totalSeconds = math.floor(time + 0.5)
-	local seconds = totalSeconds % 60
-	local minutes = math.floor(totalSeconds / 60) % 60
-	local hours = math.floor(totalSeconds / 3600)
+	local totalSeconds = math.max(time, 0)
+	local seconds = math.floor(totalSeconds)
+	local minutes = math.floor(seconds / 60)
+	local hours = math.floor(minutes / 60)
+
+	seconds %= 60
+	minutes %= 60
 
 	local parts = {}
 	if hours > 0 then

@@ -20,6 +20,7 @@ type PlayerInfo = {
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local PlayerData = require(script.Parent.PlayerData)
+local TowerData = require(script.Parent.PlayerData.TowerData)
 local Types = require(ReplicatedStorage.Shared.Types)
 
 local Players: { [string]: PlayerInfo } = {}
@@ -69,10 +70,11 @@ function LeaderstatsManager:SetTowerStat(player: Player, towerInfo: Types.TowerI
 		return
 	end
 
-	local towerStat = data.TowerStats[towerInfo.Name]
+	local towerKey = towerInfo.Folder.Name
+	local towerStat = TowerData:GetTowerStat(player, towerKey)
 
 	-- Only award the global Towers stat on the first recorded win for this tower
-	if towerStat and towerStat.Wins and towerStat.Wins > 0 then
+	if towerStat and towerStat.Wins and towerStat.Wins > 1 then
 		return
 	end
 

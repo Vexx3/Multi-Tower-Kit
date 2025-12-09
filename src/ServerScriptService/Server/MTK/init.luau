@@ -47,21 +47,14 @@ local WinpadMaterials: List<Enum.Material> = Enum.Material:GetEnumItems()
 local MTK = {}
 MTK.TowerManager = TowerManager
 
-local function getCurrentTowerRunTime(player: PlayerInfo)
-	local startTime = player.CurrentTowerStartTimer or 0
-	return math.max(player.TowerTimer - startTime, 0)
-end
-
 local function recordTimeSpent(player: PlayerInfo)
 	if player.CurrentTower == "" then
 		return
 	end
 
-	local runTime = getCurrentTowerRunTime(player)
-	if runTime > 0 then
-		TowerData:AddTowerTimeSpent(player.Player, player.CurrentTower, runTime)
+	if player.TowerTimer > 0 then
+		TowerData:AddTowerTimeSpent(player.Player, player.CurrentTower, player.TowerTimer)
 	end
-	player.CurrentTowerStartTimer = player.TowerTimer
 end
 
 local function EverpresentCOsRequested(playerInstance: Player): (boolean, Folder?)
@@ -158,7 +151,6 @@ local function CharacterAdded(character: Model)
 
 	local player: PlayerInfo? = DataInfo.PlayerInfo[character.Name]
 	if player then
-		-- Do not overwrite winners; winroom respawn should keep Winners team
 		if player.Player.Team ~= Teams.Winners then
 			player.Player.Team = Teams.Start
 		end

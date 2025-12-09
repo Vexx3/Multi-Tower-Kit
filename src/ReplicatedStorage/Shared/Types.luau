@@ -75,7 +75,6 @@ export type PlayerInfo = {
 	Player: Player,
 	GameTimer: number,
 	LastRestart: number,
-	CurrentTowerStartTimer: number,
 
 	-- Tower information
 	CurrentTower: string,

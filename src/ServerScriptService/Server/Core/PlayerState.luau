@@ -42,7 +42,6 @@ end
 ]=]
 function PlayerState:ResetPlayerInfo(player: PlayerInfo)
 	player.TowerTimer = 0
-	player.CurrentTowerStartTimer = 0
 	player.CurrentTower = ""
 	player.CurrentTowerCheckpoint = 0
 	player.CurrentTowerRush = ""
