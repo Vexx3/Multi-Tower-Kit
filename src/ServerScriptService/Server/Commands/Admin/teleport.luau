@@ -37,16 +37,19 @@ return function()
 			elseif destinationPosition then
 				destCFrame = CFrame.new(destinationPosition)
 			else
-				return conch.log("warn", "No valid destination provided")
+				return conch.log(
+					"warn",
+					"No valid destination provided (player or vector3 required)"
+				)
 			end
 
 			for _, player in targets do
 				local character = player.Character
-				local hrp: Part = character:FindFirstChild("HumanoidRootPart")
+				local hrp: Part = character and character:FindFirstChild("HumanoidRootPart")
 				if hrp then
 					hrp.CFrame = destCFrame
 				else
-					conch.log("warn", `Player {player.Name} has no character`)
+					conch.log("warn", `Player {player.Name} has no character/HumanoidRootPart`)
 				end
 			end
 

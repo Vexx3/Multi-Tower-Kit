@@ -33,6 +33,7 @@ return function()
 		callback = function(userInput: string | number)
 			local userId = resolveUser(userInput)
 			if not userId then
+				conch.log("warn", "Invalid user or username not found")
 				return
 			end
 
@@ -44,9 +45,9 @@ return function()
 			end)
 
 			if success then
-				conch.log("normal", `Successfully unbanned: {userInput}`)
+				conch.log("info", `Unbanned {userInput} ({userId})`)
 			else
-				conch.log("warn", `Failed to unban userId {userInput}: {err}`)
+				conch.log("warn", `Failed to unban {userInput} ({userId}): {err}`)
 			end
 		end,
 	})

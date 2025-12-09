@@ -35,11 +35,21 @@ return function()
 		end,
 
 		callback = function(userInput: string | number, duration: number?, reason: string?)
+			local context = conch.get_command_context()
+			local executor = context.executor
+			local executorPlayer = executor.player
+
 			duration = tonumber(duration) or -1
 			reason = reason or "You have been banned from the game"
 
 			local userId = resolveUser(userInput)
 			if not userId then
+				conch.log("warn", "Invalid user or username not found")
+				return
+			end
+
+			if userId == executorPlayer.UserId then
+				conch.log("warn", "You cannot ban yourself.")
 				return
 			end
 
@@ -53,9 +63,9 @@ return function()
 			end)
 
 			if success then
-				conch.log("info", `Successfully banned: {userInput}`)
+				conch.log("info", `Banned {userInput} ({userId}) for {duration}s`)
 			else
-				conch.log("warn", `Failed to ban userId {userInput}: {err}`)
+				conch.log("warn", `Failed to ban {userInput} ({userId}): {err}`)
 			end
 		end,
 	})

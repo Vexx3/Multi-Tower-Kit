@@ -47,16 +47,6 @@ local WinpadMaterials: List<Enum.Material> = Enum.Material:GetEnumItems()
 local MTK = {}
 MTK.TowerManager = TowerManager
 
-local function recordTimeSpent(player: PlayerInfo)
-	if player.CurrentTower == "" then
-		return
-	end
-
-	if player.TowerTimer > 0 then
-		TowerData:AddTowerTimeSpent(player.Player, player.CurrentTower, player.TowerTimer)
-	end
-end
-
 local function EverpresentCOsRequested(playerInstance: Player): (boolean, Folder?)
 	local player: PlayerInfo? = DataInfo.PlayerInfo[playerInstance.Name]
 	if not player then
@@ -89,8 +79,8 @@ local function PlayerRequestedRestart(playerInstance: Player)
 			return
 		end
 
-		recordTimeSpent(player)
-
+		TowerData:AddTowerTimeSpent(player.Player, player.CurrentTower, player.TowerTimer)
+		
 		if player.CurrentTowerRush == "" then
 			TowerManager:LoadTower(playerInstance.Name, player.CurrentTower, true)
 		else
@@ -103,7 +93,7 @@ local function PlayerEquippedTool(player: PlayerInfo, item: Tool)
 	local isDebugItem = item:GetAttribute("DebugItem") :: boolean?
 	local boostName = item:GetAttribute("BoostName") :: string?
 
-	local boostUsed = if boostName ~= "" then true else false
+	local boostUsed = if boostName and boostName ~= "" then true else false
 	-- If this is a debug item OR a boost item, we should effectively disable checkpoints
 	-- Because boosts and debug items let a player fairly bypass checkpoints, so if they do equip an item, it would be unreasonable to kick them
 	if isDebugItem or boostUsed then
@@ -184,7 +174,6 @@ local function PlayerAdded(player: Player)
 		BoostItemNames = {},
 		BoostItemUsed = false,
 		TowerTimer = 0,
-		CurrentTowerStartTimer = 0,
 
 		CurrentTowerRush = "",
 		CurrentTowerRushIndex = 0,

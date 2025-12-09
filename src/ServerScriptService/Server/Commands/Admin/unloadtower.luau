@@ -8,7 +8,7 @@ local conch = require(ReplicatedStorage.Packages.conch_standalone)
 return function()
 	conch.register("unloadtower", {
 		description = "Unloads currently playing tower for a player",
-		permissions = { "admin" },
+		permissions = { "manage-tower" },
 		arguments = function()
 			return conch.args.player("target", "Player to unload the tower for")
 		end,

@@ -10,7 +10,7 @@ local conch = require(ReplicatedStorage.Packages.conch_standalone)
 return function()
 	conch.register("tpmarker", {
 		description = "Teleports to a marker.",
-		permissions = { "teleport" },
+		permissions = { "teleport-player" },
 		arguments = function()
 			return conch.args.player("player", "The player to teleport"),
 				args.marker_name("marker", "Marker to teleport to")
@@ -18,7 +18,7 @@ return function()
 
 		callback = function(who: Player, marker: BasePart)
 			Util:TeleportPlayerToPart(who, marker)
-			conch.log("info", `Teleported {who.Name} to {marker.Name}`)
+			conch.log("info", `Teleported {who.Name} to marker {marker.Name}`)
 		end,
 	})
 end

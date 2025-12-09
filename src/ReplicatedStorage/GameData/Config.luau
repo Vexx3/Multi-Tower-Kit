@@ -115,9 +115,18 @@ local Config = {
 	-- Role-based permission configuration. Each role defines a list
 	-- of permissions granted to users assigned to that role.
 	ROLES = {
-		admin = { "kick-player", "shutdown-server" },
+		admin = {
+			"kick-player",
+			"ban-player",
+			"teleport-player",
+			"manage-tower",
+			"give-badge",
+			"give-item",
+			"fake-win",
+			"shutdown-server",
+		},
 		player = {}, -- Default role with no special permissions.
-	} :: { [string]: { string } },
+	},
 
 	-- Maps UserIds to roles. The "super-user" role grants universal
 	-- access to all registered permissions.
@@ -127,7 +136,7 @@ local Config = {
 	},
 
 	-- The keyboard hotkey used to open the admin console UI.
-	ADMIN_HOTKEY = Enum.KeyCode.Semicolon,
+	ADMIN_HOTKEY = Enum.KeyCode.F4,
 }
 
 export type PlayerData = typeof(Config.DEFAULT_PLAYER_DATA)

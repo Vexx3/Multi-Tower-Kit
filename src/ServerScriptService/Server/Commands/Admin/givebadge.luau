@@ -10,7 +10,7 @@ local conch = require(ReplicatedStorage.Packages.conch_standalone)
 return function()
 	conch.register("givebadge", {
 		description = "Awards a badge to a player",
-		permissions = { "givebadge" },
+		permissions = { "give-badge" },
 		arguments = function()
 			return conch.args.player("target", "Player to receive a badge"),
 				args.badge_name("badge", "Badge to award")
@@ -20,9 +20,15 @@ return function()
 			local success, result =
 				pcall(BadgeService.AwardBadge, BadgeService, target.UserId, badge.BadgeId)
 			if success and result then
-				conch.log("info", `Awarded {badge.Name} to {target.Name}`)
+				conch.log(
+					"info",
+					`Awarded badge '{badge.Name}' (ID {badge.BadgeId}) to {target.Name}`
+				)
 			else
-				conch.log("warn", `Failed to award badge {badge.Name} to {target.Name}`)
+				conch.log(
+					"warn",
+					`Failed to award badge '{badge.Name}' (ID {badge.BadgeId}) to {target.Name}`
+				)
 			end
 		end,
 	})
