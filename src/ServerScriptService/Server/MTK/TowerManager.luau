@@ -80,7 +80,7 @@ function TowerManager:LoadTower(playerName: string, towerName: string, resetTime
 			coFolder.Name = "ClientSidedObjects"
 			coFolder.Parent = player.Player
 		end
-		
+
 		ZapServer.LoadTower.Fire(player.Player, towerName, purist, resetTimer)
 		player.IsLoadingTower = false
 	end
@@ -147,7 +147,9 @@ local function InitTower(towerFolder: Instance)
 		Name = Attributes:GetString(towerFolder, "ProperName") or acronym,
 		Difficulty = Attributes:GetString(towerFolder, "Difficulty") or "default",
 		BadgeID = Attributes:GetInt(towerFolder, "BadgeID") or 0,
+		AJBadgeID = Attributes:GetInt(towerFolder, "AJBadgeID") or 0,
 		TowerPoints = Attributes:GetInt(towerFolder, "TowerPoints") or 1,
+		NoBoostItems = towerFolder:FindFirstChild("NoBoostItems") ~= nil,
 
 		Folder = towerFolder,
 		SpawnLocation = spawnLocation :: BasePart,

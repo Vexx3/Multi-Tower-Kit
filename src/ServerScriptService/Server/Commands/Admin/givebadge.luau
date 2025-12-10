@@ -18,7 +18,7 @@ return function()
 
 		callback = function(target: Player, badge: { Name: string, BadgeId: number })
 			local success, result =
-				pcall(BadgeService.AwardBadge, BadgeService, target.UserId, badge.BadgeId)
+				pcall(BadgeService.AwardBadgeAsync, BadgeService, target.UserId, badge.BadgeId)
 			if success and result then
 				conch.log(
 					"info",

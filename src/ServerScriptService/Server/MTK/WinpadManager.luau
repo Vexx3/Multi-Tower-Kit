@@ -34,6 +34,14 @@ local function PlayerTouchedWinpad(playerName: string, towerName: string, ending
 		return
 	end
 
+	if tower.NoBoostItems and player.BoostItemUsed then
+		return
+	end
+
+	if player.PracticeMode then
+		return
+	end
+
 	if player.TouchEventBusy then
 		return
 	end
@@ -47,7 +55,6 @@ local function PlayerTouchedWinpad(playerName: string, towerName: string, ending
 	)
 
 	if player.CurrentTower == "" then
-		player.TouchEventBusy = false
 		return
 	end
 
@@ -72,17 +79,25 @@ local function PlayerTouchedWinpad(playerName: string, towerName: string, ending
 
 		local runTime = player.TowerTimer
 		Announcements:WinAnnouncement(player, endingName, endingDifficultyName, runTime)
-		-- Award badge(s)
 
-		if tower.BadgeID ~= 0 and not ending.PreventTowerBadge then
-			BadgeService:AwardBadge(player.Player.UserId, tower.BadgeID)
-		end
-		if ending.BadgeID ~= 0 then
-			BadgeService:AwardBadge(player.Player.UserId, ending.BadgeID)
+		local onAJMode = player.AllJumpsMode
+
+		-- Award badge(s)
+		if not onAJMode then
+			if tower.BadgeID ~= 0 and not ending.PreventTowerBadge then
+				BadgeService:AwardBadgeAsync(player.Player.UserId, tower.BadgeID)
+			end
+			if ending.BadgeID ~= 0 then
+				BadgeService:AwardBadgeAsync(player.Player.UserId, ending.BadgeID)
+			end
 		end
 
 		-- only adjust tower points if the player won the tower, not the secret ending.
 		if endingID == towerName then
+			if onAJMode and tower.AJBadgeID ~= 0 then
+				BadgeService:AwardBadgeAsync(player.Player.UserId, tower.AJBadgeID)
+			end
+
 			TowerData:RecordTowerWin(player.Player, towerName, runTime, player.BoostItemUsed)
 			LeaderstatsManager:SetTowerStat(player.Player, tower, tower.TowerPoints)
 		end
@@ -133,6 +148,7 @@ local function Setup(towerName: string, winpad: BasePart)
 		Name = Attributes:GetString(winpad, "EndingName") or tower.Name,
 		Difficulty = Attributes:GetString(winpad, "Difficulty") or tower.Difficulty,
 		BadgeID = Attributes:GetInt(winpad, "BadgeID") or 0,
+		AJBadgeID = Attributes:GetInt(winpad, "AJBadgeID") or 0,
 		PreventTowerBadge = Attributes:GetBoolean(winpad, "PreventTowerBadge") or false,
 		ParentTower = towerName,
 		WinroomMarker = Attributes:GetString(winpad, "WinroomMarker")

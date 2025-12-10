@@ -9,7 +9,6 @@ local ZapServer = require(ServerScriptService.ZapServer)
 local args = require(Shared.ConchTypes)
 local conch = require(ReplicatedStorage.Packages.conch_standalone)
 
--- Fires a win announcement to clients without affecting stats/badges.
 return function()
 	conch.register("fakewin", {
 		description = "Broadcasts a fake win message (no stats/badges)",

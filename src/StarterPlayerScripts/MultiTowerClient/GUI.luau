@@ -13,26 +13,32 @@
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
-local TweenService = game:GetService("TweenService")
 
 local Icon = require(ReplicatedStorage.Packages.TopbarPlus.Icon)
+local TowerRushes = require(ReplicatedStorage.RealmData.TowerRushes)
 local Util = require(ReplicatedStorage.Shared.Util)
 
 local LocalPlayer = Players.LocalPlayer :: Player
 local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
 
-local Towers = workspace:FindFirstChild("Towers")
+local Towers = workspace.Towers
 
 local TowerGui = PlayerGui:WaitForChild("TowerGUI") :: ScreenGui
 TowerGui.Enabled = true
 
 -- Elements
 local TowerAcronym = TowerGui:FindFirstChild("TowerAcronym", true) :: TextLabel?
-local TowerName = TowerGui:FindFirstChild("TowerName", true) :: TextLabel?
 local TowerRushProgress = TowerGui:FindFirstChild("TowerRushProgress", true) :: TextLabel?
+local TowerRushName = TowerGui:FindFirstChild("TowerRushName", true) :: TextLabel?
 local Timer = TowerGui:FindFirstChild("Timer", true) :: TextLabel?
 local BoostsUsed = TowerGui:FindFirstChild("BoostsUsed", true) :: TextLabel?
 local RestartLabel = TowerGui:FindFirstChild("RestartLabel", true) :: TextLabel?
+local TRProgressList = TowerGui:FindFirstChild("TRProgressList", true) :: Frame?
+local TRProgressItemTemplate = TRProgressList
+	and TRProgressList:FindFirstChild("TowerName") :: TextLabel?
+local BoostListFrame = TowerGui:FindFirstChild("BoostList", true) :: Frame?
+local BoostListItemTemplate = BoostListFrame
+	and BoostListFrame:FindFirstChild("ItemName") :: TextLabel?
 
 local restartTransparency = 0
 local restartStrokeTransparency = 1
@@ -42,27 +48,169 @@ if RestartLabel then
 	restartStrokeTransparency = RestartLabel.TextStrokeTransparency
 end
 
+local currentAcronym = ""
+local towerName = ""
+local currentBoostList: { string } = {}
+local currentRushList: { string } = {}
+local currentRushIndex = 0
+local currentRushName = ""
+local currentRushDifficultyColor = Color3.new(1, 1, 1)
+
+local RUSH_COLOR_CURRENT = Color3.fromRGB(255, 234, 138)
+local RUSH_COLOR_DONE = Color3.fromRGB(152, 255, 152)
+local RUSH_COLOR_TODO = Color3.fromRGB(255, 140, 140)
+
+local function getDifficultyColors(difficultyName: string)
+	local color = Util:GetDifficulty(difficultyName).Color
+	local stroke = Color3.new(color.R * 0.35, color.G * 0.35, color.B * 0.35)
+	return color, stroke
+end
+
+local function getTowerColors(acronym: string)
+	local tower = Towers:FindFirstChild(acronym)
+	local difficultyValue = tower and tower:FindFirstChild("Difficulty") :: StringValue?
+
+	if difficultyValue then
+		return getDifficultyColors(difficultyValue.Value)
+	end
+
+	return Color3.new(1, 1, 1), Color3.new(0.35, 0.35, 0.35)
+end
+
+local function setBoostListVisible(isVisible: boolean)
+	if BoostListFrame then
+		BoostListFrame.Visible = isVisible
+	end
+end
+
+local function setRushListVisible(isVisible: boolean)
+	local hasRush = #currentRushList > 0
+	if TRProgressList then
+		TRProgressList.Visible = isVisible and hasRush
+	end
+	if TowerRushName then
+		TowerRushName.Visible = isVisible and currentRushName ~= ""
+	end
+end
+
 local GUI = {}
 
-local function fadeText(label: TextLabel, target: number)
-	local tween = TweenService:Create(
-		label,
-		TweenInfo.new(0.15, Enum.EasingStyle.Linear),
-		{ TextTransparency = target }
-	)
-	tween:Play()
-end
+local function rebuildBoostList(list: { string })
+	if not BoostListFrame or not BoostListItemTemplate then
+		return
+	end
 
-local function onMouseEnter()
-	if TowerName then
-		fadeText(TowerName, 0)
+	-- Clear existing clones
+	for _, child in BoostListFrame:GetChildren() do
+		if child:IsA("TextLabel") and child ~= BoostListItemTemplate then
+			child:Destroy()
+		end
+	end
+
+	BoostListItemTemplate.Visible = false
+
+	for _, name in list do
+		local clone = BoostListItemTemplate:Clone()
+		clone.Name = `Item_{name}`
+		clone.Text = name
+		clone.Visible = true
+		clone.Parent = BoostListFrame
 	end
 end
 
-local function onMouseLeave()
-	if TowerName then
-		fadeText(TowerName, 1)
+local function updateBoostList()
+	local boostAttr = LocalPlayer:GetAttribute("BoostItemNames") :: string?
+	local boostNames = if boostAttr then boostAttr else ""
+	local pieces = string.split(boostNames, ",")
+	local list = {}
+
+	for _, part in pieces do
+		if part ~= "" then
+			table.insert(list, part)
+		end
 	end
+
+	currentBoostList = list
+	rebuildBoostList(currentBoostList)
+end
+
+local function rebuildTowerRushList()
+	if not TRProgressList or not TRProgressItemTemplate then
+		return
+	end
+
+	for _, child in TRProgressList:GetChildren() do
+		if child:IsA("TextLabel") and child ~= TRProgressItemTemplate then
+			child:Destroy()
+		end
+	end
+
+	TRProgressItemTemplate.Visible = false
+
+	for index, acronym in currentRushList do
+		local clone = TRProgressItemTemplate:Clone()
+		clone.Name = `RushTower_{acronym}`
+		clone.Text = acronym
+
+		local textColor, strokeColor = getTowerColors(acronym)
+		clone.TextColor3 = textColor
+		clone.TextStrokeColor3 = strokeColor
+
+		if index < currentRushIndex then
+			clone.BackgroundColor3 = RUSH_COLOR_DONE
+		elseif index == currentRushIndex then
+			clone.BackgroundColor3 = RUSH_COLOR_CURRENT
+		else
+			clone.BackgroundColor3 = RUSH_COLOR_TODO
+		end
+
+		clone.Visible = true
+		clone.Parent = TRProgressList
+	end
+end
+
+local function refreshTowerRushUI()
+	if TowerRushName then
+		TowerRushName.Text = currentRushName
+		TowerRushName.TextColor3 = currentRushDifficultyColor
+		TowerRushName.TextStrokeColor3 = Color3.new(
+			currentRushDifficultyColor.R * 0.35,
+			currentRushDifficultyColor.G * 0.35,
+			currentRushDifficultyColor.B * 0.35
+		)
+	end
+
+	rebuildTowerRushList()
+	setRushListVisible(false)
+end
+
+local function updateTowerRush()
+	local rushIdAttr = LocalPlayer:GetAttribute("CurrentTowerRush") :: string?
+	local rushId = if rushIdAttr then rushIdAttr else ""
+	local rush = if rushId ~= "" then TowerRushes[rushId] else nil
+
+	if rush then
+		currentRushName = rush.Title
+		local textColor = getDifficultyColors(rush.Difficulty)
+		currentRushDifficultyColor = textColor
+
+		local list = {}
+		for _, name in rush.Towers do
+			table.insert(list, name)
+		end
+		currentRushList = list
+	else
+		currentRushName = ""
+		currentRushDifficultyColor = Color3.new(1, 1, 1)
+		currentRushList = {}
+	end
+
+	local idx = LocalPlayer:GetAttribute("CurrentTowerRushIndex") :: number?
+	if idx then
+		currentRushIndex = idx
+	end
+
+	refreshTowerRushUI()
 end
 
 function GUI:SetTowerAcronym(acronym: string)
@@ -70,38 +218,21 @@ function GUI:SetTowerAcronym(acronym: string)
 		return
 	end
 
-	TowerAcronym.Text = acronym
+	currentAcronym = acronym
 	TowerAcronym.Visible = acronym ~= ""
+	TowerAcronym.Text = acronym
 
-	if not TowerName then
-		return
-	end
+	local textColor, strokeColor = getTowerColors(acronym)
+	TowerAcronym.TextColor3 = textColor
+	TowerAcronym.TextStrokeColor3 = strokeColor
 
 	local tower = Towers:FindFirstChild(acronym)
-	if not tower then
-		return
+	if tower then
+		local properName = tower:FindFirstChild("ProperName") :: StringValue?
+		if properName then
+			towerName = properName.Value
+		end
 	end
-
-	local difficultyName = tower:FindFirstChild("Difficulty") :: StringValue
-	if difficultyName then
-		local difficulty = Util:GetDifficulty(difficultyName.Value)
-		local color = difficulty.Color
-		local factor = 0.35
-		local stroke = Color3.new(color.R * factor, color.G * factor, color.B * factor)
-
-		TowerAcronym.TextColor3 = color
-		TowerAcronym.TextStrokeColor3 = stroke
-
-		TowerName.TextColor3 = color
-		TowerName.TextStrokeColor3 = stroke
-	end
-
-	local properName = tower:FindFirstChild("ProperName") :: StringValue
-	if not properName then
-		return
-	end
-
-	TowerName.Text = properName.Value
 end
 
 --[=[
@@ -113,6 +244,23 @@ function GUI:SetTowerRush(progress: number, max: number)
 	if TowerRushProgress then
 		TowerRushProgress.Text = `{progress}/{max}`
 		TowerRushProgress.Visible = max ~= 0
+
+		local progressColor, progressStroke =
+			currentRushDifficultyColor,
+			Color3.new(
+				currentRushDifficultyColor.R * 0.35,
+				currentRushDifficultyColor.G * 0.35,
+				currentRushDifficultyColor.B * 0.35
+			)
+		TowerRushProgress.TextColor3 = progressColor
+		TowerRushProgress.TextStrokeColor3 = progressStroke
+	end
+
+	currentRushIndex = progress
+	updateTowerRush()
+
+	if max == 0 then
+		setRushListVisible(false)
 	end
 end
 
@@ -136,6 +284,13 @@ end
 function GUI:SetBoostsUsed(value: boolean)
 	if BoostsUsed then
 		BoostsUsed.Visible = value
+	end
+
+	-- Refresh the hover list from the replicated attribute so late updates still show
+	updateBoostList()
+
+	if BoostListFrame then
+		BoostListFrame.Visible = false
 	end
 end
 
@@ -201,8 +356,48 @@ end
 RunService.Heartbeat:Connect(onHeartbeat)
 
 if TowerAcronym then
-	TowerAcronym.MouseEnter:Connect(onMouseEnter)
-	TowerAcronym.MouseLeave:Connect(onMouseLeave)
+	TowerAcronym.MouseEnter:Connect(function()
+		if currentAcronym ~= "" then
+			TowerAcronym.Text = towerName
+		end
+	end)
+	TowerAcronym.MouseLeave:Connect(function()
+		TowerAcronym.Text = currentAcronym
+	end)
 end
+
+if BoostsUsed and BoostListFrame then
+	BoostsUsed.MouseEnter:Connect(function()
+		setBoostListVisible(true)
+	end)
+
+	BoostsUsed.MouseLeave:Connect(function()
+		setBoostListVisible(false)
+	end)
+end
+
+if TowerRushProgress then
+	TowerRushProgress.MouseEnter:Connect(function()
+		setRushListVisible(true)
+	end)
+
+	TowerRushProgress.MouseLeave:Connect(function()
+		setRushListVisible(false)
+	end)
+
+	if TRProgressList then
+		TRProgressList.MouseEnter:Connect(function()
+			setRushListVisible(true)
+		end)
+
+		TRProgressList.MouseLeave:Connect(function()
+			setRushListVisible(false)
+		end)
+	end
+end
+
+LocalPlayer:GetAttributeChangedSignal("BoostItemNames"):Connect(updateBoostList)
+LocalPlayer:GetAttributeChangedSignal("CurrentTowerRush"):Connect(updateTowerRush)
+LocalPlayer:GetAttributeChangedSignal("CurrentTowerRushIndex"):Connect(updateTowerRush)
 
 return GUI

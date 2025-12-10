@@ -7,9 +7,7 @@
 
 local BadgeService = game:GetService("BadgeService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local ServerScriptService = game:GetService("ServerScriptService")
 
-local RealmData = ServerScriptService.RealmData
 local Shared = ReplicatedStorage.Shared
 
 local Announcements = require("../Logging/Announcements")
@@ -20,7 +18,8 @@ local Types = require(Shared.Types)
 local Util = require(Shared.Util)
 local ZapServer = require("../../ZapServer")
 
-local TowerRushes: Types.Dictionary<Types.TowerRush> = require(RealmData.TowerRushes)
+local TowerRushes: Types.Dictionary<Types.TowerRush> =
+	require(ReplicatedStorage.RealmData.TowerRushes)
 
 local TowerRushManager = {}
 
@@ -81,7 +80,7 @@ function TowerRushManager:AdvanceTowerRush(playerName: string)
 		Announcements:WinAnnouncement(player, towerRush.Title, towerRush.Difficulty)
 
 		if towerRush.BadgeID ~= 0 then
-			BadgeService:AwardBadge(player.Player.UserId, towerRush.BadgeID)
+			BadgeService:AwardBadgeAsync(player.Player.UserId, towerRush.BadgeID)
 		end
 		PlayerState:TeleportToWinroom(player, towerRush.WinroomMarker)
 		return

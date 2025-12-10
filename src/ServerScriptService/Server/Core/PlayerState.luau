@@ -28,6 +28,8 @@ function PlayerState:UpdatePlayerInfoStats(player: PlayerInfo)
 	local boostList = Util:FormatBoosts(player.BoostItemNames)
 
 	player.Player:SetAttribute("CurrentTower", player.CurrentTower)
+	player.Player:SetAttribute("AllJumpsMode", player.AllJumpsMode)
+	player.Player:SetAttribute("PracticeMode", player.PracticeMode)
 	player.Player:SetAttribute("CurrentTowerRush", player.CurrentTowerRush)
 	player.Player:SetAttribute("CurrentTowerRushIndex", player.CurrentTowerRushIndex)
 	player.Player:SetAttribute("TowerTimer", Util:FormatTimer(player.TowerTimer))
@@ -43,6 +45,8 @@ end
 function PlayerState:ResetPlayerInfo(player: PlayerInfo)
 	player.TowerTimer = 0
 	player.CurrentTower = ""
+	player.AllJumpsMode = false
+	player.PracticeMode = false
 	player.CurrentTowerCheckpoint = 0
 	player.CurrentTowerRush = ""
 	player.CurrentTowerRushIndex = 0

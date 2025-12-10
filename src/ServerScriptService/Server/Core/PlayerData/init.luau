@@ -78,8 +78,6 @@ function PlayerData:GetData(player: Player): Config.PlayerData?
 		return nil
 	end
 
-	print(profile.Data)
-
 	return profile.Data
 end
 

@@ -16,6 +16,8 @@ export type TowerInfo = {
 	Difficulty: string,
 	BadgeID: number,
 	TowerPoints: number,
+	AJBadgeID: number?,
+	NoBoostItems: boolean?,
 
 	-- Important instances
 	Folder: Instance,
@@ -82,6 +84,8 @@ export type PlayerInfo = {
 	BoostItemNames: Dictionary<string>,
 	BoostItemUsed: boolean,
 	TowerTimer: number,
+	AllJumpsMode: boolean,
+	PracticeMode: boolean,
 
 	-- Tower rush information
 	CurrentTowerRush: string,

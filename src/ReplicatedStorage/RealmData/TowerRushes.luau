@@ -32,6 +32,6 @@ return {
 		Title = "Example Tower Rush 2",
 		Difficulty = "Catastrophic",
 		WinroomMarker = "SCWinroom",
-		Towers = table.create(1000, "ETV5"),
+		Towers = table.create(100, "ETV5"),
 	},
 }

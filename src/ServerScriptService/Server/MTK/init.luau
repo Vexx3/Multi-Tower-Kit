@@ -80,7 +80,7 @@ local function PlayerRequestedRestart(playerInstance: Player)
 		end
 
 		TowerData:AddTowerTimeSpent(player.Player, player.CurrentTower, player.TowerTimer)
-		
+
 		if player.CurrentTowerRush == "" then
 			TowerManager:LoadTower(playerInstance.Name, player.CurrentTower, true)
 		else
@@ -102,6 +102,17 @@ local function PlayerEquippedTool(player: PlayerInfo, item: Tool)
 	if boostUsed then
 		player.BoostItemUsed = true
 		player.BoostItemNames[item.Name] = boostName or "Boost Item"
+
+		if player.CurrentTower ~= "" then
+			local towerInfo = DataInfo.TowerInfo[player.CurrentTower]
+			if towerInfo and towerInfo.NoBoostItems then
+				local character = player.Player.Character
+				local humanoid = character and character:FindFirstChildOfClass("Humanoid")
+				if humanoid then
+					humanoid.Health = 0
+				end
+			end
+		end
 	end
 end
 
@@ -174,6 +185,8 @@ local function PlayerAdded(player: Player)
 		BoostItemNames = {},
 		BoostItemUsed = false,
 		TowerTimer = 0,
+		AllJumpsMode = false,
+		PracticeMode = false,
 
 		CurrentTowerRush = "",
 		CurrentTowerRushIndex = 0,
