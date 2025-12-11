@@ -85,8 +85,8 @@ local Config = {
 
 	-- Keys used for player data storage. The studio key is used when
 	-- testing in Roblox Studio.
-	DATA_STORE_KEY = "Production",
-	DATA_STORE_KEY_STUDIO = "Alpha-123",
+	DATA_STORE_KEY = "Production2",
+	DATA_STORE_KEY_STUDIO = "Alpha-67",
 
 	-- Default player data template. Only modify this if you fully
 	-- understand the implications on data structure and migration.

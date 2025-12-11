@@ -1,6 +1,3 @@
---!strict
--- Written by fanofpixels
-
 local Attributes = {}
 
 function Attributes:GetNumber(instance: Instance, name: string): number?

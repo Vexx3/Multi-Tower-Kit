@@ -1,6 +1,3 @@
---!strict
--- Written by fanofpixels
-
 --[=[
 	Displays server and global win announcements on the client, formatting chat
 	output.

@@ -4,7 +4,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Shared = ReplicatedStorage.Shared
 
 local args = require(Shared.ConchTypes)
-local conch = require(ReplicatedStorage.Packages.conch_standalone)
+local conch = require(ReplicatedStorage.Packages.conch)
 
 return function()
 	conch.register("giveitem", {

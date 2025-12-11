@@ -11,6 +11,7 @@ return {
 			"ETV5",
 			"ETV6",
 		},
+		NoBoostItems = false,
 	},
 
 	TowersStorageRush = {
@@ -25,6 +26,7 @@ return {
 			"ToNC",
 			"ToCAP",
 		},
+		NoBoostItems = true,
 	},
 
 	ExampleTowerRush2 = {
@@ -33,5 +35,6 @@ return {
 		Difficulty = "Catastrophic",
 		WinroomMarker = "SCWinroom",
 		Towers = table.create(100, "ETV5"),
+		NoBoostItems = false,
 	},
 }

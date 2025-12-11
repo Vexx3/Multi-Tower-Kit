@@ -1,5 +1,3 @@
---!strict
-
 --[=[
 	Handles in-server announcements, cross-server global win messages, and
 	anti-cheat kick broadcasts.

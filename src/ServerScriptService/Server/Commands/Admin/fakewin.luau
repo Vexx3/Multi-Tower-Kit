@@ -7,7 +7,7 @@ local Shared = ReplicatedStorage.Shared
 local Util = require(Shared.Util)
 local ZapServer = require(ServerScriptService.ZapServer)
 local args = require(Shared.ConchTypes)
-local conch = require(ReplicatedStorage.Packages.conch_standalone)
+local conch = require(ReplicatedStorage.Packages.conch)
 
 return function()
 	conch.register("fakewin", {

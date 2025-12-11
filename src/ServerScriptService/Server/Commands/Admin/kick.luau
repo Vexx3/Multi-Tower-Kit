@@ -1,7 +1,7 @@
 -- @zylx 2025-11-10
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
-local conch = require(ReplicatedStorage.Packages.conch_standalone)
+local conch = require(ReplicatedStorage.Packages.conch)
 
 return function()
 	conch.register("kick", {

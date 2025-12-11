@@ -69,6 +69,7 @@ export type TowerRush = {
 	Difficulty: string,
 	WinroomMarker: string,
 	Towers: List<string>,
+	NoBoostItems: boolean,
 }
 
 -- Represents a player, also containing information specific to them

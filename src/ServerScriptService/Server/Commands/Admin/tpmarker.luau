@@ -5,7 +5,7 @@ local Shared = ReplicatedStorage.Shared
 
 local Util = require(Shared.Util)
 local args = require(Shared.ConchTypes)
-local conch = require(ReplicatedStorage.Packages.conch_standalone)
+local conch = require(ReplicatedStorage.Packages.conch)
 
 return function()
 	conch.register("tpmarker", {

@@ -1,0 +1,13 @@
+[package]
+name = "zylx/multi-tower-kit"
+version = "0.1.0"
+registry = "https://github.com/UpliftGames/wally-index"
+realm = "shared"
+
+[dependencies]
+Lyra = "paradoxum-games/lyra@0.6.0"
+topbarplus = "1foreverhd/topbarplus@3.4.0"
+conch = "alicesaidhi/conch@0.3.1"
+conch-ui = "alicesaidhi/conch-ui@0.3.1"
+satchel = "ryanlua/satchel@1.4.1"
+Loader = "sleitnick/loader@2.0.0"

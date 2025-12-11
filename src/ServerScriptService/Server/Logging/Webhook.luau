@@ -1,5 +1,3 @@
---!strict
-
 --[=[
 	Sends Discord webhook notifications for tower clears, including boosts and
 	formatted time.

@@ -5,7 +5,7 @@ local Shared = ReplicatedStorage.Shared
 
 local MTK = require("../../MTK")
 local args = require(Shared.ConchTypes)
-local conch = require(ReplicatedStorage.Packages.conch_standalone)
+local conch = require(ReplicatedStorage.Packages.conch)
 
 return function()
 	conch.register("loadtower", {

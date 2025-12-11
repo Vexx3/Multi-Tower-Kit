@@ -1,6 +1,3 @@
---!strict
--- Written by fanofpixels
-
 local repo = script.Repository.Value :: Instance
 local context = script.Context.Value :: Instance
 

@@ -1,14 +1,12 @@
---!strict
--- @zylx 2025-11-20
-
 --[=[
-	Lightweight wrapper around ProfileStore for loading, caching, and exposing
-	player data sessions.
+	Player data backed by Lyra. Provides a thin wrapper to load/update player
+	sessions while keeping the API surface used across the project.
 
 	@class PlayerData
 	@server
 ]=]
 
+local DataStoreService = game:GetService("DataStoreService")
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
@@ -17,80 +15,97 @@ local GameData = ReplicatedStorage.GameData
 local Packages = ReplicatedStorage.Packages
 
 local Config = require(GameData.Config)
-local ProfileStore = require(Packages.ProfileStore)
+local Lyra = require(Packages.Lyra)
+local t = require(Packages._Index["osyrisrblx_t@3.1.1"]["t"])
 
-local DATA_STORE_KEY = Config.DATA_STORE_KEY
+local Loaded: { [Player]: boolean } = {}
 
-if RunService:IsStudio() then
-	DATA_STORE_KEY = Config.DATA_STORE_KEY_STUDIO
-end
+local DATA_STORE_KEY = if RunService:IsStudio()
+	then Config.DATA_STORE_KEY_STUDIO
+	else Config.DATA_STORE_KEY
 
-local PlayerStore = ProfileStore.New(DATA_STORE_KEY, Config.DEFAULT_PLAYER_DATA)
-local Profiles: { [Player]: typeof(PlayerStore:StartSessionAsync()) } = {}
+local store = Lyra.createPlayerStore({
+	name = DATA_STORE_KEY,
+	template = Config.DEFAULT_PLAYER_DATA,
+	schema = t.strictInterface({
+		Towers = t.number,
+		TowerStats = t.table,
+	}),
+	importLegacyData = function(key: string)
+		local success, data = pcall(function()
+			return DataStoreService:GetDataStore(DATA_STORE_KEY):GetAsync(key)
+		end)
 
-local function LoadProfile(player: Player)
-	local profile = PlayerStore:StartSessionAsync(`{player.UserId}`, {
-		Cancel = function()
-			return player.Parent ~= Players
-		end,
-	})
+		if not success then
+			error("Failed to reach data system")
+		end
 
-	if profile == nil then
-		return player:Kick("Profile load fail. Please rejoin.")
-	end
+		if data ~= nil then
+			return data
+		end
 
-	profile:AddUserId(player.UserId)
-	profile:Reconcile()
-
-	profile.OnSessionEnd:Connect(function()
-		Profiles[player] = nil
-		player:Kick("Profile session ended. Please rejoin.")
-	end)
-
-	local isInGame = player.Parent == Players
-	if isInGame then
-		Profiles[player] = profile
-	else
-		profile:EndSession()
-	end
-
-	return nil
-end
-
-local function RemoveProfile(player: Player)
-	local profile = Profiles[player]
-	if profile ~= nil then
-		profile:EndSession()
-	end
-end
+		return nil
+	end,
+})
 
 local PlayerData = {}
 
 --[=[
-	Returns the cached profile data for a player if it is loaded.
+	Return the current data snapshot for a player if loaded.
+local Loaded: { [Player]: boolean } = {}
 
 	@within PlayerData
-	@return Config.PlayerData? -- nil if profile failed to load or is missing
+	@return Config.PlayerData?
 ]=]
 function PlayerData:GetData(player: Player): Config.PlayerData?
-	local profile = Profiles[player]
-	if not profile then
-		return nil
+	while not Loaded[player] do
+		task.wait()
 	end
 
-	return profile.Data
+	return store:getAsync(player)
 end
 
--- Starts profile sessions for current players and wires join/leave handlers
--- for profile lifecycle management.
+--[=[
+	Apply a mutation to the player's data using Lyra's updateAsync.
 
-function PlayerData:Init()
-	for _, player in Players:GetPlayers() do
-		task.spawn(LoadProfile, player)
+	@within PlayerData
+]=]
+function PlayerData:UpdateAsync(player: Player, fn: (data: Config.PlayerData) -> boolean)
+	return store:updateAsync(player, fn)
+end
+
+function PlayerData:WaitForData(player: Player): Config.PlayerData?
+	while not Loaded[player] do
+		task.wait()
 	end
 
-	Players.PlayerAdded:Connect(LoadProfile)
-	Players.PlayerRemoving:Connect(RemoveProfile)
+	return PlayerData:GetData(player)
+end
+
+function PlayerData:Init()
+	--[=[
+	Yield until the player's data session is loaded, then return it.
+	Does not start a new load; relies on loadAsync from Init.
+]=]
+
+	Players.PlayerAdded:Connect(function(player)
+		local success, result = pcall(store.loadAsync, store, player)
+
+		if success then
+			Loaded[player] = true
+		else
+			warn(`[PlayerData] Failed to load {player.Name}: {result}`)
+		end
+	end)
+
+	Players.PlayerRemoving:Connect(function(player)
+		Loaded[player] = nil
+		store:unloadAsync(player)
+	end)
+
+	game:BindToClose(function()
+		store:closeAsync()
+	end)
 end
 
 return PlayerData

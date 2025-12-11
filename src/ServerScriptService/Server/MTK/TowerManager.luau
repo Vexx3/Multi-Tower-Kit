@@ -1,4 +1,3 @@
---!strict
 --[=[
 	Core server manager for individual tower lifecycle: registers tower metadata,
 	loads client objects, teleports players, and exposes simple APIs for other

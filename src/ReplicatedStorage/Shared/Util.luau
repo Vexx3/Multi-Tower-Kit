@@ -1,5 +1,4 @@
 --!strict
--- Written by fanofpixels
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -183,7 +182,7 @@ function Util:RegisterTouch(part: BasePart, onTouch: (playerName: string, part: 
 end
 
 function Util:RespawnAndTeleport(player: Player, spawnPart: BasePart)
-	player:LoadCharacter()
+	player:LoadCharacterAsync()
 
 	local character: Model?
 	repeat

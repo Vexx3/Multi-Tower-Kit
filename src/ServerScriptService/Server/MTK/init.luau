@@ -1,5 +1,3 @@
---!strict
-
 -- Services
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -29,6 +27,7 @@ local PortalHandler = require("@self/PortalHandler")
 local TowerData = require("./Core/PlayerData/TowerData")
 local TowerManager = require("@self/TowerManager")
 local TowerRushManager = require("@self/TowerRushManager")
+local TowerRushes = require(ReplicatedStorage.RealmData.TowerRushes)
 local Util = require(Shared.Util)
 local WinpadManager = require("@self/WinpadManager")
 local ZapServer = require(ServerScriptService.ZapServer)
@@ -106,6 +105,17 @@ local function PlayerEquippedTool(player: PlayerInfo, item: Tool)
 		if player.CurrentTower ~= "" then
 			local towerInfo = DataInfo.TowerInfo[player.CurrentTower]
 			if towerInfo and towerInfo.NoBoostItems then
+				local character = player.Player.Character
+				local humanoid = character and character:FindFirstChildOfClass("Humanoid")
+				if humanoid then
+					humanoid.Health = 0
+				end
+			end
+		end
+
+		if player.CurrentTowerRush ~= "" then
+			local rush = TowerRushes[player.CurrentTowerRush]
+			if rush and rush.NoBoostItems then
 				local character = player.Player.Character
 				local humanoid = character and character:FindFirstChildOfClass("Humanoid")
 				if humanoid then
@@ -200,11 +210,6 @@ local function PlayerAdded(player: Player)
 	PlayerState:UpdatePlayerInfoStats(info)
 
 	DataInfo.PlayerInfo[player.Name] = info
-
-	-- wait for data
-	while not PlayerData:GetData(player) do
-		task.wait()
-	end
 
 	LeaderstatsManager:InitPlayer(player)
 

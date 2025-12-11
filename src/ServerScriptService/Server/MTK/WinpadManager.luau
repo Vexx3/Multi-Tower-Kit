@@ -12,6 +12,7 @@ local LeaderstatsManager = require("../Core/LeaderstatsManager")
 local PlayerState = require("../Core/PlayerState")
 local TowerData = require("../Core/PlayerData/TowerData")
 local TowerRushManager = require("./TowerRushManager")
+local TowerRushes = require(ReplicatedStorage.RealmData.TowerRushes)
 local Types = require(Shared.Types)
 local Util = require(Shared.Util)
 
@@ -36,6 +37,13 @@ local function PlayerTouchedWinpad(playerName: string, towerName: string, ending
 
 	if tower.NoBoostItems and player.BoostItemUsed then
 		return
+	end
+
+	if player.CurrentTowerRush ~= "" then
+		local rush = TowerRushes[player.CurrentTowerRush]
+		if rush and rush.NoBoostItems and player.BoostItemUsed then
+			return
+		end
 	end
 
 	if player.PracticeMode then

@@ -1,6 +1,3 @@
---!strict
--- Written by fanofpixels
-
 -- Services
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -20,8 +17,8 @@ local Announcements = require(script.Announcements)
 local ClientObjects = require(script.ClientObjects)
 local Config = require(ReplicatedStorage.GameData.Config)
 local GUI = require(script.GUI)
-local conch = require(ReplicatedStorage.Packages.conch_standalone)
-local conchui = require(ReplicatedStorage.Packages.conch_standalone.roblox_packages.ui)
+local conch = require(ReplicatedStorage.Packages.conch)
+local conchui = require(ReplicatedStorage.Packages["conch-ui"])
 -- etoh v6
 local CharacterManager = require(Kit.Managers.CharacterManager)
 local ClientObjectManager = require(Kit.Managers.ClientObjectManager)
@@ -159,6 +156,7 @@ do
 	GuiManager:Init()
 	LightingManager:Init()
 
+	require(ReplicatedStorage.Packages.satchel)
 	require(Shared.ConchTypes)
 
 	conch.initiate_default_lifecycle()

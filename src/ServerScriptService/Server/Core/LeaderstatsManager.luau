@@ -1,4 +1,3 @@
---!strict
 -- @zylx 2025-11-20
 
 --[=[
@@ -65,21 +64,18 @@ function LeaderstatsManager:SetTowerStat(player: Player, towerInfo: Types.TowerI
 		return
 	end
 
-	local data = PlayerData:GetData(player)
-	if not data then
-		return
-	end
-
 	local towerKey = towerInfo.Folder.Name
 	local towerStat = TowerData:GetTowerStat(player, towerKey)
-
 	-- Only award the global Towers stat on the first recorded win for this tower
 	if towerStat and towerStat.Wins and towerStat.Wins > 1 then
 		return
 	end
 
-	data.Towers += stat
-	info.TowerStat.Value = data.Towers
+	PlayerData:UpdateAsync(player, function(data)
+		data.Towers += stat
+		info.TowerStat.Value = data.Towers
+		return true
+	end)
 end
 
 return LeaderstatsManager

@@ -1,0 +1,16 @@
+[dependencies]
+
+[package]
+exclude = [
+    "pesde.toml",
+    "pesde.lock",
+    "src",
+    "roblox_packages",
+    "luau_packages",
+    "**/stories",
+]
+include = ["/dist"]
+name = "alicesaidhi/conch-language"
+realm = "shared"
+registry = "https://github.com/UpliftGames/wally-index"
+version = "0.3.1"

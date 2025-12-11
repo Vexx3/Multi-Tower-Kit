@@ -8,7 +8,7 @@ local Packages = ReplicatedStorage.Packages
 local Shared = ReplicatedStorage.Shared
 
 local Config = require(GameData.Config)
-local conch = require(Packages.conch_standalone)
+local conch = require(Packages.conch)
 
 local Commands = script.Parent.Parent.Commands
 
@@ -27,7 +27,7 @@ function CommandsHandler:Init()
 
 	conch.initiate_default_lifecycle()
 
-	for roleName, permissions in Config.ROLES do
+	for roleName: string, permissions: {string} in Config.ROLES do
 		conch.set_role_permissions(roleName, table.unpack(permissions))
 	end
 

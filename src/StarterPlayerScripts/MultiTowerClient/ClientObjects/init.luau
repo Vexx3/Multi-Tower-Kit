@@ -1,6 +1,3 @@
---!strict
--- Written by fanofpixels
-
 --[=[
 	Loads, wires, and unloads client objects for towers, including everpresent
 	objects and custom repository support.

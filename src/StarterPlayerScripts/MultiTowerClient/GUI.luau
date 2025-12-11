@@ -1,6 +1,3 @@
---!strict
--- Written by fanofpixels
-
 --[=[
 	Client-side tower HUD: shows tower name/acronym, rush progress, timer,
 	boosts-used state, restart prompt, and a simple FPS/ping overlay.
@@ -14,7 +11,7 @@ local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 
-local Icon = require(ReplicatedStorage.Packages.TopbarPlus.Icon)
+local Icon = require(ReplicatedStorage.Packages.topbarplus)
 local TowerRushes = require(ReplicatedStorage.RealmData.TowerRushes)
 local Util = require(ReplicatedStorage.Shared.Util)
 
