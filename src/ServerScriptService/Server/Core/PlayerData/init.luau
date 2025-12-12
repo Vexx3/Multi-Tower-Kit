@@ -24,6 +24,25 @@ local DATA_STORE_KEY = if RunService:IsStudio()
 	then Config.DATA_STORE_KEY_STUDIO
 	else Config.DATA_STORE_KEY
 
+local function createLogger()
+	if RunService:IsStudio() then
+		-- Show all logs in Studio
+		return function(message)
+			print(`[Lyra][{message.level}] {message.message}`)
+			if message.context then
+				print("Context:", message.context)
+			end
+		end
+	else
+		-- Only show errors in production
+		return function(message)
+			if message.level == "error" or message.level == "fatal" then
+				warn(`[Lyra] {message.message}`)
+			end
+		end
+	end
+end
+
 local store = Lyra.createPlayerStore({
 	name = DATA_STORE_KEY,
 	template = Config.DEFAULT_PLAYER_DATA,
@@ -37,15 +56,16 @@ local store = Lyra.createPlayerStore({
 		end)
 
 		if not success then
-			error("Failed to reach data system")
+			error("Failed to reach data system") -- Player will be kicked and can retry
 		end
 
 		if data ~= nil then
-			return data
+			return data.Data -- Return existing data to import
 		end
 
-		return nil
+		return nil -- Return nil for new players to use template
 	end,
+	logCallback = createLogger(),
 })
 
 local PlayerData = {}
@@ -74,27 +94,12 @@ function PlayerData:UpdateAsync(player: Player, fn: (data: Config.PlayerData) ->
 	return store:updateAsync(player, fn)
 end
 
-function PlayerData:WaitForData(player: Player): Config.PlayerData?
-	while not Loaded[player] do
-		task.wait()
-	end
-
-	return PlayerData:GetData(player)
-end
-
 function PlayerData:Init()
-	--[=[
-	Yield until the player's data session is loaded, then return it.
-	Does not start a new load; relies on loadAsync from Init.
-]=]
-
 	Players.PlayerAdded:Connect(function(player)
-		local success, result = pcall(store.loadAsync, store, player)
+		local success = pcall(store.loadAsync, store, player)
 
 		if success then
 			Loaded[player] = true
-		else
-			warn(`[PlayerData] Failed to load {player.Name}: {result}`)
 		end
 	end)
 
