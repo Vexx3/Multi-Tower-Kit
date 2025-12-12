@@ -15,7 +15,5 @@ Credit goes to the JToH team for scripts taken from the JToH Tower Creation Kit 
 
 -------------------------------------------
 
-Manual and type documentation .doc file can be found bundled with this place file, or with Ethan himself, feel free to ask for it!
-
 ]]
 --

@@ -48,8 +48,14 @@ local store = Lyra.createPlayerStore({
 	template = Config.DEFAULT_PLAYER_DATA,
 	schema = t.strictInterface({
 		Towers = t.number,
+		AllJumps = t.optional(t.number),
 		TowerStats = t.table,
 	}),
+	migrationSteps = {
+		Lyra.MigrationStep.addFields("addAJ", {
+			AllJumps = 0,
+		}),
+	},
 	importLegacyData = function(key: string)
 		local success, data = pcall(function()
 			return DataStoreService:GetDataStore(DATA_STORE_KEY):GetAsync(key)
@@ -72,7 +78,6 @@ local PlayerData = {}
 
 --[=[
 	Return the current data snapshot for a player if loaded.
-local Loaded: { [Player]: boolean } = {}
 
 	@within PlayerData
 	@return Config.PlayerData?
@@ -97,7 +102,6 @@ end
 function PlayerData:Init()
 	Players.PlayerAdded:Connect(function(player)
 		local success = pcall(store.loadAsync, store, player)
-
 		if success then
 			Loaded[player] = true
 		end

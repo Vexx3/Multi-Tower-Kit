@@ -92,6 +92,7 @@ local Config = {
 	-- understand the implications on data structure and migration.
 	DEFAULT_PLAYER_DATA = {
 		Towers = 0,
+		AllJumps = 0,
 		TowerStats = {} :: { [string]: TowerStat },
 	},
 

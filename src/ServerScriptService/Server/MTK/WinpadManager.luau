@@ -102,12 +102,23 @@ local function PlayerTouchedWinpad(playerName: string, towerName: string, ending
 
 		-- only adjust tower points if the player won the tower, not the secret ending.
 		if endingID == towerName then
-			if onAJMode and tower.AJBadgeID ~= 0 then
-				BadgeService:AwardBadgeAsync(player.Player.UserId, tower.AJBadgeID)
-			end
+			if onAJMode then
+				if tower.AJBadgeID ~= 0 then
+					BadgeService:AwardBadgeAsync(player.Player.UserId, tower.AJBadgeID)
+				end
 
-			TowerData:RecordTowerWin(player.Player, towerName, runTime, player.BoostItemUsed)
-			LeaderstatsManager:SetTowerStat(player.Player, tower, tower.TowerPoints)
+				TowerData:RecordTowerWin(
+					player.Player,
+					towerName,
+					runTime,
+					player.BoostItemUsed,
+					true
+				)
+				LeaderstatsManager:SetAllJumpsStat(player.Player, tower, tower.TowerPoints)
+			else
+				TowerData:RecordTowerWin(player.Player, towerName, runTime, player.BoostItemUsed)
+				LeaderstatsManager:SetTowerStat(player.Player, tower, tower.TowerPoints)
+			end
 		end
 
 		PlayerState:TeleportToWinroom(player, endingWinroom)

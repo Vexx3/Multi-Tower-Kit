@@ -14,6 +14,7 @@ type TowerStat = Types.TowerStat
 local DEFAULT_TOWER_STAT: TowerStat = {
 	Attempts = 0,
 	Wins = 0,
+	AllJumpsWins = 0,
 	TotalTimeSpentSeconds = 0,
 	TotalTimeSpentFormatted = "0s",
 	BestWinTimeItemlessSeconds = nil,
@@ -21,6 +22,15 @@ local DEFAULT_TOWER_STAT: TowerStat = {
 }
 
 local TowerData = {}
+
+local function applyDefaults(stat: TowerStat)
+	local statAny = stat :: any
+	for key, value in DEFAULT_TOWER_STAT do
+		if statAny[key] == nil then
+			statAny[key] = value
+		end
+	end
+end
 
 local function applyTime(stat: TowerStat, deltaSeconds: number)
 	if deltaSeconds <= 0 then
@@ -40,6 +50,8 @@ local function ensureStat(data: Config.PlayerData, towerName: string): TowerStat
 		stat = table.clone(DEFAULT_TOWER_STAT)
 		towerStats[towerName] = stat
 	end
+
+	applyDefaults(stat)
 
 	return stat
 end
@@ -79,17 +91,23 @@ function TowerData:RecordTowerWin(
 	player: Player,
 	towerName: string,
 	runTimeSeconds: number,
-	boostItemUsed: boolean
+	boostItemUsed: boolean,
+	isAllJumps: boolean?
 )
 	local cleanRunTime = math.max(runTimeSeconds, 0)
+	local awardAllJumps = isAllJumps == true
 
 	PlayerData:UpdateAsync(player, function(data)
 		local stat = ensureStat(data, towerName)
 
-		stat.Wins += 1
+		if awardAllJumps then
+			stat.AllJumpsWins += 1
+		else
+			stat.Wins += 1
+		end
 		applyTime(stat, cleanRunTime)
 
-		if not boostItemUsed and cleanRunTime > 0 then
+		if not awardAllJumps and not boostItemUsed and cleanRunTime > 0 then
 			local best = stat.BestWinTimeItemlessSeconds
 			if not best or cleanRunTime < best then
 				stat.BestWinTimeItemlessSeconds = cleanRunTime

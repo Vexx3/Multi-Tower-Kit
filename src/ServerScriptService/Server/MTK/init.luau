@@ -21,7 +21,6 @@ type Difficulty = Types.DifficultyInfo
 
 -- Modules
 local LeaderstatsManager = require("./Core/LeaderstatsManager")
-local PlayerData = require("./Core/PlayerData")
 local PlayerState = require("./Core/PlayerState")
 local PortalHandler = require("@self/PortalHandler")
 local TowerData = require("./Core/PlayerData/TowerData")

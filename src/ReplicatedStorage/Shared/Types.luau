@@ -36,6 +36,7 @@ export type TowerInfo = {
 export type TowerStat = {
 	Attempts: number,
 	Wins: number,
+	AllJumpsWins: number,
 	TotalTimeSpentSeconds: number,
 	TotalTimeSpentFormatted: string,
 	BestWinTimeItemlessSeconds: number?,
