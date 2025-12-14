@@ -120,9 +120,14 @@ end
 
 function PlayerData:Init()
 	Players.PlayerAdded:Connect(function(player)
+		-- Set attribute to false initially to indicate data is loading
+		player:SetAttribute("DataLoaded", false)
+
 		local success = pcall(store.loadAsync, store, player)
 		if success then
 			Loaded[player] = true
+			-- Signal to client that data has been loaded
+			player:SetAttribute("DataLoaded", true)
 		end
 	end)
 

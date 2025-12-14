@@ -97,7 +97,7 @@ function ClientObjects:LoadClientObjects(coFolder: Instance, orphaned: boolean, 
 	end
 
 	if orphaned then
-		local everpresentCOFolder = workspace:FindFirstChild("EverpresentCOs") :: Instance
+		local everpresentCOFolder = workspace:FindFirstChild("EverpresentCOs") :: Folder
 		if not everpresentCOFolder then
 			everpresentCOFolder = Instance.new("Folder")
 			everpresentCOFolder.Name = "EverpresentCOs"

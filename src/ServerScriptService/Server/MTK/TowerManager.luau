@@ -165,8 +165,7 @@ local function initTower(towerFolder: Instance)
 	-- If the tower has client objects (which it most likely has), send it to the COFolder
 	if tower.ClientObjects then
 		tower.ClientObjects.Name = acronym
-
-		-- v6 collision groups
+		
 		for _, instance in tower.ClientObjects:GetDescendants() do
 			if instance:IsA("BasePart") then
 				if instance.CollisionGroup == "Default" then

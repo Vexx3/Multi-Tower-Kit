@@ -36,6 +36,24 @@ local RestartTime = 0
 local RestartTimeMax = 1
 local RestartDebounce = false
 local CurrentTower = ""
+local _IsLoadingTower = false
+
+-- Function to freeze/unfreeze player movement
+local function setPlayerMovementEnabled(enabled: boolean)
+	local character = LocalPlayer.Character
+	if character then
+		local humanoid = character:FindFirstChildOfClass("Humanoid")
+		if humanoid then
+			if enabled then
+				humanoid.WalkSpeed = 16
+				humanoid.JumpPower = 50
+			else
+				humanoid.WalkSpeed = 0
+				humanoid.JumpPower = 0
+			end
+		end
+	end
+end
 
 function LoadTower(acronym: string, purist: boolean, resetTimer: boolean)
 	CurrentTower = acronym
@@ -57,6 +75,11 @@ function LoadTower(acronym: string, purist: boolean, resetTimer: boolean)
 
 	-- If this tower is purist we can skip it
 	if not purist then
+		-- Show loading screen and freeze player while loading client objects
+		_IsLoadingTower = true
+		setPlayerMovementEnabled(false)
+		GUI:ShowLoadingScreen("Fetching <b>Client Objects...</b>", true)
+
 		local COFolder: Instance? = LocalPlayer:WaitForChild("ClientSidedObjects", 10)
 		if COFolder then
 			-- Let the module dedicated to loading client objects load the client objects
@@ -66,6 +89,11 @@ function LoadTower(acronym: string, purist: boolean, resetTimer: boolean)
 				"A tower has attempted to loaded in. It wasn't marked as purist but no ClientSidedObjects folder was sent over. Bad internet connection?"
 			)
 		end
+
+		-- Hide loading screen and restore movement after loading
+		GUI:HideLoadingScreen()
+		setPlayerMovementEnabled(true)
+		_IsLoadingTower = false
 	end
 end
 
@@ -150,6 +178,9 @@ RunService.RenderStepped:Connect(Step)
 do
 	StarterGui:SetCoreGuiEnabled(Enum.CoreGuiType.EmotesMenu, false)
 
+	-- Show data loading screen immediately
+	GUI:ShowLoadingScreen("Loading Data...", false)
+
 	CharacterManager:Init()
 	ClientObjectManager:Init()
 	FlipManager:Init()
@@ -174,4 +205,18 @@ do
 	GUI:SetTowerTimer(0)
 	GUI:SetTowerAcronym("")
 	GUI:SetTowerRush(0, 0)
+
+	-- Wait for data to load then hide loading screen
+	local dataLoaded = LocalPlayer:GetAttribute("DataLoaded")
+	if dataLoaded == true then
+		GUI:HideLoadingScreen()
+	else
+		-- Wait for data to load
+		LocalPlayer:GetAttributeChangedSignal("DataLoaded"):Connect(function()
+			local loaded = LocalPlayer:GetAttribute("DataLoaded")
+			if loaded == true then
+				GUI:HideLoadingScreen()
+			end
+		end)
+	end
 end

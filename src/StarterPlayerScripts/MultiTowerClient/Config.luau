@@ -18,9 +18,9 @@ return {
 
 	-- The font to use for normal system messages
 	ChatFontFace = "GothamBold",
-	ChatFontSize = 14,
+	ChatFontSize = 16,
 
 	-- The font to use for fancy system messages
 	ChatFancyFontFace = "Bodoni",
-	ChatFancyFontSize = 18,
+	ChatFancyFontSize = 20,
 }

@@ -37,6 +37,11 @@ local BoostListFrame = TowerGui:FindFirstChild("BoostList", true) :: Frame?
 local BoostListItemTemplate = BoostListFrame
 	and BoostListFrame:FindFirstChild("ItemName") :: TextLabel?
 
+-- Loading Screen Elements
+local LoadingScreen = TowerGui:FindFirstChild("LoadingScreen", true) :: Frame?
+local LoadingLabel = LoadingScreen and LoadingScreen:FindFirstChild("LoadingLabel") :: TextLabel?
+local AttentionLabel = LoadingScreen and LoadingScreen:FindFirstChild("Attention") :: TextLabel?
+
 local restartTransparency = 0
 local restartStrokeTransparency = 1
 
@@ -74,6 +79,39 @@ local function setRushListVisible(isVisible: boolean)
 end
 
 local GUI = {}
+
+--[=[
+	Shows the loading screen with the specified message.
+	@within GUI
+	@param message string -- The loading message to display
+	@param showAttention boolean? -- Whether to show the attention label (for tower loading)
+]=]
+function GUI:ShowLoadingScreen(message: string, showAttention: boolean?)
+	if LoadingScreen then
+		LoadingScreen.Visible = true
+		-- Set transparency: 0.3 for tower loading (showAttention=true), 0 for data loading
+		LoadingScreen.BackgroundTransparency = if showAttention then 0.3 else 0
+	end
+	if LoadingLabel then
+		LoadingLabel.Text = message
+	end
+	if AttentionLabel then
+		AttentionLabel.Visible = showAttention or false
+	end
+end
+
+--[=[
+	Hides the loading screen.
+	@within GUI
+]=]
+function GUI:HideLoadingScreen()
+	if LoadingScreen then
+		LoadingScreen.Visible = false
+	end
+	if AttentionLabel then
+		AttentionLabel.Visible = false
+	end
+end
 
 local function rebuildBoostList(list: { string })
 	if not BoostListFrame or not BoostListItemTemplate then
