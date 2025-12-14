@@ -57,23 +57,6 @@ local RUSH_COLOR_CURRENT = Color3.fromRGB(255, 234, 138)
 local RUSH_COLOR_DONE = Color3.fromRGB(152, 255, 152)
 local RUSH_COLOR_TODO = Color3.fromRGB(255, 140, 140)
 
-local function getDifficultyColors(difficultyName: string)
-	local color = Util:GetDifficulty(difficultyName).Color
-	local stroke = Color3.new(color.R * 0.35, color.G * 0.35, color.B * 0.35)
-	return color, stroke
-end
-
-local function getTowerColors(acronym: string)
-	local tower = Towers:FindFirstChild(acronym)
-	local difficultyValue = tower and tower:FindFirstChild("Difficulty") :: StringValue?
-
-	if difficultyValue then
-		return getDifficultyColors(difficultyValue.Value)
-	end
-
-	return Color3.new(1, 1, 1), Color3.new(0.35, 0.35, 0.35)
-end
-
 local function setBoostListVisible(isVisible: boolean)
 	if BoostListFrame then
 		BoostListFrame.Visible = isVisible
@@ -149,7 +132,7 @@ local function rebuildTowerRushList()
 		clone.Name = `RushTower_{acronym}`
 		clone.Text = acronym
 
-		local textColor, strokeColor = getTowerColors(acronym)
+		local textColor, strokeColor = Util:GetTowerColors(acronym)
 		clone.TextColor3 = textColor
 		clone.TextStrokeColor3 = strokeColor
 
@@ -188,7 +171,7 @@ local function updateTowerRush()
 
 	if rush then
 		currentRushName = rush.Title
-		local textColor = getDifficultyColors(rush.Difficulty)
+		local textColor = Util:GetDifficultyColors(rush.Difficulty)
 		currentRushDifficultyColor = textColor
 
 		local list = {}
@@ -219,7 +202,7 @@ function GUI:SetTowerAcronym(acronym: string)
 	TowerAcronym.Visible = acronym ~= ""
 	TowerAcronym.Text = acronym
 
-	local textColor, strokeColor = getTowerColors(acronym)
+	local textColor, strokeColor = Util:GetTowerColors(acronym)
 	TowerAcronym.TextColor3 = textColor
 	TowerAcronym.TextStrokeColor3 = strokeColor
 

@@ -33,7 +33,7 @@ local ResetEffectGui = ReplicatedStorage:WaitForChild("ResetEffectGui") :: Binda
 local LocalPlayer = Players.LocalPlayer :: Player
 local TowerTimer = 0
 local RestartTime = 0
-local RestartTimeMax = 5
+local RestartTimeMax = 1
 local RestartDebounce = false
 local CurrentTower = ""
 

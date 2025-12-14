@@ -1,4 +1,9 @@
--- Handles per-tower player statistics stored in the profile datastore.
+--[=[
+	Handles per-tower player statistics stored in the profile datastore.
+
+	@class TowerData
+	@server
+]=]
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 

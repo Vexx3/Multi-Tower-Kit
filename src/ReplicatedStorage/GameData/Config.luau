@@ -85,14 +85,15 @@ local Config = {
 
 	-- Keys used for player data storage. The studio key is used when
 	-- testing in Roblox Studio.
-	DATA_STORE_KEY = "Production",
-	DATA_STORE_KEY_STUDIO = "Alpha-67",
+	DATA_STORE_KEY = "Production3",
+	DATA_STORE_KEY_STUDIO = "Alpha5",
 
 	-- Default player data template. Only modify this if you fully
 	-- understand the implications on data structure and migration.
 	DEFAULT_PLAYER_DATA = {
 		Towers = 0,
 		AllJumps = 0,
+		CompletedTowers = {} :: { string },
 		TowerStats = {} :: { [string]: TowerStat },
 	},
 
@@ -142,4 +143,4 @@ local Config = {
 
 export type PlayerData = typeof(Config.DEFAULT_PLAYER_DATA)
 
-return Config
+return table.freeze(Config)

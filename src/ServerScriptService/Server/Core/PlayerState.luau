@@ -13,7 +13,7 @@ local ZapServer = require("../../ZapServer")
 
 type PlayerInfo = Types.PlayerInfo
 
-local Markers = workspace.Markers
+local MARKERS = workspace.Markers
 
 local PlayerState = {}
 
@@ -80,9 +80,9 @@ function PlayerState:TeleportToWinroom(player: PlayerInfo, winroomMarker: string
 	-- Find the winroom
 	local winroomPart
 	if winroomMarker ~= "" then
-		winroomPart = Markers:FindFirstChild(winroomMarker, true)
+		winroomPart = MARKERS:FindFirstChild(winroomMarker, true)
 	else
-		winroomPart = Markers:FindFirstChild("WinroomSpawn", true)
+		winroomPart = MARKERS:FindFirstChild("WinroomSpawn", true)
 	end
 
 	-- Teleport to the winroom

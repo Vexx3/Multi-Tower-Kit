@@ -1,3 +1,11 @@
+--[=[
+	Handles winpad collision detection, player win validation, badge awarding,
+	and tower completion processing including rush advancement.
+
+	@class WinpadManager
+	@server
+]=]
+
 local BadgeService = game:GetService("BadgeService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local ServerStorage = game:GetService("ServerStorage")
@@ -13,6 +21,7 @@ local PlayerState = require("../Core/PlayerState")
 local TowerData = require("../Core/PlayerData/TowerData")
 local TowerRushManager = require("./TowerRushManager")
 local TowerRushes = require(ReplicatedStorage.RealmData.TowerRushes)
+local TowerSignManager = require("./TowerSignManager")
 local Types = require(Shared.Types)
 local Util = require(Shared.Util)
 
@@ -22,13 +31,13 @@ type List<T> = Types.List<T>
 type PlayerInfo = Types.PlayerInfo
 type TowerInfo = Types.TowerInfo
 
-local Towers = workspace.Towers
-local WinpadParticles = ServerStorage.WinpadParticles
+local TOWERS = workspace.Towers
+local WINPAD_PARTICLES = ServerStorage.WinpadParticles
 
 local WinpadManager = {}
 WinpadManager.Winpads = {} :: List<BasePart>
 
-local function PlayerTouchedWinpad(playerName: string, towerName: string, endingID: string)
+local function onPlayerTouchedWinpad(playerName: string, towerName: string, endingID: string)
 	local player: PlayerInfo = DataInfo.PlayerInfo[playerName]
 	local tower: TowerInfo = DataInfo.TowerInfo[towerName]
 	if not player or not tower then
@@ -118,6 +127,7 @@ local function PlayerTouchedWinpad(playerName: string, towerName: string, ending
 			else
 				TowerData:RecordTowerWin(player.Player, towerName, runTime, player.BoostItemUsed)
 				LeaderstatsManager:SetTowerStat(player.Player, tower, tower.TowerPoints)
+				TowerSignManager:MarkTowerCompleted(towerName)
 			end
 		end
 
@@ -131,21 +141,18 @@ local function PlayerTouchedWinpad(playerName: string, towerName: string, ending
 	player.TouchEventBusy = false
 end
 
-local function Setup(towerName: string, winpad: BasePart)
-	-- Give the winpad it's funny particles
-	local particles = WinpadParticles:Clone()
+local function setupWinpad(towerName: string, winpad: BasePart)
+	local particles = WINPAD_PARTICLES:Clone()
 	particles.Parent = winpad
 
-	-- Figure out it's EndingID (if it has none, it's "default")
 	local endingID = Attributes:GetString(winpad, "EndingID") or ""
 	if endingID == "" then
 		winpad:SetAttribute("EndingID", towerName)
 		endingID = towerName
 	end
 
-	-- Figure out the acronym of the tower this winpad belongs too
-	-- A winpad inside of the tower folder will have this value implicitely figured out automatically (unless explicetely defined otherwise, though I'm not sure why you would want to do that lol)
-	-- A winpad outside of the tower folder must explicitely define this property (or else error)
+	-- Determine the parent tower. Winpads inside tower folders inherit it implicitly.
+	-- Winpads outside must explicitly define the ParentTower attribute.
 	local parentTower = Attributes:GetString(winpad, "ParentTower") or ""
 	if parentTower == "" then
 		assert(
@@ -190,20 +197,20 @@ local function Setup(towerName: string, winpad: BasePart)
 			return
 		end
 
-		PlayerTouchedWinpad(playerName, towerName, endingID)
+		onPlayerTouchedWinpad(playerName, towerName, endingID)
 	end)
 end
 
-local function InitWinpad(towerName: string, winpad: BasePart)
-	Setup(towerName, winpad)
+local function initWinpad(towerName: string, winpad: BasePart)
+	setupWinpad(towerName, winpad)
 	table.insert(WinpadManager.Winpads, winpad)
 end
 
 function WinpadManager:InitWinpads()
-	for _, tower in Towers:GetChildren() do
+	for _, tower in TOWERS:GetChildren() do
 		for _, descendant in tower:GetDescendants() do
 			if descendant.Name == "WinPad" and descendant:IsA("BasePart") then
-				InitWinpad(tower.Name, descendant)
+				initWinpad(tower.Name, descendant)
 			end
 		end
 	end

@@ -145,4 +145,4 @@ local Difficulties: { [string]: DifficultyInfo } = {
 	},
 }
 
-return Difficulties
+return table.freeze(Difficulties)

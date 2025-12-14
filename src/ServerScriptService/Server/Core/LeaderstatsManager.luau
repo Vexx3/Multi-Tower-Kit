@@ -1,5 +1,3 @@
--- @zylx 2025-11-20
-
 --[=[
 	Creates and updates Roblox leaderstats for players based on their tower
 	completions.
@@ -8,26 +6,22 @@
 	@server
 ]=]
 
--- Not to be confused with the PlayerInfo type in MultiTowerServer
-type PlayerInfo = {
-	Player: Player,
-	LeaderStatsFolder: Folder,
-
-	TowerStat: IntValue,
-	AllJumpsStat: IntValue,
-}
-
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local PlayerData = require(script.Parent.PlayerData)
 local TowerData = require(script.Parent.PlayerData.TowerData)
 local Types = require(ReplicatedStorage.Shared.Types)
 
-local Players: { [string]: PlayerInfo } = {}
+type PlayerInfo = {
+	Player: Player,
+	LeaderStatsFolder: Folder,
+	TowerStat: IntValue,
+	AllJumpsStat: IntValue,
+}
+
+local _players: { [string]: PlayerInfo } = {}
 
 local LeaderstatsManager = {}
-
--- Sets up the leaderstats folder and initial tower count for a joining player.
 
 function LeaderstatsManager:InitPlayer(player: Player)
 	local data = PlayerData:GetData(player)
@@ -46,7 +40,7 @@ function LeaderstatsManager:InitPlayer(player: Player)
 
 	local allJumpsStat = Instance.new("IntValue")
 	allJumpsStat.Name = "All-jumps"
-	allJumpsStat.Value = data.AllJumps or 0
+	allJumpsStat.Value = data.AllJumps
 	allJumpsStat.Parent = leaderstats
 
 	local info: PlayerInfo = {
@@ -55,7 +49,7 @@ function LeaderstatsManager:InitPlayer(player: Player)
 		TowerStat = towerStat,
 		AllJumpsStat = allJumpsStat,
 	}
-	Players[player.Name] = info
+	_players[player.Name] = info
 end
 
 --[=[
@@ -66,21 +60,26 @@ end
 	@param stat number -- amount to add to the Towers stat
 ]=]
 function LeaderstatsManager:SetTowerStat(player: Player, towerInfo: Types.TowerInfo, stat: number)
-	local info: PlayerInfo = Players[player.Name]
+	local info = _players[player.Name]
 	if not info then
 		return
 	end
 
-	local towerKey = towerInfo.Folder.Name
-	local towerStat = TowerData:GetTowerStat(player, towerKey)
-	-- Only award the global Towers stat on the first recorded win for this tower
-	if towerStat and towerStat.Wins and towerStat.Wins > 1 then
+	local playerData = PlayerData:GetData(player)
+	if not playerData then
+		return
+	end
+
+	local acronym = towerInfo.Folder.Name
+
+	if table.find(playerData.CompletedTowers, acronym) then
 		return
 	end
 
 	PlayerData:UpdateAsync(player, function(data)
 		data.Towers += stat
 		info.TowerStat.Value = data.Towers
+		table.insert(data.CompletedTowers, acronym)
 		return true
 	end)
 end
@@ -97,7 +96,7 @@ function LeaderstatsManager:SetAllJumpsStat(
 	towerInfo: Types.TowerInfo,
 	stat: number
 )
-	local info: PlayerInfo = Players[player.Name]
+	local info = _players[player.Name]
 	if not info then
 		return
 	end

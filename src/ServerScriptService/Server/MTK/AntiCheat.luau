@@ -29,14 +29,11 @@ function AntiCheat:ValidateWin(player: PlayerInfo, tower: TowerInfo, ending: End
 		return false, "Touched the winpad of a tower you're not in"
 	end
 
-	-- Anything checks inside this block do not apply if the player has equipped a debug item
 	if not player.DebugItemUsed then
-		-- If the player completed the tower before the minumum time, they beat the tower too early! they must be cheating
 		if tower.MinimumTime > 0 and player.TowerTimer < tower.MinimumTime then
 			return false, "Completed the tower too early"
 		end
 
-		-- If the player hasn't hit the checkpoints in order, they beat the tower out of order!
 		if player.CurrentTowerCheckpoint < tower.CheckpointCount then
 			return false, "Completed the tower out of order"
 		end

@@ -12,29 +12,23 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local GameData = ReplicatedStorage.GameData
 local Shared = ReplicatedStorage.Shared
 
+local Config = require(GameData.Config)
+local KickMessages = require(GameData.KickMessages)
+local Types = require(Shared.Types)
+local Util = require(Shared.Util)
+local Webhook = require("./Webhook")
 local ZapServer = require("../../ZapServer")
 
--- Get types
-local Types = require(Shared.Types)
-
-type List<T> = Types.List<T>
 type Dictionary<T> = Types.Dictionary<T>
 type PlayerInfo = Types.PlayerInfo
-type TowerRush = Types.TowerRush
-type TowerInfo = Types.TowerInfo
-type EndingInfo = Types.EndingInfo
-type Difficulty = Types.DifficultyInfo
 
 type WinMessageInfo = {
 	MessageID: string,
-
 	PlayerName: string,
 	EndingName: string,
 	DifficultyName: string,
-
 	Time: number,
 	BoostsUsed: Dictionary<string>,
-
 	Global: boolean,
 }
 
@@ -43,10 +37,8 @@ type ClientWinMessageInfo = {
 	EndingName: string,
 	Time: number,
 	BoostsUsed: Dictionary<string>,
-
 	Color: Color3,
 	FancyFont: boolean,
-
 	Global: boolean,
 }
 
@@ -55,15 +47,33 @@ type Message = {
 	Sent: number,
 }
 
-local Util = require(Shared.Util)
-
-local Config = require(GameData.Config)
-local KickMessages: List<string> = require(GameData.KickMessages)
-local Webhook = require(".././Logging/Webhook")
-
-local latestGlobalMessageID = ""
+local _latestGlobalMessageID = ""
 
 local Announcements = {}
+
+local function broadcastWinAnnouncement(info: WinMessageInfo)
+	local endingDifficulty = Util:GetDifficulty(info.DifficultyName)
+
+	local clientMsgInfo: ClientWinMessageInfo = {
+		PlayerName = info.PlayerName,
+		EndingName = info.EndingName,
+		Time = info.Time,
+		BoostsUsed = info.BoostsUsed,
+		Color = endingDifficulty.Color,
+		FancyFont = endingDifficulty.FancyFont,
+		Global = endingDifficulty.GlobalAnnouncement,
+	}
+
+	ZapServer.GameWinAnnouncement.FireAll(clientMsgInfo)
+end
+
+local function onGlobalWinMessage(message: Message)
+	local info: WinMessageInfo = message.Data
+	if info.MessageID == _latestGlobalMessageID then
+		return
+	end
+	broadcastWinAnnouncement(info)
+end
 
 --[=[
 	Broadcasts a tower win locally and optionally globally, then posts to the
@@ -78,64 +88,35 @@ function Announcements:WinAnnouncement(
 	timeOverride: number?
 )
 	local endingDifficulty = Util:GetDifficulty(difficultyName)
-	local finalTime = timeOverride or player.TowerTimer -- snapshot so webhook and client use the same value
+	local finalTime = timeOverride or player.TowerTimer
 
 	local playerName = if Config.USE_DISPLAY_NAME
 		then player.Player.DisplayName
 		else player.Player.Name
 
 	local info: WinMessageInfo = {
-		-- Unique message ID
 		MessageID = HttpService:GenerateGUID(false),
-
 		PlayerName = playerName,
 		EndingName = endingName,
 		DifficultyName = difficultyName,
-
 		Time = finalTime,
 		BoostsUsed = player.BoostItemNames,
-
 		Global = endingDifficulty.GlobalAnnouncement,
 	}
 
-	-- If this difficulty should be globally announced, message the universe
 	if endingDifficulty.GlobalAnnouncement then
-		-- Set the latest global message ID, we do this so we can check later
-		-- If we receive a message and it's the same one as this one, don't broadcast it
-		-- This is to prevent a server from broadcasting the same win message twice
-		latestGlobalMessageID = info.MessageID
-
+		_latestGlobalMessageID = info.MessageID
 		MessagingService:PublishAsync("GlobalWin", info)
 	end
 
-	BroadcastWinAnnouncement(info)
+	broadcastWinAnnouncement(info)
 	task.spawn(Webhook.SendMessage, Webhook, player, endingName, difficultyName, finalTime)
-end
-
-function BroadcastWinAnnouncement(info: WinMessageInfo)
-	local endingDifficulty = Util:GetDifficulty(info.DifficultyName)
-
-	-- Construct an information table the client can recieve
-	local clientMsgInfo: ClientWinMessageInfo = {
-		PlayerName = info.PlayerName,
-		EndingName = info.EndingName,
-		Time = info.Time,
-		BoostsUsed = info.BoostsUsed,
-
-		Color = endingDifficulty.Color,
-		FancyFont = endingDifficulty.FancyFont,
-
-		Global = endingDifficulty.GlobalAnnouncement,
-	}
-
-	ZapServer.GameWinAnnouncement.FireAll(clientMsgInfo)
 end
 
 --[=[
 	Sends a generic server announcement to all players.
 
 	@within Announcements
-	@param fancyText boolean? -- optional fancy font flag
 ]=]
 function Announcements:GameAnnouncement(message: string, color: Color3, fancyText: boolean?)
 	ZapServer.GameAnnouncement.FireAll(message, color, fancyText)
@@ -145,33 +126,20 @@ end
 	Kicks a player for anti-cheat with a themed message broadcast to the server.
 
 	@within Announcements
-	@param reason string -- kick reason
 ]=]
 function Announcements:AntiCheatKick(player: Player, reason: string)
-	local message = KickMessages[math.random(1, #KickMessages)]
-	message = message:gsub(
+	local kickMessage = KickMessages[math.random(1, #KickMessages)]
+	kickMessage = kickMessage:gsub(
 		"{Player}",
 		if Config.USE_DISPLAY_NAME then player.DisplayName else player.Name
 	)
 
-	Announcements:GameAnnouncement(message, Color3.new(1, 0, 0))
+	Announcements:GameAnnouncement(kickMessage, Color3.new(1, 0, 0))
 	player:Kick(reason)
 end
 
-function GlobalWinMessage(message: Message)
-	local info: WinMessageInfo = message.Data
-
-	-- Prevent double message
-	if info.MessageID == latestGlobalMessageID then
-		return
-	end
-	BroadcastWinAnnouncement(info)
-end
-
--- Subscribes to cross-server win announcements so this server can rebroadcast
--- them to its players.
 function Announcements:Init()
-	MessagingService:SubscribeAsync("GlobalWin", GlobalWinMessage)
+	MessagingService:SubscribeAsync("GlobalWin", onGlobalWinMessage)
 end
 
 return Announcements

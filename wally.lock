@@ -23,11 +23,6 @@ version = "0.3.1"
 dependencies = [["conch", "alicesaidhi/conch@0.3.1"], ["language", "alicesaidhi/conch-language@0.3.1"], ["vide", "centau/vide@0.3.1"]]
 
 [[package]]
-name = "celine/multi-tower-kit"
-version = "0.1.0"
-dependencies = [["Loader", "sleitnick/loader@2.0.0"], ["Lyra", "paradoxum-games/lyra@0.6.0"], ["conch", "alicesaidhi/conch@0.3.1"], ["conch-ui", "alicesaidhi/conch-ui@0.3.1"], ["satchel", "ryanlua/satchel@1.4.1"], ["topbarplus", "1foreverhd/topbarplus@3.4.0"]]
-
-[[package]]
 name = "centau/vide"
 version = "0.3.1"
 dependencies = []
@@ -36,6 +31,16 @@ dependencies = []
 name = "evaera/promise"
 version = "4.0.0"
 dependencies = []
+
+[[package]]
+name = "howmanysmall/janitor"
+version = "1.18.3"
+dependencies = [["Promise", "howmanysmall/typed-promise@4.0.6"]]
+
+[[package]]
+name = "howmanysmall/typed-promise"
+version = "4.0.6"
+dependencies = [["Promise", "evaera/promise@4.0.0"]]
 
 [[package]]
 name = "osyrisrblx/t"
@@ -56,3 +61,8 @@ dependencies = [["topbarplus", "1foreverhd/topbarplus@3.4.0"]]
 name = "sleitnick/loader"
 version = "2.0.0"
 dependencies = []
+
+[[package]]
+name = "zylx/multi-tower-kit"
+version = "0.1.0"
+dependencies = [["Janitor", "howmanysmall/janitor@1.18.3"], ["Loader", "sleitnick/loader@2.0.0"], ["Lyra", "paradoxum-games/lyra@0.6.0"], ["conch", "alicesaidhi/conch@0.3.1"], ["conch-ui", "alicesaidhi/conch-ui@0.3.1"], ["satchel", "ryanlua/satchel@1.4.1"], ["topbarplus", "1foreverhd/topbarplus@3.4.0"]]

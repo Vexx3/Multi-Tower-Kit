@@ -24,9 +24,9 @@ local ZapServer = require("../../ZapServer")
 type PlayerInfo = Types.PlayerInfo
 type TowerInfo = Types.TowerInfo
 
-local Towers = workspace.Towers
-local ClientObjectsFolder = ServerStorage.TowerClientObjects
-local TowerCheckpoints = ServerStorage.TowerCheckpoints
+local TOWERS = workspace.Towers
+local CLIENT_OBJECTS_FOLDER = ServerStorage.TowerClientObjects
+local TOWER_CHECKPOINTS = ServerStorage.TowerCheckpoints
 
 local TowerManager = {}
 
@@ -89,7 +89,7 @@ function TowerManager:LoadTower(playerName: string, towerName: string, resetTime
 	end
 end
 
-local function InitTower(towerFolder: Instance)
+local function initTower(towerFolder: Instance)
 	local acronym = towerFolder.Name
 
 	-- Get the SpawnLocation
@@ -102,21 +102,21 @@ local function InitTower(towerFolder: Instance)
 	-- Get the ClientSidedObjects folder
 	local clientObjects = (
 		towerFolder:FindFirstChild("ClientSidedObjects")
-		or ClientObjectsFolder:FindFirstChild(acronym)
+		or CLIENT_OBJECTS_FOLDER:FindFirstChild(acronym)
 	)
 
 	-- Get the Checkpoints
 	local checkpointsFolder = (
-		towerFolder:FindFirstChild("Checkpoints") or TowerCheckpoints:FindFirstChild(acronym)
+		towerFolder:FindFirstChild("Checkpoints") or TOWER_CHECKPOINTS:FindFirstChild(acronym)
 	)
 	-- The checkpoints exist but isn't in ServerStorage
-	if checkpointsFolder and checkpointsFolder.Parent ~= TowerCheckpoints then
+	if checkpointsFolder and checkpointsFolder.Parent ~= TOWER_CHECKPOINTS then
 		checkpointsFolder.Name = acronym
-		checkpointsFolder.Parent = TowerCheckpoints
+		checkpointsFolder.Parent = TOWER_CHECKPOINTS
 
 		if Config.CHECKPOINTS_WORKSPACE_WARNING then
 			Util:Warn(
-				`{acronym} is storing it's checkpoints in the workspace! consider moving the checkpoints folder to ServerStorage.TowerCheckpoints`
+				`{acronym} is storing its checkpoints in the workspace! consider moving the checkpoints folder to ServerStorage.TowerCheckpoints`
 			)
 		end
 	end
@@ -125,12 +125,11 @@ local function InitTower(towerFolder: Instance)
 	local checkpointCount = 0
 
 	if checkpointsFolder then
-		-- There is a checkpoints folder! get it's contents
-		for k, _ in checkpointsFolder:GetChildren() do
-			local checkpointName = tostring(k)
-			local checkpoint = checkpointsFolder:FindFirstChild(checkpointName)
-			assert(checkpoint, `Could not find checkpoint {checkpointName}`)
-			assert(checkpoint:IsA("BasePart"), `Checkpoint {checkpointName} is not a BasePart`)
+		for index, _ in checkpointsFolder:GetChildren() do
+			local checkpointIndex = tostring(index)
+			local checkpoint = checkpointsFolder:FindFirstChild(checkpointIndex)
+			assert(checkpoint, `Could not find checkpoint {checkpointIndex}`)
+			assert(checkpoint:IsA("BasePart"), `Checkpoint {checkpointIndex} is not a BasePart`)
 
 			table.insert(checkpointsList, checkpoint)
 			checkpointCount += 1
@@ -173,12 +172,12 @@ local function InitTower(towerFolder: Instance)
 			end
 		end
 
-		tower.ClientObjects.Parent = ClientObjectsFolder
+		tower.ClientObjects.Parent = CLIENT_OBJECTS_FOLDER
 	end
 
-	-- Having no minimum time is a security risk, warn the user for that
+	-- Having no minimum time is a security risk
 	if tower.MinimumTime == 0 and Config.NO_MINIMUM_TIME_WARNING then
-		Util:Warn(`{acronym} has no minumum time, it is vulnerable to being cheesed!`)
+		Util:Warn(`{acronym} has no minimum time, it is vulnerable to being cheesed!`)
 	end
 
 	-- Register the tower object
@@ -190,8 +189,8 @@ end
 -- Register all towers found in `workspace.Towers`, building the runtime
 -- metadata used elsewhere by MTK.
 function TowerManager:InitTowers()
-	for _, v in Towers:GetChildren() do
-		InitTower(v)
+	for _, v in TOWERS:GetChildren() do
+		initTower(v)
 	end
 end
 

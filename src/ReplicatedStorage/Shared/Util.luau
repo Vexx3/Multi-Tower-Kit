@@ -21,6 +21,8 @@ local GameData = ReplicatedStorage.GameData
 local Config = require(GameData.Config)
 local Difficulties = require(GameData.Difficulties)
 
+local Towers = workspace.Towers
+
 local warningTag = "[MTKv4] "
 
 -- If the difficulty specified by something is unknown, fallback to this
@@ -201,6 +203,27 @@ function Util:RespawnAndTeleport(player: Player, spawnPart: BasePart)
 	end
 
 	Util:TeleportPlayerToPartWithWait(player, spawnPart)
+end
+
+---------------------------------------------------------------------------------------
+
+-- get the difficulty and their difficulty color 2nd returned value is used for the stroke color
+function Util:GetDifficultyColors(difficultyName: string)
+	local color = Util:GetDifficulty(difficultyName).Color
+	local stroke = Color3.new(color.R * 0.35, color.G * 0.35, color.B * 0.35)
+	return color, stroke
+end
+
+-- get the tower difficulty and their difficulty color 2nd returned value is used for the stroke color
+function Util:GetTowerColors(acronym: string)
+	local tower = Towers:FindFirstChild(acronym)
+	local difficultyValue = tower and tower:FindFirstChild("Difficulty") :: StringValue?
+
+	if difficultyValue then
+		return Util:GetDifficultyColors(difficultyValue.Value)
+	end
+
+	return Color3.new(1, 1, 1), Color3.new(0.35, 0.35, 0.35)
 end
 
 return Util

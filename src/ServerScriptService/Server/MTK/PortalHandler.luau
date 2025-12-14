@@ -8,14 +8,49 @@ local TowerRushManager = require("./TowerRushManager")
 local Types = require(Shared.Types)
 local Util = require(Shared.Util)
 
-type Dictionary<T> = Types.Dictionary<T>
 type PlayerInfo = Types.PlayerInfo
 type TowerInfo = Types.TowerInfo
 
-local Markers = workspace.Markers
-local Portals = workspace.Portals
+local MARKERS = workspace.Markers
+local PORTALS = workspace.Portals
 
 local PortalHandler = {}
+
+local function CanEnterTower(playerName: string, targetTower: string): boolean
+	local player = DataInfo.PlayerInfo[playerName]
+	if not player then
+		return false
+	end
+
+	-- Block other tower entries while in a rush or already inside a tower
+	if player.CurrentTowerRush ~= "" then
+		return false
+	end
+
+	if player.CurrentTower ~= "" and player.CurrentTower ~= targetTower then
+		return false
+	end
+
+	return true
+end
+
+local function CanStartTowerRush(playerName: string): boolean
+	local player = DataInfo.PlayerInfo[playerName]
+	if not player then
+		return false
+	end
+
+	-- Cannot start a rush while already in one or inside a tower
+	if player.CurrentTowerRush ~= "" then
+		return false
+	end
+
+	if player.CurrentTower ~= "" then
+		return false
+	end
+
+	return true
+end
 
 local function RegisterStringPortal(
 	part: BasePart,
@@ -33,6 +68,10 @@ local function Setup(portalPart: BasePart)
 	local TowerPortal = portalPart:FindFirstChild("TowerPortal") :: StringValue
 	if TowerPortal then
 		RegisterStringPortal(portalPart, TowerPortal, function(playerName, value)
+			if not CanEnterTower(playerName, value) then
+				return
+			end
+
 			TowerManager:LoadTower(playerName, value, true)
 		end)
 		return
@@ -41,6 +80,10 @@ local function Setup(portalPart: BasePart)
 	local TowerRush = portalPart:FindFirstChild("TowerRush") :: StringValue
 	if TowerRush then
 		RegisterStringPortal(portalPart, TowerRush, function(playerName, value)
+			if not CanStartTowerRush(playerName) then
+				return
+			end
+
 			TowerRushManager:LoadTowerRush(playerName, value)
 		end)
 		return
@@ -48,7 +91,7 @@ local function Setup(portalPart: BasePart)
 
 	local LobbyTeleporter = portalPart:FindFirstChild("LobbyTeleporter") :: StringValue
 	if LobbyTeleporter then
-		local targetPart = Markers:FindFirstChild(LobbyTeleporter.Value, true) :: BasePart
+		local targetPart = MARKERS:FindFirstChild(LobbyTeleporter.Value, true) :: BasePart
 		if targetPart and targetPart:IsA("BasePart") then
 			Util:RegisterTouch(portalPart, function(playerName)
 				local player: PlayerInfo = DataInfo.PlayerInfo[playerName]
@@ -70,9 +113,9 @@ local function Setup(portalPart: BasePart)
 end
 
 function PortalHandler:InitPortals()
-	for _, v in Portals:GetChildren() do
-		if v:IsA("BasePart") then
-			Setup(v)
+	for _, child in PORTALS:GetChildren() do
+		if child:IsA("BasePart") then
+			Setup(child)
 		end
 	end
 end

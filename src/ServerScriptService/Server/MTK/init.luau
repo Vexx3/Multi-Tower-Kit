@@ -1,4 +1,11 @@
--- Services
+--[=[
+	Main server module for Multi-Tower Kit. Handles player state, tower loading,
+	winpad detection, and coordinate all MTK subsystems.
+
+	@class MTK
+	@server
+]=]
+
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
@@ -7,19 +14,11 @@ local ServerStorage = game:GetService("ServerStorage")
 local StarterPack = game:GetService("StarterPack")
 local Teams = game:GetService("Teams")
 
+local GameData = ReplicatedStorage.GameData
 local Shared = ReplicatedStorage.Shared
 
--- Get the cool types
-local Types = require(Shared.Types)
-type List<T> = Types.List<T>
-type Dictionary<T> = Types.Dictionary<T>
-type PlayerInfo = Types.PlayerInfo
-type TowerRush = Types.TowerRush
-type TowerInfo = Types.TowerInfo
-type EndingInfo = Types.EndingInfo
-type Difficulty = Types.DifficultyInfo
-
--- Modules
+local Config = require(GameData.Config)
+local DataInfo = require("@self/DataInfo")
 local LeaderstatsManager = require("./Core/LeaderstatsManager")
 local PlayerState = require("./Core/PlayerState")
 local PortalHandler = require("@self/PortalHandler")
@@ -27,43 +26,42 @@ local TowerData = require("./Core/PlayerData/TowerData")
 local TowerManager = require("@self/TowerManager")
 local TowerRushManager = require("@self/TowerRushManager")
 local TowerRushes = require(ReplicatedStorage.RealmData.TowerRushes)
+local TowerSignManager = require("@self/TowerSignManager")
+local Types = require(Shared.Types)
 local Util = require(Shared.Util)
 local WinpadManager = require("@self/WinpadManager")
 local ZapServer = require(ServerScriptService.ZapServer)
 
--- Folders
-local TowerFolder = workspace:FindFirstChild("Towers")
-local Markers = workspace:FindFirstChild("Markers")
-local StarterPackStudio = ServerStorage:FindFirstChild("StarterPackStudio")
-local EverpresentCOs = TowerFolder:FindFirstChild("EverpresentCOs")
+type PlayerInfo = Types.PlayerInfo
+type TowerInfo = Types.TowerInfo
 
--- Game data
-local Config = require(ReplicatedStorage.GameData.Config)
-local DataInfo = require("@self/DataInfo")
-local WinpadMaterials: List<Enum.Material> = Enum.Material:GetEnumItems()
+local TOWERS = workspace:FindFirstChild("Towers")
+local MARKERS = workspace:FindFirstChild("Markers")
+local STARTER_PACK_STUDIO = ServerStorage:FindFirstChild("StarterPackStudio")
+local EVERPRESENT_COS = TOWERS:FindFirstChild("EverpresentCOs")
+local WINPAD_MATERIALS = Enum.Material:GetEnumItems()
 
 local MTK = {}
 MTK.TowerManager = TowerManager
 
-local function EverpresentCOsRequested(playerInstance: Player): (boolean, Folder?)
+local function onEverpresentCOsRequested(playerInstance: Player): (boolean, Folder?)
 	local player: PlayerInfo? = DataInfo.PlayerInfo[playerInstance.Name]
 	if not player then
 		return false, nil
 	end
 
-	-- Prevent prevent potential DOS attack lol
 	if player.HasEverpresentCOs then
 		return false, nil
 	end
 
-	local playerECOs = EverpresentCOs:Clone() :: Folder
+	local playerECOs = EVERPRESENT_COS:Clone() :: Folder
 	playerECOs.Parent = playerInstance
 	player.HasEverpresentCOs = true
 
 	return true, playerECOs
 end
 
-local function PlayerRequestedRestart(playerInstance: Player)
+local function onPlayerRestartRequested(playerInstance: Player)
 	local player: PlayerInfo = DataInfo.PlayerInfo[playerInstance.Name]
 	if not player then
 		return
@@ -87,17 +85,19 @@ local function PlayerRequestedRestart(playerInstance: Player)
 	end
 end
 
-local function PlayerEquippedTool(player: PlayerInfo, item: Tool)
+local function onPlayerEquippedTool(player: PlayerInfo, item: Tool)
+	if player.CurrentTower == "" then
+		return
+	end
+
 	local isDebugItem = item:GetAttribute("DebugItem") :: boolean?
 	local boostName = item:GetAttribute("BoostName") :: string?
+	local hasBoost = boostName ~= nil and boostName ~= ""
 
-	local boostUsed = if boostName and boostName ~= "" then true else false
-	-- If this is a debug item OR a boost item, we should effectively disable checkpoints
-	-- Because boosts and debug items let a player fairly bypass checkpoints, so if they do equip an item, it would be unreasonable to kick them
-	if isDebugItem or boostUsed then
+	if isDebugItem or hasBoost then
 		player.DebugItemUsed = true
 	end
-	if boostUsed then
+	if hasBoost then
 		player.BoostItemUsed = true
 		player.BoostItemNames[item.Name] = boostName or "Boost Item"
 
@@ -125,16 +125,14 @@ local function PlayerEquippedTool(player: PlayerInfo, item: Tool)
 	end
 end
 
-local function InitMarker(marker: BasePart)
+local function initMarker(marker: BasePart)
 	if marker.Name == "LobbyTP" then
-		-- Find the lobby spawn
-		local spawnLocation = Markers:WaitForChild("SpawnLocation")
+		local spawnLocation = MARKERS:WaitForChild("SpawnLocation")
 		assert(
 			spawnLocation and spawnLocation:IsA("BasePart"),
-			"Could not intialize LobbyTP because a SpawnLocation couldn't be found"
+			"Could not initialize LobbyTP because a SpawnLocation couldn't be found"
 		)
 
-		-- When touched, teleport the player to the lobby spawn
 		Util:RegisterTouch(marker, function(playerName)
 			local player: PlayerInfo = DataInfo.PlayerInfo[playerName]
 			player.Player.Team = Teams.Start
@@ -143,15 +141,15 @@ local function InitMarker(marker: BasePart)
 	end
 end
 
-local function InitMarkers()
-	for _, v in Markers:GetChildren() do
-		if v:IsA("BasePart") then
-			InitMarker(v)
+local function initMarkers()
+	for _, child in MARKERS:GetChildren() do
+		if child:IsA("BasePart") then
+			initMarker(child)
 		end
 	end
 end
 
-local function CharacterAdded(character: Model)
+local function onCharacterAdded(character: Model)
 	local humanoid = character:FindFirstChildOfClass("Humanoid")
 	if humanoid and humanoid.RigType == Enum.HumanoidRigType.R15 and Config.R15_WARNING then
 		Util:Warn(
@@ -165,25 +163,22 @@ local function CharacterAdded(character: Model)
 			player.Player.Team = Teams.Start
 		end
 
-		-- When the player equips a tool
 		character.ChildAdded:Connect(function(item)
 			if item:IsA("Tool") then
-				PlayerEquippedTool(player, item)
+				onPlayerEquippedTool(player, item)
 			end
 		end)
 
-		-- If the player is simply loading a tower in, we shouldn't be immediately unloading stuff, so don't
 		if player.IsLoadingTower then
 			return
 		end
 
-		-- No need to call other events like UpdateTowerRush as the client will do so automatically
 		ZapServer.UnloadTower.Fire(player.Player)
 		PlayerState:ResetPlayerInfo(player)
 	end
 end
 
-local function PlayerAdded(player: Player)
+local function onPlayerAdded(player: Player)
 	local info: PlayerInfo = {
 		Player = player,
 		GameTimer = 0,
@@ -211,20 +206,20 @@ local function PlayerAdded(player: Player)
 	DataInfo.PlayerInfo[player.Name] = info
 
 	LeaderstatsManager:InitPlayer(player)
+	TowerSignManager:UpdateCompletedTowersForPlayer(player)
 
 	if player.Character then
-		CharacterAdded(player.Character)
+		onCharacterAdded(player.Character)
 	end
 	player.Team = Teams.Start
-	player.CharacterAdded:Connect(CharacterAdded)
+	player.CharacterAdded:Connect(onCharacterAdded)
 end
 
-local function PlayerRemoving(player: Player)
+local function onPlayerRemoving(player: Player)
 	DataInfo.PlayerInfo[player.Name] = nil
 end
 
-local function Stepped(_time: number, deltaTime: number)
-	-- For every player
+local function onStepped(_time: number, deltaTime: number)
 	for _, v in DataInfo.PlayerInfo do
 		-- Increment the time spent ingame..
 		-- and the time spend in the tower, if in one
@@ -273,13 +268,13 @@ local function Stepped(_time: number, deltaTime: number)
 			* Config.WINPAD_INTERVAL
 		local currentInterval = math.floor(_time / Config.WINPAD_INTERVAL) * Config.WINPAD_INTERVAL
 		if prevInterval < currentInterval then
-			for _, v in WinpadManager.Winpads do
+			for _, winpad in WinpadManager.Winpads do
 				if Config.WINPADS_CHANGE_COLOR then
-					v.Color = Color3.fromHSV(math.random(0, 100) / 100, 1, 1)
+					winpad.Color = Color3.fromHSV(math.random(0, 100) / 100, 1, 1)
 				end
 
 				if Config.WINPADS_CHANGE_MATERIAL then
-					v.Material = WinpadMaterials[math.random(1, #WinpadMaterials)]
+					winpad.Material = WINPAD_MATERIALS[math.random(1, #WINPAD_MATERIALS)]
 				end
 			end
 		end
@@ -288,39 +283,38 @@ end
 
 function MTK:Init()
 	if RunService:IsStudio() then
-		for _, v in StarterPackStudio:GetChildren() do
-			v:SetAttribute("DebugItem", true)
-			v.Parent = StarterPack
+		for _, tool in STARTER_PACK_STUDIO:GetChildren() do
+			tool:SetAttribute("DebugItem", true)
+			tool.Parent = StarterPack
 		end
 	end
 
-	-- Make sure all tools are tagged with the attribute, since a StringValue isn't secure
-	for _, v in StarterPack:GetChildren() do
-		if not v:IsA("Tool") then
+	for _, tool in StarterPack:GetChildren() do
+		if not tool:IsA("Tool") then
 			continue
 		end
 
-		local boostNameValue = v:FindFirstChild("BoostName")
+		local boostNameValue = tool:FindFirstChild("BoostName")
 		if boostNameValue and boostNameValue:IsA("StringValue") then
 			Util:Warn(
-				`Boost item {v.Name} uses a StringValue for BoostName, please change it to an attribute, as a StringValue can be manipulated (or even deleted by client)`
+				`Boost item {tool.Name} uses a StringValue for BoostName, please change it to an attribute, as a StringValue can be manipulated (or even deleted by client)`
 			)
-			v:SetAttribute("BoostName", boostNameValue.Value)
+			tool:SetAttribute("BoostName", boostNameValue.Value)
 		end
 	end
 
-	EverpresentCOs.Parent = ServerStorage
+	EVERPRESENT_COS.Parent = ServerStorage
 
 	TowerManager:InitTowers()
 	WinpadManager:InitWinpads()
 	PortalHandler:InitPortals()
-	InitMarkers()
+	initMarkers()
 
-	Players.PlayerAdded:Connect(PlayerAdded)
-	Players.PlayerRemoving:Connect(PlayerRemoving)
-	ZapServer.RestartRequested.SetCallback(PlayerRequestedRestart)
-	ZapServer.RequestEverpresentCOs.SetCallback(EverpresentCOsRequested)
-	RunService.Stepped:Connect(Stepped)
+	Players.PlayerAdded:Connect(onPlayerAdded)
+	Players.PlayerRemoving:Connect(onPlayerRemoving)
+	ZapServer.RestartRequested.SetCallback(onPlayerRestartRequested)
+	ZapServer.RequestEverpresentCOs.SetCallback(onEverpresentCOsRequested)
+	RunService.Stepped:Connect(onStepped)
 end
 
 return MTK

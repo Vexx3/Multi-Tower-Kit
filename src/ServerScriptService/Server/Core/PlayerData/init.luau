@@ -49,12 +49,28 @@ local store = Lyra.createPlayerStore({
 	schema = t.strictInterface({
 		Towers = t.number,
 		AllJumps = t.optional(t.number),
+		CompletedTowers = t.array(t.string),
 		TowerStats = t.table,
 	}),
 	migrationSteps = {
 		Lyra.MigrationStep.addFields("addAJ", {
 			AllJumps = 0,
 		}),
+		Lyra.MigrationStep.transform("completedTowersMapToList", function(data)
+			local completed = data.CompletedTowers
+
+			if type(completed) == "table" then
+				local newList = {}
+
+				for towerName, _ in completed do
+					table.insert(newList, towerName)
+				end
+
+				data.CompletedTowers = newList
+			end
+
+			return data
+		end)
 	},
 	importLegacyData = function(key: string)
 		local success, data = pcall(function()
