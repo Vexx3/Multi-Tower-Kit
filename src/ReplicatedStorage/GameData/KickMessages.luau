@@ -1,3 +1,6 @@
+-- Licensed under the MIT License
+-- Copyright (c) 2025 Zylx
+
 return {
 	"{Player} wasn't an epic gamer",
 	"{Player} wasn't a cool kid",

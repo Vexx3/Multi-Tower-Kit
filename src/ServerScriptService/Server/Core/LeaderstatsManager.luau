@@ -1,3 +1,6 @@
+-- Licensed under the MIT License
+-- Copyright (c) 2025 Zylx
+
 --[=[
 	Creates and updates Roblox leaderstats for players based on their tower
 	completions.

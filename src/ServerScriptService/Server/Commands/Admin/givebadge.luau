@@ -1,4 +1,6 @@
--- @zylx 2025-12-6
+-- Licensed under the MIT License
+-- Copyright (c) 2025 Zylx
+
 local BadgeService = game:GetService("BadgeService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 

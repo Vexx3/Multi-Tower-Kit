@@ -1,4 +1,6 @@
--- @zylx 2025-11-10
+-- Licensed under the MIT License
+-- Copyright (c) 2025 Zylx
+
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local conch = require(ReplicatedStorage.Packages.conch)
@@ -16,7 +18,7 @@ return function()
 		callback = function(
 			targets: { Player },
 			destinationPlayer: Player?,
-			destinationPosition: Vector3?
+			destinationPosition: vector?
 		)
 			if #targets == 0 then
 				return conch.log("warn", "No players to teleport")
@@ -26,7 +28,7 @@ return function()
 
 			if destinationPlayer then
 				local destChar = destinationPlayer.Character
-				local destHRP: Part = destChar:FindFirstChild("HumanoidRootPart")
+				local destHRP = destChar and destChar:FindFirstChild("HumanoidRootPart") :: Part
 				if not destHRP then
 					return conch.log(
 						"warn",
@@ -35,7 +37,8 @@ return function()
 				end
 				destCFrame = destHRP.CFrame
 			elseif destinationPosition then
-				destCFrame = CFrame.new(destinationPosition)
+				destCFrame =
+					CFrame.new(destinationPosition.x, destinationPosition.y, destinationPosition.z)
 			else
 				return conch.log(
 					"warn",
@@ -45,7 +48,7 @@ return function()
 
 			for _, player in targets do
 				local character = player.Character
-				local hrp: Part = character and character:FindFirstChild("HumanoidRootPart")
+				local hrp = character and character:FindFirstChild("HumanoidRootPart") :: Part
 				if hrp then
 					hrp.CFrame = destCFrame
 				else

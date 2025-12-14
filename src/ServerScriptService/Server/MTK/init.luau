@@ -1,3 +1,6 @@
+-- Licensed under the MIT License
+-- Copyright (c) 2025 Zylx
+
 --[=[
 	Main server module for Multi-Tower Kit. Handles player state, tower loading,
 	winpad detection, and coordinate all MTK subsystems.

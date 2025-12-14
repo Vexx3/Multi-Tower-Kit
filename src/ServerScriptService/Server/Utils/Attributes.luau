@@ -1,3 +1,7 @@
+-- Licensed under the MIT License
+-- Original Copyright (c) 2023 fanofpixels
+-- Modifications Copyright (c) 2025 Zylx
+
 local Attributes = {}
 
 function Attributes:GetNumber(instance: Instance, name: string): number?

@@ -1,3 +1,7 @@
+-- Licensed under the MIT License
+-- Original Copyright (c) 2023 fanofpixels
+-- Modifications Copyright (c) 2025 Zylx
+
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Types = require(ReplicatedStorage.Shared.Types)

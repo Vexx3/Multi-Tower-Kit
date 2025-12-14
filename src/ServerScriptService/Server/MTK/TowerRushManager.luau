@@ -1,3 +1,6 @@
+-- Licensed under the MIT License
+-- Copyright (c) 2025 Zylx
+
 --[=[
 	Coordinates tower rush flow: starting rushes, advancing through towers, and
 	awarding rush completions.

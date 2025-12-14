@@ -1,3 +1,6 @@
+-- Licensed under the MIT License
+-- Copyright (c) 2025 Zylx
+
 --[=[
 	Handles per-tower player statistics stored in the profile datastore.
 

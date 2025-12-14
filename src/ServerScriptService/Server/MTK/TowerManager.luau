@@ -1,3 +1,6 @@
+-- Licensed under the MIT License
+-- Copyright (c) 2025 Zylx
+
 --[=[
 	Core server manager for individual tower lifecycle: registers tower metadata,
 	loads client objects, teleports players, and exposes simple APIs for other

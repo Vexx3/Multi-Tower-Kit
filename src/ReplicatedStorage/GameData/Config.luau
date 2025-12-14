@@ -1,4 +1,7 @@
---!strict
+-- Licensed under the MIT License
+-- Original Copyright (c) 2023 fanofpixels
+-- Modifications Copyright (c) 2025 Zylx
+
 --==============================================================--
 --                     Multi-Tower Kit Configuration
 --==============================================================--

@@ -1,3 +1,6 @@
+-- Licensed under the MIT License
+-- Copyright (c) 2025 Zylx
+
 --[=[
 	Player data backed by Lyra. Provides a thin wrapper to load/update player
 	sessions while keeping the API surface used across the project.
@@ -70,7 +73,7 @@ local store = Lyra.createPlayerStore({
 			end
 
 			return data
-		end)
+		end),
 	},
 	importLegacyData = function(key: string)
 		local success, data = pcall(function()

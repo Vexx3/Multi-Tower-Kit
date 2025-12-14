@@ -1,4 +1,5 @@
--- list of your tower badges here.
+-- Licensed under the MIT License
+-- Copyright (c) 2025 Zylx
 
 return {
 	ETV5 = { Name = "Example Tower V5", BadgeId = 1547422175924416 },

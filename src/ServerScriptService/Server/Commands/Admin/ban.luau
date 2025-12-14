@@ -1,4 +1,6 @@
--- @zylx 2025-11-10
+-- Licensed under the MIT License
+-- Copyright (c) 2025 Zylx
+
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
@@ -28,19 +30,25 @@ return function()
 		permissions = { "ban-player" },
 		arguments = function()
 			return conch.args.string("user", "UserId or username"),
+				conch.args.string("reason", "Display reason for the ban"),
+				conch.args.string("privateReason", "Private reason for the ban (moderators only)"),
 				conch.args.optional(
 					conch.args.number("duration", "Seconds (default -1 for permanent)")
-				),
-				conch.args.optional(conch.args.string("reason", "Reason for the ban"))
+				)
 		end,
 
-		callback = function(userInput: string | number, duration: number?, reason: string?)
+		callback = function(
+			userInput: string | number,
+			reason: string,
+			privateReason: string,
+			duration: number?
+		)
 			local context = conch.get_command_context()
 			local executor = context.executor
 			local executorPlayer = executor.player
 
 			duration = tonumber(duration) or -1
-			reason = reason or "You have been banned from the game"
+			--reason = reason or "You have been banned from the game"
 
 			local userId = resolveUser(userInput)
 			if not userId then
@@ -58,7 +66,7 @@ return function()
 					UserIds = { userId },
 					Duration = duration,
 					DisplayReason = reason,
-					PrivateReason = reason,
+					PrivateReason = privateReason,
 				})
 			end)
 

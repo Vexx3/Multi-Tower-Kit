@@ -1,3 +1,7 @@
+-- Licensed under the MIT License
+-- Original Copyright (c) 2023 fanofpixels
+-- Modifications Copyright (c) 2025 Zylx
+
 -- A config module containing every tower rush in this realm.
 -- More info in the manual @ 2.3.1 - Adding a tower rush.
 

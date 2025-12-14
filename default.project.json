@@ -7,7 +7,12 @@
         "Emitter2D_Version": 1.26
       },
       "$ignoreUnknownInstances": true,
-      "$path": "src/ReplicatedStorage"
+      "$path": "src/ReplicatedStorage",
+
+      "Packages": {
+        "$className": "Folder",
+        "$path": "Packages"
+      }
     },
     "ServerScriptService": {
       "$path": "src/ServerScriptService",

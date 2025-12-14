@@ -1,4 +1,6 @@
--- @zylx 2025-11-10
+-- Licensed under the MIT License
+-- Copyright (c) 2025 Zylx
+
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 

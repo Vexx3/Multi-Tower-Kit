@@ -1,3 +1,6 @@
+-- Licensed under the MIT License
+-- Copyright (c) 2025 Zylx
+
 --[=[
 	Handles winpad collision detection, player win validation, badge awarding,
 	and tower completion processing including rush advancement.
