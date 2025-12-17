@@ -2,9 +2,8 @@
 -- Copyright (c) 2025 Zylx
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local ServerScriptService = game:GetService("ServerScriptService")
 
-local ZapServer = require(ServerScriptService.ZapServer)
+local BlinkServer = require(script.Parent.Parent.Parent.Network.BlinkServer)
 local conch = require(ReplicatedStorage.Packages.conch)
 
 return function()
@@ -16,7 +15,7 @@ return function()
 		end,
 
 		callback = function(target: Player)
-			ZapServer.UnloadTower.Fire(target)
+			BlinkServer.UnloadTower.Fire(target)
 			conch.log("info", `Unloaded tower for {target.Name}`)
 		end,
 	})

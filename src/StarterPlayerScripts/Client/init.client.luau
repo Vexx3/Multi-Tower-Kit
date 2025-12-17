@@ -1,25 +1,36 @@
--- Services
+-- Licensed under the MIT License
+-- Copyright (c) 2025 Zylx
+
+--[=[
+	Main client entry point for Multi-Tower Kit.
+	Handles tower loading/unloading, HUD updates, client objects, and input.
+
+	@client
+]=]
+
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 local StarterGui = game:GetService("StarterGui")
 local UserInputService = game:GetService("UserInputService")
 
-local Shared = ReplicatedStorage.Shared
-local ZapClient = require(Shared.ZapClient)
+local BlinkClient = require(ReplicatedStorage.Network.BlinkClient)
 
--- Folders
+local Shared = ReplicatedStorage.Shared
+
 local Framework = ReplicatedStorage.Framework
 local Kit = Framework.Kit
 
 -- Modules
-local Announcements = require(script.Announcements)
-local ClientObjects = require(script.ClientObjects)
-local Config = require(ReplicatedStorage.GameData.Config)
-local GUI = require(script.GUI)
+local Announcements = require("@self/Game/Announcements")
+local ClientObjects = require("@self/Game/ClientObjects")
+local GameConfig = require(ReplicatedStorage.GameData.Config)
+local ModuleLoader = require(Shared.ModuleLoader)
+local TowerHUD = require("@self/UI/TowerHUD")
 local conch = require(ReplicatedStorage.Packages.conch)
 local conchui = require(ReplicatedStorage.Packages["conch-ui"])
--- etoh v6
+
+-- EToH v6 Managers
 local CharacterManager = require(Kit.Managers.CharacterManager)
 local ClientObjectManager = require(Kit.Managers.ClientObjectManager)
 local FlipManager = require(Kit.Managers.FlipManager)
@@ -29,41 +40,23 @@ local LightingManager = require(Kit.Managers.LightingManager)
 -- Remotes
 local ResetEffectGui = ReplicatedStorage:WaitForChild("ResetEffectGui") :: BindableEvent
 
--- Misc Stuff
+-- State
 local LocalPlayer = Players.LocalPlayer :: Player
 local TowerTimer = 0
 local RestartTime = 0
 local RestartTimeMax = 1
 local RestartDebounce = false
 local CurrentTower = ""
-local _IsLoadingTower = false
 
--- Function to freeze/unfreeze player movement
-local function setPlayerMovementEnabled(enabled: boolean)
-	local character = LocalPlayer.Character
-	if character then
-		local humanoid = character:FindFirstChildOfClass("Humanoid")
-		if humanoid then
-			if enabled then
-				humanoid.WalkSpeed = 16
-				humanoid.JumpPower = 50
-			else
-				humanoid.WalkSpeed = 0
-				humanoid.JumpPower = 0
-			end
-		end
-	end
-end
-
-function LoadTower(acronym: string, purist: boolean, resetTimer: boolean)
+local function loadTower(acronym: string, purist: boolean, resetTimer: boolean)
 	CurrentTower = acronym
 
 	if resetTimer then
 		TowerTimer = 0
-		GUI:SetBoostsUsed(false)
+		TowerHUD:SetBoostsUsed(false)
 	end
 
-	GUI:SetTowerAcronym(acronym)
+	TowerHUD:SetTowerAcronym(acronym)
 	ResetEffectGui:Fire()
 
 	RestartTime = 0
@@ -75,11 +68,6 @@ function LoadTower(acronym: string, purist: boolean, resetTimer: boolean)
 
 	-- If this tower is purist we can skip it
 	if not purist then
-		-- Show loading screen and freeze player while loading client objects
-		_IsLoadingTower = true
-		setPlayerMovementEnabled(false)
-		GUI:ShowLoadingScreen("Fetching <b>Client Objects...</b>", true)
-
 		local COFolder: Instance? = LocalPlayer:WaitForChild("ClientSidedObjects", 10)
 		if COFolder then
 			-- Let the module dedicated to loading client objects load the client objects
@@ -89,16 +77,10 @@ function LoadTower(acronym: string, purist: boolean, resetTimer: boolean)
 				"A tower has attempted to loaded in. It wasn't marked as purist but no ClientSidedObjects folder was sent over. Bad internet connection?"
 			)
 		end
-
-		-- Hide loading screen and restore movement after loading
-		GUI:HideLoadingScreen()
-		setPlayerMovementEnabled(true)
-		_IsLoadingTower = false
 	end
 end
 
-function UnloadTower()
-	-- reset lighting from v6
+local function unloadTower()
 	if CurrentTower ~= "" then
 		LightingManager:ResetLighting()
 	end
@@ -110,24 +92,24 @@ function UnloadTower()
 	ResetEffectGui:Fire()
 	ClientObjects:UnloadClientObjects()
 
-	GUI:SetTowerAcronym("")
-	GUI:SetTowerTimer(0)
-	GUI:SetTowerRush(0, 0)
-	GUI:SetBoostsUsed(false)
-	GUI:SetRestartLabel(0)
+	TowerHUD:SetTowerAcronym("")
+	TowerHUD:SetTowerTimer(0)
+	TowerHUD:SetTowerRush(0, 0)
+	TowerHUD:SetBoostsUsed(false)
+	TowerHUD:SetRestartLabel(0)
 end
 
 -- Should fire every ~2 or so seconds to ensure the client's timer and the server's timer aren't out of sync
 -- If they are out of sync, both are using DeltaTime to increment the timer so the margin of error should be very small
-function CorrectTimer(time: number)
+local function correctTimer(time: number)
 	TowerTimer = time
 end
 
-function UpdateTowerRush(index: number, end_: number)
-	GUI:SetTowerRush(index, end_)
+local function updateTowerRush(index: number, end_: number)
+	TowerHUD:SetTowerRush(index, end_)
 end
 
-function CharacterAdded(character: Model)
+local function onCharacterAdded(character: Model)
 	character.ChildAdded:Connect(function(ins: Instance)
 		-- If item equipped:
 		if ins:IsA("Tool") then
@@ -135,15 +117,27 @@ function CharacterAdded(character: Model)
 
 			-- If this is a boost item and the player is in a tower
 			if BoostName and BoostName ~= "" and CurrentTower ~= "" then
-				GUI:SetBoostsUsed(true)
+				TowerHUD:SetBoostsUsed(true)
 			end
 		end
 	end)
 end
 
-function Step(deltaTime: number)
+local lastDisplayedTimer = -1
+local lastRestartProgress = -1
+local TIMER_UPDATE_THRESHOLD = 0.01
+
+local mathMin = math.min
+local mathMax = math.max
+local mathAbs = math.abs
+
+local function onStep(deltaTime: number)
 	if CurrentTower == "" then
-		TowerTimer = 0
+		if TowerTimer ~= 0 then
+			TowerTimer = 0
+			TowerHUD:SetTowerTimer(0)
+			lastDisplayedTimer = 0
+		end
 		RestartTime = 0
 	else
 		TowerTimer += deltaTime
@@ -151,35 +145,37 @@ function Step(deltaTime: number)
 		-- If the user is holding the restart key, and the debounce is false
 		if UserInputService:IsKeyDown(Enum.KeyCode.R) then
 			if not RestartDebounce then
-				RestartTime = math.min(RestartTime + deltaTime, RestartTimeMax)
+				RestartTime = mathMin(RestartTime + deltaTime, RestartTimeMax)
 				if RestartTime >= RestartTimeMax then
 					-- Enable the debounce so that we don't spam the server
 					RestartDebounce = true
-					ZapClient.RestartRequested.Fire()
+					BlinkClient.RestartRequested.Fire()
 				end
 			end
 		else
-			RestartTime = math.max(RestartTime - deltaTime, 0)
+			RestartTime = mathMax(RestartTime - deltaTime, 0)
 			RestartDebounce = false
+		end
+
+		-- Only update timer display when it visually changes (every 10ms)
+		if mathAbs(TowerTimer - lastDisplayedTimer) >= TIMER_UPDATE_THRESHOLD then
+			TowerHUD:SetTowerTimer(TowerTimer)
+			lastDisplayedTimer = TowerTimer
 		end
 	end
 
-	GUI:SetRestartLabel(RestartTime / RestartTimeMax)
-	GUI:SetTowerTimer(TowerTimer)
+	-- Only update restart label when progress changes
+	local restartProgress = RestartTime / RestartTimeMax
+	if restartProgress ~= lastRestartProgress then
+		TowerHUD:SetRestartLabel(restartProgress)
+		lastRestartProgress = restartProgress
+	end
 end
 
-ZapClient.UpdateTowerTimer.SetCallback(CorrectTimer)
-ZapClient.UpdateTowerRush.SetCallback(UpdateTowerRush)
-ZapClient.LoadTower.SetCallback(LoadTower)
-ZapClient.UnloadTower.SetCallback(UnloadTower)
-
-RunService.RenderStepped:Connect(Step)
-
-do
+local function init()
 	StarterGui:SetCoreGuiEnabled(Enum.CoreGuiType.EmotesMenu, false)
 
-	-- Show data loading screen immediately
-	GUI:ShowLoadingScreen("Loading Data...", false)
+	TowerHUD:ShowLoadingScreen("Loading Data...", false)
 
 	CharacterManager:Init()
 	ClientObjectManager:Init()
@@ -187,36 +183,45 @@ do
 	GuiManager:Init()
 	LightingManager:Init()
 
+	-- Initialize packages
 	require(ReplicatedStorage.Packages.satchel)
 	require(Shared.ConchTypes)
 
 	conch.initiate_default_lifecycle()
-	conchui.bind_to(Config.ADMIN_HOTKEY)
+	conchui.bind_to(GameConfig.ADMIN_HOTKEY)
 
 	Announcements:Init()
 
-	local ECOs: boolean, ECOFolder: Folder? = ZapClient.RequestEverpresentCOs.Call()
+	ModuleLoader.LoadAndInit(script, { script.Game, script.UI })
+
+	-- Request everpresent client objects
+	local ECOs: boolean, ECOFolder: Folder? = BlinkClient.RequestEverpresentCOs.Invoke()
 	if ECOs and ECOFolder then
 		ClientObjects:LoadClientObjects(ECOFolder, true, "EverpresentCOs")
 	end
 
-	LocalPlayer.CharacterAdded:Connect(CharacterAdded)
+	LocalPlayer.CharacterAdded:Connect(onCharacterAdded)
+	BlinkClient.UpdateTowerTimer.On(correctTimer)
+	BlinkClient.UpdateTowerRush.On(updateTowerRush)
+	BlinkClient.LoadTower.On(loadTower)
+	BlinkClient.UnloadTower.On(unloadTower)
+	RunService.RenderStepped:Connect(onStep)
 
-	GUI:SetTowerTimer(0)
-	GUI:SetTowerAcronym("")
-	GUI:SetTowerRush(0, 0)
+	TowerHUD:SetTowerTimer(0)
+	TowerHUD:SetTowerAcronym("")
+	TowerHUD:SetTowerRush(0, 0)
 
-	-- Wait for data to load then hide loading screen
 	local dataLoaded = LocalPlayer:GetAttribute("DataLoaded")
-	if dataLoaded == true then
-		GUI:HideLoadingScreen()
+	if dataLoaded then
+		TowerHUD:HideLoadingScreen()
 	else
-		-- Wait for data to load
 		LocalPlayer:GetAttributeChangedSignal("DataLoaded"):Connect(function()
 			local loaded = LocalPlayer:GetAttribute("DataLoaded")
 			if loaded == true then
-				GUI:HideLoadingScreen()
+				TowerHUD:HideLoadingScreen()
 			end
 		end)
 	end
 end
+
+init()

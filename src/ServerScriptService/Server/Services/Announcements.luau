@@ -16,12 +16,12 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local GameData = ReplicatedStorage.GameData
 local Shared = ReplicatedStorage.Shared
 
+local BlinkServer = require(script.Parent.Parent.Network.BlinkServer)
 local Config = require(GameData.Config)
 local KickMessages = require(GameData.KickMessages)
 local Types = require(Shared.Types)
 local Util = require(Shared.Util)
 local Webhook = require("./Webhook")
-local ZapServer = require("../../ZapServer")
 
 type Dictionary<T> = Types.Dictionary<T>
 type PlayerInfo = Types.PlayerInfo
@@ -68,7 +68,7 @@ local function broadcastWinAnnouncement(info: WinMessageInfo)
 		Global = endingDifficulty.GlobalAnnouncement,
 	}
 
-	ZapServer.GameWinAnnouncement.FireAll(clientMsgInfo)
+	BlinkServer.GameWinAnnouncement.FireAll(clientMsgInfo)
 end
 
 local function onGlobalWinMessage(message: Message)
@@ -94,9 +94,7 @@ function Announcements:WinAnnouncement(
 	local endingDifficulty = Util:GetDifficulty(difficultyName)
 	local finalTime = timeOverride or player.TowerTimer
 
-	local playerName = if Config.USE_DISPLAY_NAME
-		then player.Player.DisplayName
-		else player.Player.Name
+	local playerName = if Config.USE_DISPLAY_NAME then player.Player.DisplayName else player.Player.Name
 
 	local info: WinMessageInfo = {
 		MessageID = HttpService:GenerateGUID(false),
@@ -123,7 +121,7 @@ end
 	@within Announcements
 ]=]
 function Announcements:GameAnnouncement(message: string, color: Color3, fancyText: boolean?)
-	ZapServer.GameAnnouncement.FireAll(message, color, fancyText)
+	BlinkServer.GameAnnouncement.FireAll(message, color, fancyText)
 end
 
 --[=[
@@ -133,10 +131,7 @@ end
 ]=]
 function Announcements:AntiCheatKick(player: Player, reason: string)
 	local kickMessage = KickMessages[math.random(1, #KickMessages)]
-	kickMessage = kickMessage:gsub(
-		"{Player}",
-		if Config.USE_DISPLAY_NAME then player.DisplayName else player.Name
-	)
+	kickMessage = kickMessage:gsub("{Player}", if Config.USE_DISPLAY_NAME then player.DisplayName else player.Name)
 
 	Announcements:GameAnnouncement(kickMessage, Color3.new(1, 0, 0))
 	player:Kick(reason)

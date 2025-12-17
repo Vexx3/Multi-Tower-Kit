@@ -5,7 +5,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Shared = ReplicatedStorage.Shared
 
-local MTK = require("../../MTK")
+local TowerManager = require("../../Game/TowerManager")
 local args = require(Shared.ConchTypes)
 local conch = require(ReplicatedStorage.Packages.conch)
 
@@ -19,7 +19,7 @@ return function()
 		end,
 
 		callback = function(target: Player, towerName: string)
-			MTK.TowerManager:LoadTower(target.Name, towerName, true)
+			TowerManager:LoadTower(target.Name, towerName, true)
 			conch.log("info", `Loaded tower '{towerName}' for {target.Name}`)
 		end,
 	})

@@ -16,13 +16,13 @@ local ServerStorage = game:GetService("ServerStorage")
 local GameData = ReplicatedStorage.GameData
 local Shared = ReplicatedStorage.Shared
 
-local Attributes = require("../Utils/Attributes")
+local Attributes = require("../Helpers/Attributes")
+local BlinkServer = require("../Network/BlinkServer")
 local Config = require(GameData.Config)
 local DataInfo = require("./DataInfo")
-local TowerData = require("../Core/PlayerData/TowerData")
+local TowerData = require("../Player/PlayerData/TowerData")
 local Types = require(Shared.Types)
 local Util = require(Shared.Util)
-local ZapServer = require("../../ZapServer")
 
 type PlayerInfo = Types.PlayerInfo
 type TowerInfo = Types.TowerInfo
@@ -83,7 +83,7 @@ function TowerManager:LoadTower(playerName: string, towerName: string, resetTime
 			coFolder.Parent = player.Player
 		end
 
-		ZapServer.LoadTower.Fire(player.Player, towerName, purist, resetTimer)
+		BlinkServer.LoadTower.Fire(player.Player, towerName, purist, resetTimer)
 		player.IsLoadingTower = false
 	end
 
@@ -97,21 +97,15 @@ local function initTower(towerFolder: Instance)
 
 	-- Get the SpawnLocation
 	local spawnLocation = towerFolder:FindFirstChild("SpawnLocation")
-	assert(
-		spawnLocation and spawnLocation:IsA("BasePart"),
-		`{acronym} does not have a SpawnLocation!`
-	)
+	assert(spawnLocation and spawnLocation:IsA("BasePart"), `{acronym} does not have a SpawnLocation!`)
 
 	-- Get the ClientSidedObjects folder
 	local clientObjects = (
-		towerFolder:FindFirstChild("ClientSidedObjects")
-		or CLIENT_OBJECTS_FOLDER:FindFirstChild(acronym)
+		towerFolder:FindFirstChild("ClientSidedObjects") or CLIENT_OBJECTS_FOLDER:FindFirstChild(acronym)
 	)
 
 	-- Get the Checkpoints
-	local checkpointsFolder = (
-		towerFolder:FindFirstChild("Checkpoints") or TOWER_CHECKPOINTS:FindFirstChild(acronym)
-	)
+	local checkpointsFolder = (towerFolder:FindFirstChild("Checkpoints") or TOWER_CHECKPOINTS:FindFirstChild(acronym))
 	-- The checkpoints exist but isn't in ServerStorage
 	if checkpointsFolder and checkpointsFolder.Parent ~= TOWER_CHECKPOINTS then
 		checkpointsFolder.Name = acronym
@@ -165,7 +159,7 @@ local function initTower(towerFolder: Instance)
 	-- If the tower has client objects (which it most likely has), send it to the COFolder
 	if tower.ClientObjects then
 		tower.ClientObjects.Name = acronym
-		
+
 		for _, instance in tower.ClientObjects:GetDescendants() do
 			if instance:IsA("BasePart") then
 				if instance.CollisionGroup == "Default" then

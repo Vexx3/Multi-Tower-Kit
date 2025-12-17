@@ -15,13 +15,13 @@ local ServerStorage = game:GetService("ServerStorage")
 
 local Shared = ReplicatedStorage.Shared
 
-local Announcements = require("../Logging/Announcements")
+local Announcements = require("../Services/Announcements")
 local AntiCheat = require("./AntiCheat")
-local Attributes = require("../Utils/Attributes")
+local Attributes = require("../Helpers/Attributes")
 local DataInfo = require("./DataInfo")
-local LeaderstatsManager = require("../Core/LeaderstatsManager")
-local PlayerState = require("../Core/PlayerState")
-local TowerData = require("../Core/PlayerData/TowerData")
+local LeaderstatsManager = require("../Player/LeaderstatsManager")
+local PlayerState = require("../Player/PlayerState")
+local TowerData = require("../Player/PlayerData/TowerData")
 local TowerRushManager = require("./TowerRushManager")
 local TowerRushes = require(ReplicatedStorage.RealmData.TowerRushes)
 local TowerSignManager = require("./TowerSignManager")
@@ -69,10 +69,7 @@ local function onPlayerTouchedWinpad(playerName: string, towerName: string, endi
 	player.TouchEventBusy = true
 
 	local ending: EndingInfo = tower.Endings[endingID]
-	assert(
-		ending,
-		`{playerName} touched a winpad in {towerName}, but the ending referenced does not exist`
-	)
+	assert(ending, `{playerName} touched a winpad in {towerName}, but the ending referenced does not exist`)
 
 	if player.CurrentTower == "" then
 		return
@@ -119,13 +116,7 @@ local function onPlayerTouchedWinpad(playerName: string, towerName: string, endi
 					BadgeService:AwardBadgeAsync(player.Player.UserId, tower.AJBadgeID)
 				end
 
-				TowerData:RecordTowerWin(
-					player.Player,
-					towerName,
-					runTime,
-					player.BoostItemUsed,
-					true
-				)
+				TowerData:RecordTowerWin(player.Player, towerName, runTime, player.BoostItemUsed, true)
 				LeaderstatsManager:SetAllJumpsStat(player.Player, tower, tower.TowerPoints)
 			else
 				TowerData:RecordTowerWin(player.Player, towerName, runTime, player.BoostItemUsed)
@@ -158,19 +149,13 @@ local function setupWinpad(towerName: string, winpad: BasePart)
 	-- Winpads outside must explicitly define the ParentTower attribute.
 	local parentTower = Attributes:GetString(winpad, "ParentTower") or ""
 	if parentTower == "" then
-		assert(
-			towerName ~= "",
-			`Could not setup winpad {winpad:GetFullName()} because its parent tower is undefined`
-		)
+		assert(towerName ~= "", `Could not setup winpad {winpad:GetFullName()} because its parent tower is undefined`)
 		winpad:SetAttribute("ParentTower", towerName)
 	end
 
 	-- Get the tower this winpad says it belongs to
 	local tower: TowerInfo? = DataInfo.TowerInfo[towerName]
-	assert(
-		tower,
-		`Could not set up winpad {winpad:GetFullName()} because its parent tower does not exist`
-	)
+	assert(tower, `Could not set up winpad {winpad:GetFullName()} because its parent tower does not exist`)
 
 	-- Construct the ending object,
 	local ending: EndingInfo = {
@@ -180,9 +165,7 @@ local function setupWinpad(towerName: string, winpad: BasePart)
 		AJBadgeID = Attributes:GetInt(winpad, "AJBadgeID") or 0,
 		PreventTowerBadge = Attributes:GetBoolean(winpad, "PreventTowerBadge") or false,
 		ParentTower = towerName,
-		WinroomMarker = Attributes:GetString(winpad, "WinroomMarker")
-			or Attributes:GetString(winpad, "Winroom")
-			or "",
+		WinroomMarker = Attributes:GetString(winpad, "WinroomMarker") or Attributes:GetString(winpad, "Winroom") or "",
 	}
 
 	-- and set it

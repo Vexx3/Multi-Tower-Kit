@@ -67,30 +67,45 @@ function ClientObjects:LoadClientObjects(coFolder: Instance, orphaned: boolean, 
 
 	local isKitV6 = coFolder:GetAttribute("KitVersion")
 
-	for _, instance in coFolder:GetDescendants() do
-		local v = instance :: Instance
+	-- Cache descendants once instead of calling GetDescendants multiple times
+	local descendants = coFolder:GetDescendants()
 
-		if v.Parent and v.Name == "ClientObject" then
-			local parent = v.Parent
-			for _, k in parent:GetDescendants() do
-				if k.Name == "ClientObject" and v ~= k then
-					warn(
-						"⚠️ Found a double client object value in: " .. parent.Name .. " ⚠️"
-					)
-					k:Destroy()
+	-- Track seen ClientObject parents to avoid nested GetDescendants calls
+	local checkedParents: { [Instance]: boolean } = {}
+
+	for _, v in descendants do
+		local vName = v.Name
+		local vParent = v.Parent
+
+		if vParent and vName == "ClientObject" then
+			-- Only check each parent once for duplicates
+			if not checkedParents[vParent] then
+				checkedParents[vParent] = true
+				local foundFirst = false
+				for _, child in vParent:GetChildren() do
+					if child.Name == "ClientObject" then
+						if foundFirst then
+							warn(
+								`⚠️ Found a double client object value in: {vParent.Name} ⚠️`
+							)
+							child:Destroy()
+						else
+							foundFirst = true
+						end
+					end
 				end
 			end
 		elseif
-			(v:IsA("ModuleScript") and v.Name == "ClientObjectScript")
-			or (v:IsA("StringValue") and v.Name == "RunRepoScript")
+			(vName == "ClientObjectScript" and v:IsA("ModuleScript"))
+			or (vName == "RunRepoScript" and v:IsA("StringValue"))
 		then
 			ClientObjects:LoadClientObjectScript(v, orphaned)
-		elseif v:IsA("StringValue") and v.Name == "SetCollisionGroup" then
-			if v.Parent and v.Parent:IsA("BasePart") then
-				v.Parent.CollisionGroup = v.Value
+		elseif vName == "SetCollisionGroup" and v:IsA("StringValue") then
+			if vParent and vParent:IsA("BasePart") then
+				vParent.CollisionGroup = v.Value
 			end
 		elseif v:IsA("BasePart") then
-			if v.Name == "LightingChanger" or v:FindFirstChild("Invisible") then
+			if vName == "LightingChanger" or v:FindFirstChild("Invisible") then
 				v.Transparency = 1
 			end
 		end
@@ -146,7 +161,7 @@ function ClientObjects:UnloadClientObjects()
 		objectScope:cleanup(false, true)
 		objectScope = nil
 	end
- 
+
 	-- ClientObjects may not exist as it is nilable and this function is called when there likely isn't any COs loaded at all
 	-- So we check if its not nil for good measure
 	if clientObjects then

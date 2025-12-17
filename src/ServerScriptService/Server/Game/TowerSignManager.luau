@@ -10,7 +10,7 @@
 	@server
 ]=]
 
-local PlayerData = require("../Core/PlayerData")
+local PlayerData = require("../Player/PlayerData")
 
 local TOWERS = workspace.Towers
 

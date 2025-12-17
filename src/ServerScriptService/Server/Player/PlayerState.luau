@@ -8,11 +8,14 @@
 	@class PlayerState
 ]=]
 
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Teams = game:GetService("Teams")
 
-local Types = require("../../../ReplicatedStorage/Shared/Types")
-local Util = require("../../../ReplicatedStorage/Shared/Util")
-local ZapServer = require("../../ZapServer")
+local Shared = ReplicatedStorage.Shared
+
+local BlinkServer = require("../Network/BlinkServer")
+local Types = require(Shared.Types)
+local Util = require(Shared.Util)
 
 type PlayerInfo = Types.PlayerInfo
 
@@ -75,7 +78,7 @@ function PlayerState:TeleportToWinroom(player: PlayerInfo, winroomMarker: string
 
 	-- Send player to the winner team and unload the current tower
 	player.Player.Team = Teams.Winners
-	ZapServer.UnloadTower.Fire(player.Player)
+	BlinkServer.UnloadTower.Fire(player.Player)
 
 	-- Clean up the player info
 	PlayerState:ResetPlayerInfo(player)

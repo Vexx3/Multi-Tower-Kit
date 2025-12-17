@@ -22,9 +22,9 @@ local TextChatService = game:GetService("TextChatService")
 
 local Shared = ReplicatedStorage.Shared
 
-local Config = require(script.Parent.Config)
+local BlinkClient = require(ReplicatedStorage.Network.BlinkClient)
+local Config = require("../Config")
 local Util = require(Shared.Util)
-local ZapClient = require(Shared.ZapClient)
 
 local Announcements = {}
 
@@ -82,12 +82,9 @@ function Announcements:DisplayMessage(Message: string, Color: Color3, FancyText:
 	end
 
 	-- Construct information to use with the font XML tag
-	local colorString =
-		`rgb({math.floor(Color.R * 255)}, {math.floor(Color.G * 255)}, {math.floor(Color.B * 255)})`
+	local colorString = `rgb({math.floor(Color.R * 255)}, {math.floor(Color.G * 255)}, {math.floor(Color.B * 255)})`
 	local faceString = if FancyText then Config.ChatFancyFontFace else Config.ChatFontFace
-	local sizeString = if FancyText
-		then tostring(Config.ChatFancyFontSize)
-		else tostring(Config.ChatFontSize)
+	local sizeString = if FancyText then tostring(Config.ChatFancyFontSize) else tostring(Config.ChatFontSize)
 
 	-- Apply the strings to the tag
 	local finalMessage = Config.ChatFont
@@ -103,11 +100,11 @@ end
 function Announcements:CreateChatChannel() end
 
 function Announcements:Init()
-	ZapClient.GameAnnouncement.SetCallback(function(...)
+	BlinkClient.GameAnnouncement.On(function(...)
 		Announcements:DisplayMessage(...)
 	end)
 
-	ZapClient.GameWinAnnouncement.SetCallback(function(...: ClientWinMessageInfo)
+	BlinkClient.GameWinAnnouncement.On(function(...: ClientWinMessageInfo)
 		Announcements:DisplayWinMessage(...)
 	end)
 end

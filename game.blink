@@ -1,0 +1,66 @@
+option ClientOutput = "src/ReplicatedStorage/Network/BlinkClient.luau"
+option ServerOutput = "src/ServerScriptService/Server/Network/BlinkServer.luau"
+
+struct ClientWinMessageInfo {
+    PlayerName: string,
+    EndingName: string,
+    Time: f32,
+    BoostsUsed: map { [string]: string },
+
+    Color: Color3,
+    FancyFont: boolean,
+
+    Global: boolean
+}
+
+event RestartRequested {
+    From: Client,
+    Type: Reliable,
+    Call: SingleAsync
+}
+
+function RequestEverpresentCOs {
+    Yield: Coroutine,
+    Return: (boolean, Instance(Folder)?)
+}
+
+event UpdateTowerTimer {
+    From: Server,
+    Type: Unreliable,
+    Call: SingleAsync,
+    Data: f32
+}
+
+event UpdateTowerRush {
+    From: Server,
+    Type: Reliable,
+    Call: SingleAsync,
+    Data: (u8, u8)
+}
+
+event LoadTower {
+    From: Server,
+    Type: Reliable,
+    Call: SingleAsync,
+    Data: (string, boolean, boolean)
+}
+
+event UnloadTower {
+    From: Server,
+    Type: Reliable,
+    Call: SingleAsync
+}
+
+event GameAnnouncement {
+    From: Server,
+    Type: Reliable,
+    Call: SingleAsync,
+    Data: (string, Color3, boolean?)
+}
+
+event GameWinAnnouncement {
+    From: Server,
+    Type: Reliable,
+    Call: SingleAsync,
+    Data: ClientWinMessageInfo
+}

@@ -13,16 +13,15 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Shared = ReplicatedStorage.Shared
 
-local Announcements = require("../Logging/Announcements")
+local Announcements = require("../Services/Announcements")
+local BlinkServer = require("../Network/BlinkServer")
 local DataInfo = require("./DataInfo")
-local PlayerState = require("../Core/PlayerState")
+local PlayerState = require("../Player/PlayerState")
 local TowerManager = require("./TowerManager")
 local Types = require(Shared.Types)
 local Util = require(Shared.Util)
-local ZapServer = require("../../ZapServer")
 
-local TowerRushes: Types.Dictionary<Types.TowerRush> =
-	require(ReplicatedStorage.RealmData.TowerRushes)
+local TowerRushes: Types.Dictionary<Types.TowerRush> = require(ReplicatedStorage.RealmData.TowerRushes)
 
 local TowerRushManager = {}
 
@@ -58,7 +57,7 @@ function TowerRushManager:LoadTowerRush(playerName: string, towerRushName: strin
 	local firstTower = towerRush.Towers[1]
 	local towerCount = #towerRush.Towers
 	TowerManager:LoadTower(playerName, firstTower, true)
-	ZapServer.UpdateTowerRush.Fire(player.Player, 1, towerCount)
+	BlinkServer.UpdateTowerRush.Fire(player.Player, 1, towerCount)
 end
 
 --[=[
@@ -92,7 +91,7 @@ function TowerRushManager:AdvanceTowerRush(playerName: string)
 	player.CurrentTowerRushIndex += 1
 	local towerName = towerRush.Towers[player.CurrentTowerRushIndex]
 	TowerManager:LoadTower(playerName, towerName, false)
-	ZapServer.UpdateTowerRush.Fire(player.Player, player.CurrentTowerRushIndex, towerCount)
+	BlinkServer.UpdateTowerRush.Fire(player.Player, player.CurrentTowerRushIndex, towerCount)
 end
 
 return TowerRushManager

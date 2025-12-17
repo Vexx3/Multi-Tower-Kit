@@ -11,6 +11,7 @@ local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 
+local GUIHandler = require(ReplicatedStorage.Shared.GUIHandler)
 local Icon = require(ReplicatedStorage.Packages.topbarplus)
 local TowerRushes = require(ReplicatedStorage.RealmData.TowerRushes)
 local Util = require(ReplicatedStorage.Shared.Util)
@@ -38,7 +39,7 @@ local BoostListItemTemplate = BoostListFrame
 	and BoostListFrame:FindFirstChild("ItemName") :: TextLabel?
 
 -- Loading Screen Elements
-local LoadingScreen = TowerGui:FindFirstChild("LoadingScreen", true) :: Frame?
+local LoadingScreen = TowerGui:FindFirstChild("LoadingScreen", true) :: CanvasGroup?
 local LoadingLabel = LoadingScreen and LoadingScreen:FindFirstChild("LoadingLabel") :: TextLabel?
 local AttentionLabel = LoadingScreen and LoadingScreen:FindFirstChild("Attention") :: TextLabel?
 
@@ -87,16 +88,15 @@ local GUI = {}
 	@param showAttention boolean? -- Whether to show the attention label (for tower loading)
 ]=]
 function GUI:ShowLoadingScreen(message: string, showAttention: boolean?)
-	if LoadingScreen then
-		LoadingScreen.Visible = true
-		-- Set transparency: 0.3 for tower loading (showAttention=true), 0 for data loading
-		LoadingScreen.BackgroundTransparency = if showAttention then 0.3 else 0
-	end
 	if LoadingLabel then
 		LoadingLabel.Text = message
 	end
 	if AttentionLabel then
 		AttentionLabel.Visible = showAttention or false
+	end
+	if LoadingScreen then
+		LoadingScreen.Visible = true
+		GUIHandler:ToggleUI(LoadingScreen, true, 1)
 	end
 end
 
@@ -106,10 +106,11 @@ end
 ]=]
 function GUI:HideLoadingScreen()
 	if LoadingScreen then
-		LoadingScreen.Visible = false
-	end
-	if AttentionLabel then
-		AttentionLabel.Visible = false
+		GUIHandler:ToggleUI(LoadingScreen, false, 1, function()
+			if AttentionLabel then
+				AttentionLabel.Visible = false
+			end
+		end)
 	end
 end
 
@@ -330,9 +331,20 @@ end
 local timeFunction = if RunService:IsRunning() then time else os.clock
 
 local frameUpdateTable = {}
-
 local start = timeFunction()
 local lastIteration = start
+
+local performance = Icon.new():lock():modifyTheme({
+	{
+		"IconLabel",
+		"FontFace",
+		Font.new("rbxasset://fonts/families/Montserrat.json", Enum.FontWeight.Medium),
+	},
+	{ "IconLabel", "TextSize", 14 },
+})
+
+local mathFloor = math.floor
+
 local function getPlayerFPS()
 	lastIteration = timeFunction()
 
@@ -344,30 +356,16 @@ local function getPlayerFPS()
 
 	frameUpdateTable[1] = lastIteration
 
-	return math.floor(
+	return mathFloor(
 		if timeFunction() - start >= 1
 			then #frameUpdateTable
 			else #frameUpdateTable / (timeFunction() - start)
 	)
 end
 
-local function getPlayerPing()
-	local ping = LocalPlayer:GetNetworkPing()
-	return math.floor(ping * 1000)
-end
-
-local performance = Icon.new():lock():modifyTheme({
-	{
-		"IconLabel",
-		"FontFace",
-		Font.new("rbxasset://fonts/families/Montserrat.json", Enum.FontWeight.Medium),
-	},
-	{ "IconLabel", "TextSize", 14 },
-})
-
 local function onHeartbeat()
 	local playerFPS = getPlayerFPS()
-	local playerPing = getPlayerPing()
+	local playerPing = mathFloor(LocalPlayer:GetNetworkPing() * 1000)
 	performance:setLabel(`FPS: {playerFPS}\nPing: {playerPing}MS`)
 end
 
