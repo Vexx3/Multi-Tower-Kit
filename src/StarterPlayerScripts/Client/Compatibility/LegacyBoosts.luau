@@ -135,31 +135,31 @@ local function onLegacyBoostAdded(humanoid: Humanoid, valueInstance: NumberValue
 
 	-- Watch for value changes (v5 refreshes by setting value back up)
 	tracked.connection = RunService.Heartbeat:Connect(function()
-		   if not valueInstance or not valueInstance.Parent then
-			   -- NumberValue gone, clean up
-			   cleanup()
-			   return
-		   end
+		if not valueInstance or not valueInstance.Parent then
+			-- NumberValue gone, clean up
+			cleanup()
+			return
+		end
 
-		   local currentValue = valueInstance.Value
+		local currentValue = valueInstance.Value
 
-		   -- Sync v6 boost timer to v5 NumberValue
-		   local activeBoost = CharacterManager:GetActiveBoost(config.type)
-		   if activeBoost then
-			   activeBoost.timeLeft = currentValue
-			   activeBoost.duration = currentValue
-			   -- Update the GUI immediately
-			   local GuiManager = require(Kit.Managers.GuiManager)
-			   GuiManager:UpdateBoostFrame(activeBoost)
-		   end
+		-- Sync v6 boost timer to v5 NumberValue
+		local activeBoost = CharacterManager:GetActiveBoost(config.type)
+		if activeBoost then
+			activeBoost.timeLeft = currentValue
+			activeBoost.duration = currentValue
+			-- Update the GUI immediately
+			local GuiManager = require(Kit.Managers.GuiManager)
+			GuiManager:UpdateBoostFrame(activeBoost)
+		end
 
-		   -- If value jumped up significantly, v5 refreshed the boost
-		   if currentValue > tracked.lastValue + 0.5 then
-			   -- Use cached power to avoid reading mid-tween
-			   triggerBoost(humanoid, valueInstance, config, tracked.power)
-		   end
+		-- If value jumped up significantly, v5 refreshed the boost
+		if currentValue > tracked.lastValue + 0.5 then
+			-- Use cached power to avoid reading mid-tween
+			triggerBoost(humanoid, valueInstance, config, tracked.power)
+		end
 
-		   tracked.lastValue = currentValue
+		tracked.lastValue = currentValue
 	end)
 
 	activeBoosts[valueInstance] = tracked

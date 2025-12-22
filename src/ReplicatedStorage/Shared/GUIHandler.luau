@@ -75,7 +75,11 @@ function GUIHandler:ShrinkAnimation(
 
 	local tween = TweenService:Create(
 		guiObject,
-		TweenInfo.new(tweenDuration, Enum.EasingStyle.Back, if shouldShow then Enum.EasingDirection.Out else Enum.EasingDirection.In),
+		TweenInfo.new(
+			tweenDuration,
+			Enum.EasingStyle.Back,
+			if shouldShow then Enum.EasingDirection.Out else Enum.EasingDirection.In
+		),
 		{ Size = targetSize }
 	)
 
