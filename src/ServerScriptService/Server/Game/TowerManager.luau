@@ -89,7 +89,7 @@ function TowerManager:LoadTower(playerName: string, towerName: string, resetTime
 
 	BlinkServer.LoadTower.Fire(player.Player, towerName, purist, resetTimer)
 	
-	task.wait(0.01)
+	task.wait()
 	player.IsLoadingTower = false
 end
 
