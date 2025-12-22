@@ -67,10 +67,8 @@ function ClientObjects:LoadClientObjects(coFolder: Instance, orphaned: boolean, 
 
 	local isKitV6 = coFolder:GetAttribute("KitVersion")
 
-	-- Cache descendants once instead of calling GetDescendants multiple times
 	local descendants = coFolder:GetDescendants()
 
-	-- Track seen ClientObject parents to avoid nested GetDescendants calls
 	local checkedParents: { [Instance]: boolean } = {}
 
 	for _, v in descendants do
@@ -85,9 +83,7 @@ function ClientObjects:LoadClientObjects(coFolder: Instance, orphaned: boolean, 
 				for _, child in vParent:GetChildren() do
 					if child.Name == "ClientObject" then
 						if foundFirst then
-							warn(
-								`⚠️ Found a double client object value in: {vParent.Name} ⚠️`
-							)
+							warn(`⚠️ Found a double client object value in: {vParent.Name} ⚠️`)
 							child:Destroy()
 						else
 							foundFirst = true
@@ -126,6 +122,7 @@ function ClientObjects:LoadClientObjects(coFolder: Instance, orphaned: boolean, 
 		)
 	else
 		coFolder.Parent = workspace
+		clientObjects = coFolder
 
 		if isKitV6 then
 			local clientObjectsFolder = workspace:FindFirstChild("ClientParts") :: Instance
@@ -145,8 +142,6 @@ function ClientObjects:LoadClientObjects(coFolder: Instance, orphaned: boolean, 
 			clientObjects = clientObjectsFolder
 			return
 		end
-
-		clientObjects = coFolder
 	end
 end
 
