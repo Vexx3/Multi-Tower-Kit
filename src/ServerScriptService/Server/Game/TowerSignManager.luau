@@ -1,6 +1,3 @@
--- Licensed under the MIT License
--- Copyright (c) 2025 Zylx
-
 --[=[
 	Handles updating PortalSign and ChartLine ObjectValues in tower folders
 	to green when a player has beaten the tower. Changes persist across

@@ -1,6 +1,3 @@
--- Licensed under the MIT License
--- Copyright (c) 2025 Zylx
-
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Shared = ReplicatedStorage.Shared
@@ -13,8 +10,7 @@ return function()
 		description = "Gives a Tool from ReplicatedStorage.Tools to a player",
 		permissions = { "give-item" },
 		arguments = function()
-			return conch.args.player("target", "Player to receive the tool"),
-				args.tool_name("tool", "Tool to give")
+			return conch.args.player("target", "Player to receive the tool"), args.tool_name("tool", "Tool to give")
 		end,
 
 		callback = function(target: Player, tool: Tool)

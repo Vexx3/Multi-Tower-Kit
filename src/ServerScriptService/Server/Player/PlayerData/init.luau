@@ -1,6 +1,3 @@
--- Licensed under the MIT License
--- Copyright (c) 2025 Zylx
-
 --[=[
 	Player data backed by Lyra. Provides a thin wrapper to load/update player
 	sessions while keeping the API surface used across the project.
@@ -23,9 +20,7 @@ local t = require(Packages._Index["osyrisrblx_t@3.1.1"]["t"])
 
 local Loaded: { [Player]: boolean } = {}
 
-local DATA_STORE_KEY = if RunService:IsStudio()
-	then Config.DATA_STORE_KEY_STUDIO
-	else Config.DATA_STORE_KEY
+local DATA_STORE_KEY = if RunService:IsStudio() then Config.DATA_STORE_KEY_STUDIO else Config.DATA_STORE_KEY
 
 local function createLogger()
 	if RunService:IsStudio() then
@@ -56,9 +51,6 @@ local store = Lyra.createPlayerStore({
 		TowerStats = t.table,
 	}),
 	migrationSteps = {
-		Lyra.MigrationStep.addFields("addAJ", {
-			AllJumps = 0,
-		}),
 		Lyra.MigrationStep.transform("completedTowersMapToList", function(data)
 			local completed = data.CompletedTowers
 

@@ -1,6 +1,3 @@
--- Licensed under the MIT License
--- Copyright (c) 2025 Zylx
-
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local conch = require(ReplicatedStorage.Packages.conch)
@@ -11,9 +8,7 @@ return function()
 		permissions = { "kick-player" },
 		arguments = function()
 			return conch.args.player("player", "The player to kick"),
-				conch.args.optional(
-					conch.args.string("reason", "The reason why the player is kicked")
-				)
+				conch.args.optional(conch.args.string("reason", "The reason why the player is kicked"))
 		end,
 
 		callback = function(player: Player, reason: string?)

@@ -1,6 +1,3 @@
--- Licensed under the MIT License
--- Copyright (c) 2025 Zylx
-
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local conch = require(ReplicatedStorage.Packages.conch)
@@ -15,11 +12,7 @@ return function()
 				conch.args.optional(conch.args.vector("destinationPosition", "Vector3 position"))
 		end,
 
-		callback = function(
-			targets: { Player },
-			destinationPlayer: Player?,
-			destinationPosition: vector?
-		)
+		callback = function(targets: { Player }, destinationPlayer: Player?, destinationPosition: vector?)
 			if #targets == 0 then
 				return conch.log("warn", "No players to teleport")
 			end
@@ -30,20 +23,13 @@ return function()
 				local destChar = destinationPlayer.Character
 				local destHRP = destChar and destChar:FindFirstChild("HumanoidRootPart") :: Part
 				if not destHRP then
-					return conch.log(
-						"warn",
-						`Destination player {destinationPlayer.Name} has no character`
-					)
+					return conch.log("warn", `Destination player {destinationPlayer.Name} has no character`)
 				end
 				destCFrame = destHRP.CFrame
 			elseif destinationPosition then
-				destCFrame =
-					CFrame.new(destinationPosition.x, destinationPosition.y, destinationPosition.z)
+				destCFrame = CFrame.new(destinationPosition.x, destinationPosition.y, destinationPosition.z)
 			else
-				return conch.log(
-					"warn",
-					"No valid destination provided (player or vector3 required)"
-				)
+				return conch.log("warn", "No valid destination provided (player or vector3 required)")
 			end
 
 			for _, player in targets do

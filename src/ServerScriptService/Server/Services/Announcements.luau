@@ -1,7 +1,3 @@
--- Licensed under the MIT License
--- Original Copyright (c) 2023 fanofpixels
--- Modifications Copyright (c) 2025 Zylx
-
 --[=[
 	Handles in-server announcements, cross-server global win messages, and
 	anti-cheat kick broadcasts.

@@ -1,6 +1,4 @@
--- Licensed under the MIT License
--- Original Copyright (c) 2023 fanofpixels
--- Modifications Copyright (c) 2025 Zylx
+-- More info: https://vexx3.github.io/MTK-Dev/docs/Configuration#configuring-difficulties
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 

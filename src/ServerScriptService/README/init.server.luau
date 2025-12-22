@@ -1,0 +1,2 @@
+-- Refer to the documentation to learn how to configure everything:
+-- https://vexx3.github.io/MTK-Dev/docs/UsingTheKit

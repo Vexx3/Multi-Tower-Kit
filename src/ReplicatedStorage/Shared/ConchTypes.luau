@@ -1,6 +1,3 @@
--- Licensed under the MIT License
--- Copyright (c) 2025 Zylx
-
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local GameData = ReplicatedStorage.GameData

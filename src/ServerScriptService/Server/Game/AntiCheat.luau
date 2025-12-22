@@ -1,6 +1,3 @@
--- Licensed under the MIT License
--- Copyright (c) 2025 Zylx
-
 --[=[
 	Anti-cheat checks for tower completion, ensuring players finish towers
 	legitimately before awarding wins.

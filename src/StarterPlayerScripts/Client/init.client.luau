@@ -26,7 +26,7 @@ local Announcements = require("@self/Game/Announcements")
 local ClientObjects = require("@self/Game/ClientObjects")
 local GameConfig = require(ReplicatedStorage.GameData.Config)
 local ModuleLoader = require(Shared.ModuleLoader)
-local TowerHUD = require("@self/UI/TowerHUD")
+local TowerGUI = require("@self/UI/TowerGUI")
 local conch = require(ReplicatedStorage.Packages.conch)
 local conchui = require(ReplicatedStorage.Packages["conch-ui"])
 
@@ -53,10 +53,10 @@ local function loadTower(acronym: string, purist: boolean, resetTimer: boolean)
 
 	if resetTimer then
 		TowerTimer = 0
-		TowerHUD:SetBoostsUsed(false)
+		TowerGUI:SetBoostsUsed(false)
 	end
 
-	TowerHUD:SetTowerAcronym(acronym)
+	TowerGUI:SetTowerAcronym(acronym)
 	ResetEffectGui:Fire()
 
 	RestartTime = 0
@@ -92,11 +92,11 @@ local function unloadTower()
 	ResetEffectGui:Fire()
 	ClientObjects:UnloadClientObjects()
 
-	TowerHUD:SetTowerAcronym("")
-	TowerHUD:SetTowerTimer(0)
-	TowerHUD:SetTowerRush(0, 0)
-	TowerHUD:SetBoostsUsed(false)
-	TowerHUD:SetRestartLabel(0)
+	TowerGUI:SetTowerAcronym("")
+	TowerGUI:SetTowerTimer(0)
+	TowerGUI:SetTowerRush(0, 0)
+	TowerGUI:SetBoostsUsed(false)
+	TowerGUI:SetRestartLabel(0)
 end
 
 -- Should fire every ~2 or so seconds to ensure the client's timer and the server's timer aren't out of sync
@@ -106,7 +106,7 @@ local function correctTimer(time: number)
 end
 
 local function updateTowerRush(index: number, end_: number)
-	TowerHUD:SetTowerRush(index, end_)
+	TowerGUI:SetTowerRush(index, end_)
 end
 
 local function onCharacterAdded(character: Model)
@@ -117,7 +117,7 @@ local function onCharacterAdded(character: Model)
 
 			-- If this is a boost item and the player is in a tower
 			if BoostName and BoostName ~= "" and CurrentTower ~= "" then
-				TowerHUD:SetBoostsUsed(true)
+				TowerGUI:SetBoostsUsed(true)
 			end
 		end
 	end)
@@ -135,7 +135,7 @@ local function onStep(deltaTime: number)
 	if CurrentTower == "" then
 		if TowerTimer ~= 0 then
 			TowerTimer = 0
-			TowerHUD:SetTowerTimer(0)
+			TowerGUI:SetTowerTimer(0)
 			lastDisplayedTimer = 0
 		end
 		RestartTime = 0
@@ -159,7 +159,7 @@ local function onStep(deltaTime: number)
 
 		-- Only update timer display when it visually changes (every 10ms)
 		if mathAbs(TowerTimer - lastDisplayedTimer) >= TIMER_UPDATE_THRESHOLD then
-			TowerHUD:SetTowerTimer(TowerTimer)
+			TowerGUI:SetTowerTimer(TowerTimer)
 			lastDisplayedTimer = TowerTimer
 		end
 	end
@@ -167,7 +167,7 @@ local function onStep(deltaTime: number)
 	-- Only update restart label when progress changes
 	local restartProgress = RestartTime / RestartTimeMax
 	if restartProgress ~= lastRestartProgress then
-		TowerHUD:SetRestartLabel(restartProgress)
+		TowerGUI:SetRestartLabel(restartProgress)
 		lastRestartProgress = restartProgress
 	end
 end
@@ -175,7 +175,7 @@ end
 local function init()
 	StarterGui:SetCoreGuiEnabled(Enum.CoreGuiType.EmotesMenu, false)
 
-	TowerHUD:ShowLoadingScreen("Loading Data...", false)
+	TowerGUI:ShowLoadingScreen("Loading Data...", false)
 
 	CharacterManager:Init()
 	ClientObjectManager:Init()
@@ -207,18 +207,18 @@ local function init()
 	BlinkClient.UnloadTower.On(unloadTower)
 	RunService.RenderStepped:Connect(onStep)
 
-	TowerHUD:SetTowerTimer(0)
-	TowerHUD:SetTowerAcronym("")
-	TowerHUD:SetTowerRush(0, 0)
+	TowerGUI:SetTowerTimer(0)
+	TowerGUI:SetTowerAcronym("")
+	TowerGUI:SetTowerRush(0, 0)
 
 	local dataLoaded = LocalPlayer:GetAttribute("DataLoaded")
 	if dataLoaded then
-		TowerHUD:HideLoadingScreen()
+		TowerGUI:HideLoadingScreen()
 	else
 		LocalPlayer:GetAttributeChangedSignal("DataLoaded"):Connect(function()
 			local loaded = LocalPlayer:GetAttribute("DataLoaded")
 			if loaded == true then
-				TowerHUD:HideLoadingScreen()
+				TowerGUI:HideLoadingScreen()
 			end
 		end)
 	end

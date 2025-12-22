@@ -1,11 +1,3 @@
--- Licensed under the MIT License
--- Original Copyright (c) 2023 fanofpixels
--- Modifications Copyright (c) 2025 Zylx
-
---==============================================================--
---                     Multi-Tower Kit Configuration
---==============================================================--
-
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Shared = ReplicatedStorage.Shared
@@ -13,6 +5,10 @@ local Shared = ReplicatedStorage.Shared
 local Types = require(Shared.Types)
 
 type TowerStat = Types.TowerStat
+
+--==============================================================--
+--                     Multi-Tower Kit Configuration
+--==============================================================--
 
 local Config = {
 
@@ -86,10 +82,14 @@ local Config = {
 	-- DATA STORE
 	----------------------------------------------------------------
 
+	-- When updating the fangame kit make sure before you update the
+	-- DATA_STORE_KEY must still be the same as before, otherwise
+	-- players will lose all their data!
+
 	-- Keys used for player data storage. The studio key is used when
 	-- testing in Roblox Studio.
-	DATA_STORE_KEY = "Production3",
-	DATA_STORE_KEY_STUDIO = "Alpha5",
+	DATA_STORE_KEY = "Production",
+	DATA_STORE_KEY_STUDIO = "Test",
 
 	-- Default player data template. Only modify this if you fully
 	-- understand the implications on data structure and migration.
@@ -104,7 +104,10 @@ local Config = {
 	-- WEBHOOKS
 	----------------------------------------------------------------
 
-	-- Enables or disables outgoing webhook notifications.
+	-- Enables/disables outgoing webhook notifications.
+	-- Create a webhook in your game settings (create.roblox.com/dashboard/creations) under "Secrets".
+	-- Enable HTTP requests for the game.
+	-- Secret name must be "SC_WEBHOOK" or "NORMAL_WEBHOOK".
 	WEBHOOKS_ENABLED = false,
 
 	-- Template for the standard win announcement webhook.

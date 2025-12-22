@@ -1,7 +1,3 @@
--- Licensed under the MIT License
--- Original Copyright (c) 2023 fanofpixels
--- Modifications Copyright (c) 2025 Zylx
-
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
@@ -25,7 +21,7 @@ local Difficulties = require(GameData.Difficulties)
 
 local Towers = workspace.Towers
 
-local warningTag = "[MTKv4] "
+local warningTag = "[MTKv4.1.1] "
 
 -- If the difficulty specified by something is unknown, fallback to this
 local defaultDifficuty: Difficulty = {
@@ -92,28 +88,7 @@ local hip = CFrame.new(0, 3, 0)
 
 -- Teleports the player's character
 function Util:TeleportPlayerToPart(player: Player, destination: BasePart)
-	local character = player.Character
-	if not character then
-		return
-	end
-
-	character:PivotTo(destination.CFrame * hip)
-end
-
--- Teleports the player's character, and if it isn't loaded, waits until it is
-function Util:TeleportPlayerToPartWithWait(player: Player, destination: BasePart)
-	local character = player.Character
-	if not character then
-		repeat
-			task.wait(0.05)
-			character = player.Character
-			if player.Character then
-				player.Character:PivotTo(destination.CFrame * hip)
-			end
-		until character
-		return
-	end
-
+	local character = player.Character or player.CharacterAdded:Wait()
 	character:PivotTo(destination.CFrame * hip)
 end
 
@@ -166,53 +141,62 @@ function Util:FormatBoosts(boosts: Dictionary<string>)
 		table.insert(boostList, boostName)
 	end
 
-	local hasBoosts = if #boostList > 0 then table.concat(boostList, ", ") else ""
-
-	return hasBoosts
+	return table.concat(boostList, ", ")
 end
 
 -- made it as a function so it doesn't always get repeated. rn they are only used on markers and portals
 function Util:RegisterTouch(part: BasePart, onTouch: (playerName: string, part: BasePart) -> ())
-	if not part or not part:IsA("BasePart") then
+	if not part:IsA("BasePart") then
 		return
 	end
 
+	local debounce: { [string]: boolean } = {}
+
 	part.Touched:Connect(function(hit)
 		local isPlayer, playerName = Util:IsPlayerPart(hit)
-		if isPlayer then
-			onTouch(playerName, part)
+		if not isPlayer then
+			return
 		end
+
+		local player: Player = Players:FindFirstChild(playerName)
+		if not player or not Util:IsPlayerAlive(player.Character) then
+			return
+		end
+
+		if debounce[playerName] then
+			return
+		end
+		
+		debounce[playerName] = true
+		onTouch(playerName, part)
+
+		task.delay(0.1, function()
+			debounce[playerName] = false
+		end)
 	end)
 end
 
 function Util:RespawnAndTeleport(player: Player, spawnPart: BasePart)
 	player:LoadCharacterAsync()
 
-	local character: Model?
-	repeat
-		task.wait(0.05)
-		character = player.Character
-	until player.Character
-
-	if not character then
-		Util:Warn(`Character failed to load for {player.Name}`)
-		return
-	end
+	local character = player.Character or player.CharacterAdded:Wait()
 
 	local ForceField = character:FindFirstChildWhichIsA("ForceField")
 	if ForceField then
 		ForceField:Destroy()
 	end
 
-	Util:TeleportPlayerToPartWithWait(player, spawnPart)
+	Util:TeleportPlayerToPart(player, spawnPart)
 end
 
 ---------------------------------------------------------------------------------------
 
 -- get the difficulty and their difficulty color 2nd returned value is used for the stroke color
 function Util:GetDifficultyColors(difficultyName: string)
-	local color = Util:GetDifficulty(difficultyName).Color
+	local difficulty = Util:GetDifficulty(difficultyName)
+	local color = difficulty.Color
 	local stroke = Color3.new(color.R * 0.35, color.G * 0.35, color.B * 0.35)
+
 	return color, stroke
 end
 

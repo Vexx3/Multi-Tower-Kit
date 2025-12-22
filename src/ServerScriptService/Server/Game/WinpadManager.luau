@@ -1,6 +1,3 @@
--- Licensed under the MIT License
--- Copyright (c) 2025 Zylx
-
 --[=[
 	Handles winpad collision detection, player win validation, badge awarding,
 	and tower completion processing including rush advancement.
@@ -47,22 +44,20 @@ local function onPlayerTouchedWinpad(playerName: string, towerName: string, endi
 		return
 	end
 
-	if tower.NoBoostItems and player.BoostItemUsed then
-		return
-	end
-
-	if player.CurrentTowerRush ~= "" then
-		local rush = TowerRushes[player.CurrentTowerRush]
-		if rush and rush.NoBoostItems and player.BoostItemUsed then
+	if player.BoostItemUsed then
+		if tower.NoBoostItems then
 			return
+		end
+
+		if player.CurrentTowerRush ~= "" then
+			local rush = TowerRushes[player.CurrentTowerRush]
+			if rush and rush.NoBoostItems then
+				return
+			end
 		end
 	end
 
-	if player.PracticeMode then
-		return
-	end
-
-	if player.TouchEventBusy then
+	if player.PracticeMode or player.TouchEventBusy then
 		return
 	end
 
@@ -84,15 +79,9 @@ local function onPlayerTouchedWinpad(playerName: string, towerName: string, endi
 	if player.CurrentTowerRush == "" then
 		-- The player is doing a singular tower
 		-- The info that will be used in the win message
-		local endingDifficultyName = tower.Difficulty
-		local endingName = tower.Name
+		local endingDifficultyName = if endingID == towerName then tower.Difficulty else ending.Difficulty
+		local endingName = if endingID == towerName then tower.Name else ending.Name
 		local endingWinroom = ending.WinroomMarker
-
-		-- Override it if this isn't the default ending
-		if endingID ~= towerName then
-			endingDifficultyName = ending.Difficulty
-			endingName = ending.Name
-		end
 
 		local runTime = player.TowerTimer
 		Announcements:WinAnnouncement(player, endingName, endingDifficultyName, runTime)
@@ -104,6 +93,7 @@ local function onPlayerTouchedWinpad(playerName: string, towerName: string, endi
 			if tower.BadgeID ~= 0 and not ending.PreventTowerBadge then
 				BadgeService:AwardBadgeAsync(player.Player.UserId, tower.BadgeID)
 			end
+
 			if ending.BadgeID ~= 0 then
 				BadgeService:AwardBadgeAsync(player.Player.UserId, ending.BadgeID)
 			end
@@ -170,6 +160,10 @@ local function setupWinpad(towerName: string, winpad: BasePart)
 
 	-- and set it
 	tower.Endings[endingID] = ending
+
+	Util:RegisterTouch(winpad, function(playerName)
+		onPlayerTouchedWinpad(playerName, towerName, endingID)
+	end)
 
 	winpad.Touched:Connect(function(hit)
 		local isPlayer, playerName = Util:IsPlayerPart(hit)

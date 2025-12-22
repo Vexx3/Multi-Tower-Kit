@@ -1,6 +1,3 @@
--- Licensed under the MIT License
--- Copyright (c) 2025 Zylx
-
 --[=[
 	Coordinates tower rush flow: starting rushes, advancing through towers, and
 	awarding rush completions.
@@ -54,10 +51,8 @@ function TowerRushManager:LoadTowerRush(playerName: string, towerRushName: strin
 	player.BoostItemUsed = false
 	player.BoostItemNames = {}
 
-	local firstTower = towerRush.Towers[1]
-	local towerCount = #towerRush.Towers
-	TowerManager:LoadTower(playerName, firstTower, true)
-	BlinkServer.UpdateTowerRush.Fire(player.Player, 1, towerCount)
+	TowerManager:LoadTower(playerName, towerRush.Towers[1], true)
+	BlinkServer.UpdateTowerRush.Fire(player.Player, 1, #towerRush.Towers)
 end
 
 --[=[

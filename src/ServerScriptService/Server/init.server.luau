@@ -1,6 +1,3 @@
--- Licensed under the MIT License
--- Copyright (c) 2025 Zylx
-
 --[=[
 	Main server entry point for Multi-Tower Kit. Handles player state, tower loading,
 	winpad detection, and coordinates all MTK subsystems.

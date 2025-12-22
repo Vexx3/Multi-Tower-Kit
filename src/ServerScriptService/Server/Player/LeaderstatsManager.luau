@@ -1,6 +1,3 @@
--- Licensed under the MIT License
--- Copyright (c) 2025 Zylx
-
 --[=[
 	Creates and updates Roblox leaderstats for players based on their tower
 	completions.
@@ -94,11 +91,7 @@ end
 	@within LeaderstatsManager
 	@param stat number -- amount to add to the All-jumps stat
 ]=]
-function LeaderstatsManager:SetAllJumpsStat(
-	player: Player,
-	towerInfo: Types.TowerInfo,
-	stat: number
-)
+function LeaderstatsManager:SetAllJumpsStat(player: Player, towerInfo: Types.TowerInfo, stat: number)
 	local info = _players[player.Name]
 	if not info then
 		return

@@ -1,6 +1,3 @@
--- Licensed under the MIT License
--- Copyright (c) 2025 Zylx
-
 --[=[
 	Legacy ButtonActivatedPlatform compatibility for v5 towers.
 	Syncs CanCollide → Activated attribute for CharacterManager.

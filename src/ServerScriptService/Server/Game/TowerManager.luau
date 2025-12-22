@@ -1,6 +1,3 @@
--- Licensed under the MIT License
--- Copyright (c) 2025 Zylx
-
 --[=[
 	Core server manager for individual tower lifecycle: registers tower metadata,
 	loads client objects, teleports players, and exposes simple APIs for other
@@ -43,53 +40,55 @@ local TowerManager = {}
 function TowerManager:LoadTower(playerName: string, towerName: string, resetTimer: boolean)
 	-- Get the player and tower info objects being referenced
 	local player: PlayerInfo? = DataInfo.PlayerInfo[playerName]
-	local tower: TowerInfo? = DataInfo.TowerInfo[towerName]
-	if player and tower then
-		-- If the player is already currently loading a tower, don't do it twice
-		if player.IsLoadingTower then
-			return
-		end
-
-		-- Set the player object's properties appropriately
-		if resetTimer then
-			player.TowerTimer = 0
-			player.BoostItemUsed = false
-			player.BoostItemNames = {}
-		end
-		player.CurrentTower = towerName
-		player.CurrentTowerCheckpoint = 1
-		-- "this player is currently loading a tower, do not attempt to load a tower while this tower loading is in progress"
-		player.IsLoadingTower = true
-
-		TowerData:IncrementTowerAttempt(player.Player, towerName)
-
-		-- Forcefully load the character
-		-- should disrupt natural respawning
-		Util:RespawnAndTeleport(player.Player, tower.SpawnLocation)
-
-		-- Delete the ClientSidedObjects folder from the player if it exists, which in this case, shouldn't
-		local oldCOFolder = player.Player:FindFirstChild("ClientSidedObjects")
-		if oldCOFolder then
-			oldCOFolder:Destroy()
-		end
-
-		-- Send over the client objects if they exist
-		-- (If they don't, the tower is truely purist)
-		local purist = true
-		if tower.ClientObjects then
-			purist = false
-			local coFolder = tower.ClientObjects:Clone()
-			coFolder.Name = "ClientSidedObjects"
-			coFolder.Parent = player.Player
-		end
-
-		BlinkServer.LoadTower.Fire(player.Player, towerName, purist, resetTimer)
-		player.IsLoadingTower = false
+	if not player then
+		return
 	end
 
+	local tower: TowerInfo? = DataInfo.TowerInfo[towerName]
 	if not tower then
 		Util:Warn(`Unknown tower "{towerName}"`)
+		return
 	end
+
+	-- If the player is already currently loading a tower, don't do it twice
+	if player.IsLoadingTower then
+		return
+	end
+
+	-- Set the player object's properties appropriately
+	if resetTimer then
+		player.TowerTimer = 0
+		player.BoostItemUsed = false
+		player.BoostItemNames = {}
+	end
+	player.CurrentTower = towerName
+	player.CurrentTowerCheckpoint = 1
+	-- "this player is currently loading a tower, do not attempt to load a tower while this tower loading is in progress"
+	player.IsLoadingTower = true
+
+	TowerData:IncrementTowerAttempt(player.Player, towerName)
+
+	-- Forcefully load the character
+	-- should disrupt natural respawning
+	Util:RespawnAndTeleport(player.Player, tower.SpawnLocation)
+
+	-- Delete the ClientSidedObjects folder from the player if it exists, which in this case, shouldn't
+	local oldCOFolder = player.Player:FindFirstChild("ClientSidedObjects")
+	if oldCOFolder then
+		oldCOFolder:Destroy()
+	end
+
+	-- Send over the client objects if they exist
+	-- (If they don't, the tower is truely purist)
+	local purist = tower.ClientObjects == nil
+	if not purist and tower.ClientObjects then
+		local coFolder = tower.ClientObjects:Clone()
+		coFolder.Name = "ClientSidedObjects"
+		coFolder.Parent = player.Player
+	end
+
+	BlinkServer.LoadTower.Fire(player.Player, towerName, purist, resetTimer)
+	player.IsLoadingTower = false
 end
 
 local function initTower(towerFolder: Instance)
@@ -161,10 +160,8 @@ local function initTower(towerFolder: Instance)
 		tower.ClientObjects.Name = acronym
 
 		for _, instance in tower.ClientObjects:GetDescendants() do
-			if instance:IsA("BasePart") then
-				if instance.CollisionGroup == "Default" then
-					instance.CollisionGroup = "ClientObjects"
-				end
+			if instance:IsA("BasePart") and instance.CollisionGroup == "Default" then
+				instance.CollisionGroup = "ClientObjects"
 			end
 		end
 

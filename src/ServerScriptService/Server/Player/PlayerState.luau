@@ -1,6 +1,3 @@
--- Licensed under the MIT License
--- Copyright (c) 2025 Zylx
-
 --[=[
 	Handles per-player state transitions such as resetting run data, updating
 	attributes, and sending players to the winroom after a win.

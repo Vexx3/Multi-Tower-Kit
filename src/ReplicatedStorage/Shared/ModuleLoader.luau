@@ -1,6 +1,3 @@
--- Licensed under the MIT License
--- Copyright (c) 2025 Zylx
-
 --[=[
 	Simple module loader for initializing modules.
 	Loads all ModuleScripts with an Init function and calls them.

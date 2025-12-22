@@ -1,6 +1,3 @@
--- Licensed under the MIT License
--- Copyright (c) 2025 Zylx
-
 --[=[
 	Sends Discord webhook notifications for tower clears, including boosts and
 	formatted time.

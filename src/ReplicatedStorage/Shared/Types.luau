@@ -1,9 +1,5 @@
--- Licensed under the MIT License
--- Original Copyright (c) 2023 fanofpixels
--- Modifications Copyright (c) 2025 Zylx
-
--- More information about these types can be found in the manual.
--- 3.0 - Type documentation
+-- More information about these types is available in the documentation:
+-- https://vexx3.github.io/MTK-Dev/api/Types
 
 -- Convenience
 export type List<T> = { [number]: T }

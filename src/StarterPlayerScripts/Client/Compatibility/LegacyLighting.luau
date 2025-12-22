@@ -1,17 +1,6 @@
--- Licensed under the MIT License
--- Copyright (c) 2025 Zylx
-
 --[=[
 	Legacy lighting compatibility layer for old v5 tower scripts.
 	
-	Handles:
-	- Parts named "LightingChanger" with Configuration ModuleScript children
-	- _G.SetLighting global function for manual lighting changes
-	- ChangeLighting BindableEvent for remote lighting changes
-
-	This script automatically hooks into the local player's humanoid touch events
-	so you don't need to edit the CharacterManager script.
-
 	@class LegacyLighting
 	@client
 ]=]

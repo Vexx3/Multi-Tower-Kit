@@ -1,6 +1,3 @@
--- Licensed under the MIT License
--- Copyright (c) 2025 Zylx
-
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local BlinkServer = require(script.Parent.Parent.Parent.Network.BlinkServer)
