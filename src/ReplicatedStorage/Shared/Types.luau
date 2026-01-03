@@ -21,6 +21,7 @@ export type TowerInfo = {
 	Folder: Instance,
 	SpawnLocation: BasePart,
 	ClientObjects: Instance?,
+	Barriers: Instance?,
 
 	-- Endings
 	Endings: Dictionary<EndingInfo>,

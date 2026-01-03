@@ -9,7 +9,6 @@ local conch = require(Packages.conch)
 
 local Markers = workspace.Markers
 local Towers = workspace.Towers
-local ToolsFolder = ReplicatedStorage:FindFirstChild("Tools")
 
 local markerMap = {}
 local towerArray = {}
@@ -34,14 +33,6 @@ for _, tower in Towers:GetChildren() do
 	end
 end
 
-if ToolsFolder then
-	for _, tool in ToolsFolder:GetChildren() do
-		if tool:IsA("Tool") then
-			toolMap[tool.Name] = tool
-		end
-	end
-end
-
 for name, _ in Difficulties do
 	table.insert(difficultyArray, name)
 end
@@ -54,12 +45,9 @@ local marker_name = conch.register_type("marker_name", conch.args.enum_map(marke
 
 local tower_name = conch.register_type("tower_name", conch.args.enum_new(towerArray))
 
-local tool_name = conch.register_type("tool_name", conch.args.enum_map(toolMap))
-
 return {
 	badge_name = badge_name,
 	marker_name = marker_name,
 	tower_name = tower_name,
-	tool_name = tool_name,
 	difficulty_name = difficulty_name,
 }

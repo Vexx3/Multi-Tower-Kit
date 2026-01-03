@@ -27,6 +27,13 @@ type TowerInfo = Types.TowerInfo
 local TOWERS = workspace.Towers
 local CLIENT_OBJECTS_FOLDER = ServerStorage.TowerClientObjects
 local TOWER_CHECKPOINTS = ServerStorage.TowerCheckpoints
+local TOWER_BARRIERS = ServerStorage:FindFirstChild("TowerBarriers")
+
+if not TOWER_BARRIERS then
+	TOWER_BARRIERS = Instance.new("Folder")
+	TOWER_BARRIERS.Name = "TowerBarriers"
+	TOWER_BARRIERS.Parent = ServerStorage
+end
 
 local TowerManager = {}
 
@@ -78,6 +85,13 @@ function TowerManager:LoadTower(playerName: string, towerName: string, resetTime
 		oldCOFolder:Destroy()
 	end
 
+	-- Delete any previous barrier folders from the player
+	for _, child in player.Player:GetChildren() do
+		if DataInfo.TowerInfo[child.Name] and child:IsA("Folder") then
+			child:Destroy()
+		end
+	end
+
 	-- Send over the client objects if they exist
 	-- (If they don't, the tower is truely purist)
 	local purist = tower.ClientObjects == nil
@@ -88,7 +102,7 @@ function TowerManager:LoadTower(playerName: string, towerName: string, resetTime
 	end
 
 	BlinkServer.LoadTower.Fire(player.Player, towerName, purist, resetTimer)
-	
+
 	task.wait()
 	player.IsLoadingTower = false
 end
@@ -104,6 +118,9 @@ local function initTower(towerFolder: Instance)
 	local clientObjects = (
 		towerFolder:FindFirstChild("ClientSidedObjects") or CLIENT_OBJECTS_FOLDER:FindFirstChild(acronym)
 	)
+
+	-- Get the Barriers folder
+	local barriers = TOWER_BARRIERS:FindFirstChild(acronym)
 
 	-- Get the Checkpoints
 	local checkpointsFolder = (towerFolder:FindFirstChild("Checkpoints") or TOWER_CHECKPOINTS:FindFirstChild(acronym))
@@ -145,11 +162,12 @@ local function initTower(towerFolder: Instance)
 		BadgeID = Attributes:GetInt(towerFolder, "BadgeID") or 0,
 		AJBadgeID = Attributes:GetInt(towerFolder, "AJBadgeID") or 0,
 		TowerPoints = Attributes:GetInt(towerFolder, "TowerPoints") or 1,
-		NoBoostItems = towerFolder:FindFirstChild("NoBoostItems") ~= nil,
+		NoBoostItems = (towerFolder:FindFirstChild("NoBoostItems") ~= nil) or (barriers ~= nil),
 
 		Folder = towerFolder,
 		SpawnLocation = spawnLocation :: BasePart,
 		ClientObjects = clientObjects,
+		Barriers = barriers,
 
 		Endings = {},
 

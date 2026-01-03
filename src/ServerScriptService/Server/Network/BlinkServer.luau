@@ -268,6 +268,16 @@ local function WriteEVENT_GameWinAnnouncement(Value: { PlayerName: string, Endin
 	buffer.writeu8(SendBuffer, BLOCK_START + 15, Value.Global and 1 or 0)
 end
 
+local function WriteEVENT_ShowBarrier(Value: string): ()
+	-- Allocate BLOCK: 3 bytes
+	local BLOCK_START = Allocate(3)
+	buffer.writeu8(SendBuffer, BLOCK_START + 0, 7)
+	local Length = #Value
+	buffer.writeu16(SendBuffer, BLOCK_START + 1, Length)
+	Allocate(Length)
+	buffer.writestring(SendBuffer, SendOffset, Value, Length)
+end
+
 if not RunService:IsRunning() then
 	local NOOP = function() end
 	local Returns = table.freeze({
@@ -308,6 +318,12 @@ if not RunService:IsRunning() then
 		FireExcept = NOOP
 	},
 	GameWinAnnouncement = {
+		Fire = NOOP,
+		FireAll = NOOP,
+		FireList = NOOP,
+		FireExcept = NOOP
+	},
+	ShowBarrier = {
 		Fire = NOOP,
 		FireAll = NOOP,
 		FireList = NOOP,
@@ -719,6 +735,52 @@ local Returns = table.freeze({
 		FireExcept = function(Except: Player, Value: { PlayerName: string, EndingName: string, Time: number, BoostsUsed: {[string]: string}, Color: Color3, FancyFont: boolean, Global: boolean }): ()
 			Load()
 			WriteEVENT_GameWinAnnouncement(Value)
+			local Buffer, Size, Instances = SendBuffer, SendCursor, SendInstances
+			for _, Player in Players:GetPlayers() do
+				if Player == Except then
+					continue
+				end
+				Load(PlayersMap[Player])
+				local Position = Allocate(Size)
+				buffer.copy(SendBuffer, Position, Buffer, 0, Size)
+				table.move(Instances, 1, #Instances, #SendInstances + 1, SendInstances)
+				PlayersMap[Player] = Save()
+			end
+		end,
+	},
+	ShowBarrier = {
+		Fire = function(Player: Player, Value: string): ()
+			Load(PlayersMap[Player])
+			WriteEVENT_ShowBarrier(Value)
+			PlayersMap[Player] = Save()
+		end,
+		FireAll = function(Value: string): ()
+			Load()
+			WriteEVENT_ShowBarrier(Value)
+			local Buffer, Size, Instances = SendBuffer, SendCursor, SendInstances
+			for _, Player in Players:GetPlayers() do
+				Load(PlayersMap[Player])
+				local Position = Allocate(Size)
+				buffer.copy(SendBuffer, Position, Buffer, 0, Size)
+				table.move(Instances, 1, #Instances, #SendInstances + 1, SendInstances)
+				PlayersMap[Player] = Save()
+			end
+		end,
+		FireList = function(List: {Player}, Value: string): ()
+			Load()
+			WriteEVENT_ShowBarrier(Value)
+			local Buffer, Size, Instances = SendBuffer, SendCursor, SendInstances
+			for _, Player in List do
+				Load(PlayersMap[Player])
+				local Position = Allocate(Size)
+				buffer.copy(SendBuffer, Position, Buffer, 0, Size)
+				table.move(Instances, 1, #Instances, #SendInstances + 1, SendInstances)
+				PlayersMap[Player] = Save()
+			end
+		end,
+		FireExcept = function(Except: Player, Value: string): ()
+			Load()
+			WriteEVENT_ShowBarrier(Value)
 			local Buffer, Size, Instances = SendBuffer, SendCursor, SendInstances
 			for _, Player in Players:GetPlayers() do
 				if Player == Except then

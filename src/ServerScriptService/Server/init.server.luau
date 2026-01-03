@@ -22,6 +22,7 @@ local LeaderstatsManager = require("@self/Player/LeaderstatsManager")
 local ModuleLoader = require(Shared.ModuleLoader)
 local PlayerState = require("@self/Player/PlayerState")
 local PortalHandler = require("@self/Game/PortalHandler")
+local ToolManager = require("@self/Helpers/ToolManager")
 local TowerData = require("@self/Player/PlayerData/TowerData")
 local TowerManager = require("@self/Game/TowerManager")
 local TowerRushManager = require("@self/Game/TowerRushManager")
@@ -97,14 +98,40 @@ local function onPlayerEquippedTool(player: PlayerInfo, item: Tool)
 		player.BoostItemUsed = true
 		player.BoostItemNames[item.Name] = boostName or "Boost Item"
 
-		if player.CurrentTower ~= "" then
-			local towerInfo = DataInfo.TowerInfo[player.CurrentTower]
-			if towerInfo and towerInfo.NoBoostItems then
-				local character = player.Player.Character
-				local humanoid = character and character:FindFirstChildOfClass("Humanoid")
-				if humanoid then
-					humanoid.Health = 0
+		local tower = DataInfo.TowerInfo[player.CurrentTower]
+		if tower and tower.Barriers then
+			local playerBarrierFolder = player.Player:FindFirstChild(player.CurrentTower)
+			if not playerBarrierFolder then
+				playerBarrierFolder = Instance.new("Folder")
+				playerBarrierFolder.Name = player.CurrentTower
+				playerBarrierFolder.Parent = player.Player
+			end
+
+			-- Clone general barriers (direct children that aren't folders)
+			for _, child in tower.Barriers:GetChildren() do
+				if not child:IsA("Folder") then
+					if not playerBarrierFolder:FindFirstChild(child.Name) then
+						child:Clone().Parent = playerBarrierFolder
+					end
 				end
+			end
+
+			-- Clone specific barriers for this item
+			local specificFolder = tower.Barriers:FindFirstChild(item.Name)
+			if specificFolder and specificFolder:IsA("Folder") then
+				for _, child in specificFolder:GetChildren() do
+					if not playerBarrierFolder:FindFirstChild(child.Name) then
+						child:Clone().Parent = playerBarrierFolder
+					end
+				end
+			end
+
+			BlinkServer.ShowBarrier.Fire(player.Player, player.CurrentTower)
+
+			local character = player.Player.Character
+			local humanoid = character and character:FindFirstChildOfClass("Humanoid")
+			if humanoid then
+				humanoid.Health = 0
 			end
 		end
 
@@ -203,6 +230,7 @@ local function onPlayerAdded(player: Player)
 
 	LeaderstatsManager:InitPlayer(player)
 	TowerSignManager:UpdateCompletedTowersForPlayer(player)
+	ToolManager:GiveAllCompletedTowerTools(player)
 
 	if player.Character then
 		onCharacterAdded(player.Character)

@@ -1,7 +1,0 @@
-{
-  "properties": {
-    "CanBeDropped": false,
-    "RequiresHandle": false
-  },
-  "className": "Tool"
-}

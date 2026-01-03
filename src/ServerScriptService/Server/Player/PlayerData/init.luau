@@ -94,8 +94,12 @@ local PlayerData = {}
 	@return Config.PlayerData?
 ]=]
 function PlayerData:GetData(player: Player): Config.PlayerData?
-	while not Loaded[player] do
+	while not Loaded[player] and player.Parent do
 		task.wait()
+	end
+
+	if not player.Parent then
+		return nil
 	end
 
 	return store:getAsync(player)

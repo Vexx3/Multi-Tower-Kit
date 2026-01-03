@@ -9,6 +9,7 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local PlayerData = require(script.Parent.PlayerData)
+local ToolManager = require(script.Parent.Parent.Helpers.ToolManager)
 local TowerData = require(script.Parent.PlayerData.TowerData)
 local Types = require(ReplicatedStorage.Shared.Types)
 
@@ -82,6 +83,8 @@ function LeaderstatsManager:SetTowerStat(player: Player, towerInfo: Types.TowerI
 		table.insert(data.CompletedTowers, acronym)
 		return true
 	end)
+
+	ToolManager:GiveTowerTools(player, acronym)
 end
 
 --[=[

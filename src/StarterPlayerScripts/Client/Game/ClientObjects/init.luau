@@ -67,43 +67,31 @@ function ClientObjects:LoadClientObjects(coFolder: Instance, orphaned: boolean, 
 
 	local isKitV6 = coFolder:GetAttribute("KitVersion")
 
-	local descendants = coFolder:GetDescendants()
+	for _, v in coFolder:GetDescendants() do
+		local parent = v.Parent
+		local name = v.Name
 
-	local checkedParents: { [Instance]: boolean } = {}
-
-	for _, v in descendants do
-		local vName = v.Name
-		local vParent = v.Parent
-
-		if vParent and vName == "ClientObject" then
-			-- Only check each parent once for duplicates
-			if not checkedParents[vParent] then
-				checkedParents[vParent] = true
-				local foundFirst = false
-				for _, child in vParent:GetChildren() do
-					if child.Name == "ClientObject" then
-						if foundFirst then
-							warn(`⚠️ Found a double client object value in: {vParent.Name} ⚠️`)
-							child:Destroy()
-						else
-							foundFirst = true
-						end
+		if name == "ClientObject" and parent then
+			local seen = false
+			for _, child in parent:GetChildren() do
+				if child.Name == "ClientObject" then
+					if seen then
+						warn(`⚠️ Found a double client object value in: {parent.Name}`)
+						child:Destroy()
+					else
+						seen = true
 					end
 				end
 			end
 		elseif
-			(vName == "ClientObjectScript" and v:IsA("ModuleScript"))
-			or (vName == "RunRepoScript" and v:IsA("StringValue"))
+			(name == "ClientObjectScript" and v:IsA("ModuleScript"))
+			or (name == "RunRepoScript" and v:IsA("StringValue"))
 		then
 			ClientObjects:LoadClientObjectScript(v, orphaned)
-		elseif vName == "SetCollisionGroup" and v:IsA("StringValue") then
-			if vParent and vParent:IsA("BasePart") then
-				vParent.CollisionGroup = v.Value
-			end
-		elseif v:IsA("BasePart") then
-			if vName == "LightingChanger" or v:FindFirstChild("Invisible") then
-				v.Transparency = 1
-			end
+		elseif name == "SetCollisionGroup" and v:IsA("StringValue") and parent and parent:IsA("BasePart") then
+			parent.CollisionGroup = v.Value
+		elseif v:IsA("BasePart") and (name == "LightingChanger" or v:FindFirstChild("Invisible")) then
+			v.Transparency = 1
 		end
 	end
 
