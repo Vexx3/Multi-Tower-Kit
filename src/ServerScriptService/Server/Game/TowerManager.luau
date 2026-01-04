@@ -145,7 +145,7 @@ local function initTower(towerFolder: Instance)
 		BadgeID = Attributes:GetInt(towerFolder, "BadgeID") or 0,
 		AJBadgeID = Attributes:GetInt(towerFolder, "AJBadgeID") or 0,
 		TowerPoints = Attributes:GetInt(towerFolder, "TowerPoints") or 1,
-		NoBoostItems = (towerFolder:FindFirstChild("NoBoostItems") ~= nil),
+		NoBoostItems = towerFolder:HasTag("NoBoostItems"),
 
 		Folder = towerFolder,
 		SpawnLocation = spawnLocation :: BasePart,

@@ -1,51 +1,69 @@
--- Licensed under the MIT License
--- Copyright (c) 2025 Zylx
-
+local MarketplaceService = game:GetService("MarketplaceService")
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local TextChatService = game:GetService("TextChatService")
 
 local ChatTags = require(ReplicatedStorage.GameData.ChatTags)
 
-local function getPlayerTag(player: Player): (string?, string?)
-	-- Check UserId tags first
-	local tagName = ChatTags.USER_TAGS[player.UserId]
-	if tagName then
-		local tag = ChatTags.TAGS[tagName]
-		if tag then
-			return tag.Text, tag.Color
-		end
-	end
+local playerTags: { [number]: { Text: string, Color: string } } = {}
 
-	-- Check group tags
-	for _, group in ChatTags.GROUP_TAGS do
-		local rank = player:GetRankInGroup(group.GroupId)
-		local groupTagName = group.Roles[rank]
-		if groupTagName then
-			local tag = ChatTags.TAGS[groupTagName]
-			if tag then
-				return tag.Text, tag.Color
+local function getHex(color: Color3)
+	return string.format("#%02X%02X%02X", color.R * 255, color.G * 255, color.B * 255)
+end
+
+local function updatePlayerTag(player: Player)
+	local name = ChatTags.USER_TAGS[player.UserId]
+
+	if not name then
+		for id, tagName in ChatTags.GAMEPASS_TAGS do
+			local _, owns = pcall(MarketplaceService.UserOwnsGamePassAsync, MarketplaceService, player.UserId, id)
+			if owns then
+				name = tagName
+				break
 			end
 		end
 	end
 
-	return nil, nil
+	if not name then
+		for _, group in ChatTags.GROUP_TAGS do
+			if not group.GroupId or not group.Roles then
+				continue
+			end
+
+			local _, rank = pcall(player.GetRankInGroupAsync, player, group.GroupId)
+			if rank and group.Roles[rank] then
+				name = group.Roles[rank]
+				break
+			end
+		end
+	end
+
+	local tag = name and ChatTags.TAGS[name]
+	if tag then
+		playerTags[player.UserId] = { Text = tag.Text, Color = getHex(tag.Color) }
+	end
 end
 
 local ChatTagsModule = {}
 
-function ChatTagsModule.Init(): ()
-	TextChatService.OnIncomingMessage = function(message: TextChatMessage)
-		local props = Instance.new("TextChatMessageProperties")
+function ChatTagsModule.Init()
+	local function onAdded(player)
+		task.spawn(updatePlayerTag, player)
+	end
 
-		if message.TextSource then
-			local player = Players:GetPlayerByUserId(message.TextSource.UserId)
-			if player then
-				local tagText, tagColor = getPlayerTag(player)
-				if tagText and tagColor then
-					props.PrefixText = `<font color='{tagColor}'>{tagText}</font> ` .. message.PrefixText
-				end
-			end
+	for _, p in Players:GetPlayers() do
+		onAdded(p)
+	end
+
+	Players.PlayerAdded:Connect(onAdded)
+
+	TextChatService.OnIncomingMessage = function(message)
+		local props = Instance.new("TextChatMessageProperties")
+		local player = message.TextSource and Players:GetPlayerByUserId(message.TextSource.UserId)
+		local tag = player and playerTags[player.UserId]
+
+		if tag then
+			props.PrefixText = `<font color='{tag.Color}'>{tag.Text}</font> ` .. message.PrefixText
 		end
 
 		return props
