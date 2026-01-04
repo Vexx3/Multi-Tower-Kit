@@ -94,55 +94,21 @@ local function onPlayerEquippedTool(player: PlayerInfo, item: Tool)
 	if isDebugItem or hasBoost then
 		player.DebugItemUsed = true
 	end
-	if hasBoost then
-		player.BoostItemUsed = true
-		player.BoostItemNames[item.Name] = boostName or "Boost Item"
 
-		local tower = DataInfo.TowerInfo[player.CurrentTower]
-		if tower and tower.Barriers then
-			local playerBarrierFolder = player.Player:FindFirstChild(player.CurrentTower)
-			if not playerBarrierFolder then
-				playerBarrierFolder = Instance.new("Folder")
-				playerBarrierFolder.Name = player.CurrentTower
-				playerBarrierFolder.Parent = player.Player
-			end
+	if not hasBoost then
+		return
+	end
 
-			-- Clone general barriers (direct children that aren't folders)
-			for _, child in tower.Barriers:GetChildren() do
-				if not child:IsA("Folder") then
-					if not playerBarrierFolder:FindFirstChild(child.Name) then
-						child:Clone().Parent = playerBarrierFolder
-					end
-				end
-			end
+	player.BoostItemUsed = true
+	player.BoostItemNames[item.Name] = boostName or "Boost Item"
 
-			-- Clone specific barriers for this item
-			local specificFolder = tower.Barriers:FindFirstChild(item.Name)
-			if specificFolder and specificFolder:IsA("Folder") then
-				for _, child in specificFolder:GetChildren() do
-					if not playerBarrierFolder:FindFirstChild(child.Name) then
-						child:Clone().Parent = playerBarrierFolder
-					end
-				end
-			end
-
-			BlinkServer.ShowBarrier.Fire(player.Player, player.CurrentTower)
-
+	if player.CurrentTowerRush ~= "" then
+		local rush = TowerRushes[player.CurrentTowerRush]
+		if rush and rush.NoBoostItems then
 			local character = player.Player.Character
 			local humanoid = character and character:FindFirstChildOfClass("Humanoid")
 			if humanoid then
 				humanoid.Health = 0
-			end
-		end
-
-		if player.CurrentTowerRush ~= "" then
-			local rush = TowerRushes[player.CurrentTowerRush]
-			if rush and rush.NoBoostItems then
-				local character = player.Player.Character
-				local humanoid = character and character:FindFirstChildOfClass("Humanoid")
-				if humanoid then
-					humanoid.Health = 0
-				end
 			end
 		end
 	end

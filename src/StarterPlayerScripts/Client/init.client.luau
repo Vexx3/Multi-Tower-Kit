@@ -23,7 +23,6 @@ local Kit = Framework.Kit
 
 -- Modules
 local Announcements = require("@self/Game/Announcements")
-local BarrierManager = require("@self/Game/BarrierManager")
 local ClientObjects = require("@self/Game/ClientObjects")
 local GameConfig = require(ReplicatedStorage.GameData.Config)
 local ModuleLoader = require(Shared.ModuleLoader)
@@ -51,7 +50,6 @@ local CurrentTower = ""
 
 local function loadTower(acronym: string, purist: boolean, resetTimer: boolean)
 	CurrentTower = acronym
-	BarrierManager:Reset()
 
 	if resetTimer then
 		TowerTimer = 0
@@ -93,7 +91,6 @@ local function unloadTower()
 
 	ResetEffectGui:Fire()
 	ClientObjects:UnloadClientObjects()
-	BarrierManager:Reset()
 
 	TowerGUI:SetTowerAcronym("")
 	TowerGUI:SetTowerTimer(0)
@@ -208,9 +205,6 @@ local function init()
 	BlinkClient.UpdateTowerRush.On(updateTowerRush)
 	BlinkClient.LoadTower.On(loadTower)
 	BlinkClient.UnloadTower.On(unloadTower)
-	BlinkClient.ShowBarrier.On(function(acronym)
-		BarrierManager:ShowBarrier(acronym)
-	end)
 	RunService.RenderStepped:Connect(onStep)
 
 	TowerGUI:SetTowerTimer(0)

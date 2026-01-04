@@ -64,10 +64,3 @@ event GameWinAnnouncement {
     Call: SingleAsync,
     Data: ClientWinMessageInfo
 }
-
-event ShowBarrier {
-    From: Server,
-    Type: Reliable,
-    Call: SingleAsync,
-    Data: string
-}
