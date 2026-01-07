@@ -64,3 +64,10 @@ event GameWinAnnouncement {
     Call: SingleAsync,
     Data: ClientWinMessageInfo
 }
+
+event PlayerDataUpdate {
+    From: Server,
+    Type: Reliable,
+    Call: SingleAsync,
+    Data: unknown
+}

@@ -164,6 +164,7 @@ Queue.Reliable[3] = table.create(256)
 Queue.Reliable[4] = table.create(256)
 Queue.Reliable[5] = table.create(256)
 Queue.Reliable[6] = table.create(256)
+Queue.Reliable[7] = table.create(256)
 export type ClientWinMessageInfo = { PlayerName: string, EndingName: string, Time: number, BoostsUsed: {[string]: string}, Color: Color3, FancyFont: boolean, Global: boolean }
 local function WriteEVENT_RestartRequested(Value: nil): ()
 	-- Allocate BLOCK: 1 bytes
@@ -268,6 +269,12 @@ local function ReadEVENT_GameWinAnnouncement(): ({ PlayerName: string, EndingNam
 	return Value
 end
 
+local function ReadEVENT_PlayerDataUpdate(): (any)
+	RecieveInstanceCursor += 1
+	local Value = RecieveInstances[RecieveInstanceCursor]
+	return Value
+end
+
 if not RunService:IsRunning() then
 	local NOOP = function() end
 	local Returns = table.freeze({
@@ -293,6 +300,9 @@ if not RunService:IsRunning() then
 		On = NOOP
 	},
 	GameWinAnnouncement = {
+		On = NOOP
+	},
+	PlayerDataUpdate = {
 		On = NOOP
 	},
 	})
@@ -397,6 +407,16 @@ Reliable.OnClientEvent:Connect(function(Buffer: buffer, Instances: {Instance})
 					warn("[Blink]: Event queue of \"GameWinAnnouncement\" exceeded 256, did you forget to implement a listener?")
 				end
 				table.insert(Queue.Reliable[6], {Value} :: {any})
+			end
+		elseif Index == 7 then
+			local Value: any = ReadEVENT_PlayerDataUpdate()
+			if Events.Reliable[7] ~= nil then
+				task.spawn(Events.Reliable[7], Value)
+			else
+				if #Queue.Reliable[7] > 256 then
+					warn("[Blink]: Event queue of \"PlayerDataUpdate\" exceeded 256, did you forget to implement a listener?")
+				end
+				table.insert(Queue.Reliable[7], {Value} :: {any})
 			end
 		end
 	end
@@ -526,6 +546,20 @@ local Returns = table.freeze({
 			return function (): ()
 				if Events.Reliable[6] == Listener then
 					Events.Reliable[6] = nil
+				end
+			end
+		end
+	},
+	PlayerDataUpdate = {
+		On = function(Listener: (Value: any) -> ()): () -> ()
+			Events.Reliable[7] = Listener
+			for Index, Arguments in Queue.Reliable[7] do
+				task.spawn(Listener, table.unpack(Arguments))
+			end
+			Queue.Reliable[7] = {}
+			return function (): ()
+				if Events.Reliable[7] == Listener then
+					Events.Reliable[7] = nil
 				end
 			end
 		end

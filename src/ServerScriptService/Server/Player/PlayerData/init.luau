@@ -14,6 +14,7 @@ local RunService = game:GetService("RunService")
 local GameData = ReplicatedStorage.GameData
 local Packages = ReplicatedStorage.Packages
 
+local BlinkServer = require("../Network/BlinkServer")
 local Config = require(GameData.Config)
 local Lyra = require(Packages.Lyra)
 local t = require(Packages._Index["osyrisrblx_t@3.1.1"]["t"])
@@ -41,6 +42,61 @@ local function createLogger()
 	end
 end
 
+local function syncWithClient(key: string, newData: Config.PlayerData, oldData: Config.PlayerData?)
+	local player = Players:GetPlayerByUserId(tonumber(key))
+	if not player then
+		return
+	end
+
+	if oldData == nil then
+		-- First time data is loaded
+		BlinkServer.PlayerDataUpdate.Fire(player, newData)
+		return
+	end
+
+	local changes = {}
+	local hasChanges = false
+
+	if newData.Towers ~= oldData.Towers then
+		changes.Towers = newData.Towers
+		hasChanges = true
+	end
+
+	if newData.AllJumps ~= oldData.AllJumps then
+		changes.AllJumps = newData.AllJumps
+		hasChanges = true
+	end
+
+	if newData.CompletedTowers ~= oldData.CompletedTowers then
+		changes.CompletedTowers = newData.CompletedTowers
+		hasChanges = true
+	end
+
+	local newStats = newData.TowerStats or {}
+	local oldStats = oldData.TowerStats or {}
+
+	if newStats ~= oldStats then
+		local towerStatsChanges = {}
+		local statsChanged = false
+
+		for name, stat in pairs(newStats) do
+			if stat ~= oldStats[name] then
+				towerStatsChanges[name] = stat
+				statsChanged = true
+			end
+		end
+
+		if statsChanged then
+			changes.TowerStats = towerStatsChanges
+			hasChanges = true
+		end
+	end
+
+	if hasChanges then
+		BlinkServer.PlayerDataUpdate.Fire(player, changes)
+	end
+end
+
 local store = Lyra.createPlayerStore({
 	name = DATA_STORE_KEY,
 	template = Config.DEFAULT_PLAYER_DATA,
@@ -50,7 +106,9 @@ local store = Lyra.createPlayerStore({
 		CompletedTowers = t.array(t.string),
 		TowerStats = t.table,
 	}),
+	changedCallbacks = { syncWithClient },
 	migrationSteps = {
+		-- Migrate the Old CompletedTowers map to a list
 		Lyra.MigrationStep.transform("completedTowersMapToList", function(data)
 			local completed = data.CompletedTowers
 
