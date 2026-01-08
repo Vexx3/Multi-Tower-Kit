@@ -138,11 +138,32 @@ local function initTower(towerFolder: Instance)
 		Util:Warn(`{acronym} has no checkpoints!`)
 	end
 
+	local realmTower = Util:GetRealmTowerInfo(acronym)
+
+	local towerName = acronym
+	local towerDifficulty = "default"
+	local towerBadgeID = 0
+
+	if realmTower then
+		if realmTower.Name then
+			towerName = realmTower.Name
+		end
+		if realmTower.Rating then
+			local difficultyName = Util:GetDifficultyByRating(realmTower.Rating)
+			if difficultyName then
+				towerDifficulty = difficultyName
+			end
+		end
+		if realmTower.BadgeID then
+			towerBadgeID = realmTower.BadgeID
+		end
+	end
+
 	-- Construct the tower object
 	local tower: TowerInfo = {
-		Name = Attributes:GetString(towerFolder, "ProperName") or acronym,
-		Difficulty = Attributes:GetString(towerFolder, "Difficulty") or "default",
-		BadgeID = Attributes:GetInt(towerFolder, "BadgeID") or 0,
+		Name = towerName,
+		Difficulty = towerDifficulty,
+		BadgeID = towerBadgeID,
 		AJBadgeID = Attributes:GetInt(towerFolder, "AJBadgeID") or 0,
 		TowerPoints = Attributes:GetInt(towerFolder, "TowerPoints") or 1,
 		NoBoostItems = towerFolder:HasTag("NoBoostItems"),

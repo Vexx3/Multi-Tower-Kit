@@ -15,11 +15,12 @@ type Difficulty = Types.DifficultyInfo
 ----------------------------------------------------------------------------------------------
 
 local GameData = ReplicatedStorage.GameData
+local RealmData = ReplicatedStorage.RealmData
 
 local Config = require(GameData.Config)
-local Difficulties = require(GameData.Difficulties)
-
-local Towers = workspace.Towers
+local DifficultiesModule = require(GameData.Difficulties)
+local RealmInfo = require(RealmData.RealmInfo)
+local Difficulties = DifficultiesModule.Data
 
 local warningTag = "[MTKv4.1.1] "
 
@@ -166,7 +167,7 @@ function Util:RegisterTouch(part: BasePart, onTouch: (playerName: string, part: 
 		if debounce[playerName] then
 			return
 		end
-		
+
 		debounce[playerName] = true
 		onTouch(playerName, part)
 
@@ -200,13 +201,34 @@ function Util:GetDifficultyColors(difficultyName: string)
 	return color, stroke
 end
 
+function Util:GetRealmTowerInfo(acronym: string)
+	for _, worldData in RealmInfo :: any do
+		for _, areaData in worldData do
+			if areaData.Towers and areaData.Towers[acronym] then
+				return areaData.Towers[acronym]
+			end
+		end
+	end
+	return nil
+end
+
+function Util:GetDifficultyByRating(rating: number): string?
+	for name, info in Difficulties do
+		if info.Rating == rating then
+			return name
+		end
+	end
+	return nil
+end
+
 -- get the tower difficulty and their difficulty color 2nd returned value is used for the stroke color
 function Util:GetTowerColors(acronym: string)
-	local tower = Towers:FindFirstChild(acronym)
-	local difficultyValue = tower and tower:FindFirstChild("Difficulty") :: StringValue?
-
-	if difficultyValue then
-		return Util:GetDifficultyColors(difficultyValue.Value)
+	local realmTower = Util:GetRealmTowerInfo(acronym)
+	if realmTower then
+		local difficultyName = Util:GetDifficultyByRating(realmTower.Rating)
+		if difficultyName then
+			return Util:GetDifficultyColors(difficultyName)
+		end
 	end
 
 	return Color3.new(1, 1, 1), Color3.new(0.35, 0.35, 0.35)

@@ -147,4 +147,32 @@ local Difficulties: { [string]: DifficultyInfo } = {
 	},
 }
 
-return table.freeze(Difficulties)
+local function GetSubDetails(num: number)
+	if num == 0 then
+		return "Baseline", Color3.fromRGB(35, 202, 199)
+	elseif num <= 0.11 then
+		return "Bottom", Color3.fromRGB(35, 202, 132)
+	elseif num <= 0.22 then
+		return "Bottom-Low", Color3.fromRGB(35, 202, 65)
+	elseif num <= 0.33 then
+		return "Low", Color3.fromRGB(89, 202, 35)
+	elseif num <= 0.44 then
+		return "Low-Mid", Color3.fromRGB(151, 202, 35)
+	elseif num <= 0.55 then
+		return "Mid", Color3.fromRGB(201, 202, 35)
+	elseif num <= 0.66 then
+		return "Mid-High", Color3.fromRGB(202, 164, 35)
+	elseif num <= 0.77 then
+		return "High", Color3.fromRGB(202, 125, 35)
+	elseif num <= 0.88 then
+		return "High-Peak", Color3.fromRGB(202, 74, 35)
+	elseif num <= 0.99 then
+		return "Peak", Color3.fromRGB(202, 35, 35)
+	end
+	return "Unknown", Color3.fromRGB(255, 255, 255)
+end
+
+return table.freeze({
+	Data = Difficulties,
+	GetSubDetails = GetSubDetails,
+})

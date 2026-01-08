@@ -32,11 +32,9 @@ local Timer = TowerGui:FindFirstChild("Timer", true) :: TextLabel?
 local BoostsUsed = TowerGui:FindFirstChild("BoostsUsed", true) :: TextLabel?
 local RestartLabel = TowerGui:FindFirstChild("RestartLabel", true) :: TextLabel?
 local TRProgressList = TowerGui:FindFirstChild("TRProgressList", true) :: Frame?
-local TRProgressItemTemplate = TRProgressList
-	and TRProgressList:FindFirstChild("TowerName") :: TextLabel?
+local TRProgressItemTemplate = TRProgressList and TRProgressList:FindFirstChild("TowerName") :: TextLabel?
 local BoostListFrame = TowerGui:FindFirstChild("BoostList", true) :: Frame?
-local BoostListItemTemplate = BoostListFrame
-	and BoostListFrame:FindFirstChild("ItemName") :: TextLabel?
+local BoostListItemTemplate = BoostListFrame and BoostListFrame:FindFirstChild("ItemName") :: TextLabel?
 
 -- Loading Screen Elements
 local LoadingScreen = TowerGui:FindFirstChild("LoadingScreen", true) :: CanvasGroup?
@@ -245,12 +243,11 @@ function GUI:SetTowerAcronym(acronym: string)
 	TowerAcronym.TextColor3 = textColor
 	TowerAcronym.TextStrokeColor3 = strokeColor
 
-	local tower = Towers:FindFirstChild(acronym)
-	if tower then
-		local properName = tower:FindFirstChild("ProperName") :: StringValue?
-		if properName then
-			towerName = properName.Value
-		end
+	towerName = acronym -- Default to acronym if name not found
+
+	local realmTower = Util:GetRealmTowerInfo(acronym)
+	if realmTower and realmTower.Name then
+		towerName = realmTower.Name
 	end
 end
 
@@ -357,9 +354,7 @@ local function getPlayerFPS()
 	frameUpdateTable[1] = lastIteration
 
 	return mathFloor(
-		if timeFunction() - start >= 1
-			then #frameUpdateTable
-			else #frameUpdateTable / (timeFunction() - start)
+		if timeFunction() - start >= 1 then #frameUpdateTable else #frameUpdateTable / (timeFunction() - start)
 	)
 end
 

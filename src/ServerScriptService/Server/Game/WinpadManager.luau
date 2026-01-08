@@ -152,7 +152,6 @@ local function setupWinpad(towerName: string, winpad: BasePart)
 		Name = Attributes:GetString(winpad, "EndingName") or tower.Name,
 		Difficulty = Attributes:GetString(winpad, "Difficulty") or tower.Difficulty,
 		BadgeID = Attributes:GetInt(winpad, "BadgeID") or 0,
-		AJBadgeID = Attributes:GetInt(winpad, "AJBadgeID") or 0,
 		PreventTowerBadge = Attributes:GetBoolean(winpad, "PreventTowerBadge") or false,
 		ParentTower = towerName,
 		WinroomMarker = Attributes:GetString(winpad, "WinroomMarker") or Attributes:GetString(winpad, "Winroom") or "",

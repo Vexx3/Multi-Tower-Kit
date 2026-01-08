@@ -4,7 +4,8 @@ local GameData = ReplicatedStorage.GameData
 local Packages = ReplicatedStorage.Packages
 
 local Badges = require(GameData.Badges)
-local Difficulties = require(GameData.Difficulties)
+local DifficultiesModule = require(GameData.Difficulties)
+local Difficulties = DifficultiesModule.Data
 local conch = require(Packages.conch)
 
 local Markers = workspace.Markers
