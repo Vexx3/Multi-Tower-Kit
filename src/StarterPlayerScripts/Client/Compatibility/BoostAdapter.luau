@@ -46,13 +46,13 @@ local function startBoost(
 	boostPower: number?,
 	startTime: number?
 ): number
-	local boostModule = CharacterManager:GetBoostModule(boostConfig.type)
+	local boostModule = CharacterManager.getBoostModule(boostConfig.type)
 	if not boostModule then
 		return os.clock()
 	end
 
 	local now = os.clock()
-	CharacterManager:StartBoost({
+	CharacterManager.startBoost({
 		startTime = startTime or now,
 		mode = "Default",
 		type = boostConfig.type,
@@ -96,9 +96,9 @@ local function trackLegacyBoost(humanoid: Humanoid, boostValue: NumberValue, boo
 	local function cleanup()
 		janitor:Cleanup()
 		trackedBoosts[boostValue] = nil
-		local activeBoost = CharacterManager:GetActiveBoost(boostConfig.type)
+		local activeBoost = CharacterManager.getActiveBoost(boostConfig.type)
 		if activeBoost then
-			CharacterManager:RemoveBoost(activeBoost)
+			CharacterManager.removeBoost(activeBoost)
 		end
 	end
 
@@ -111,7 +111,7 @@ local function trackLegacyBoost(humanoid: Humanoid, boostValue: NumberValue, boo
 		local now = os.clock()
 		local elapsed = now - boostStartTime
 		local currentValue: number = boostValue.Value
-		local activeBoost = CharacterManager:GetActiveBoost(boostConfig.type)
+		local activeBoost = CharacterManager.getActiveBoost(boostConfig.type)
 
 		if activeBoost then
 			local timeLeft = math.max(0, boostDuration - elapsed)
@@ -128,7 +128,7 @@ local function trackLegacyBoost(humanoid: Humanoid, boostValue: NumberValue, boo
 				activeBoost.multiplier = 1
 			end
 
-			GuiManager:UpdateBoostFrame(activeBoost)
+			GuiManager.updateBoostFrame(activeBoost)
 		end
 
 		-- If the boostValue increases (e.g. new boost applied), restart boost
@@ -173,7 +173,7 @@ local function onCharacterAdded(character: Model): ()
 	end)
 end
 
-function LegacyBoosts.Init(): ()
+function LegacyBoosts.init(): ()
 	if LocalPlayer.Character then
 		task.spawn(onCharacterAdded, LocalPlayer.Character)
 	end

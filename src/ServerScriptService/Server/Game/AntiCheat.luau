@@ -7,7 +7,8 @@
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
-local Shared = ReplicatedStorage.Shared
+local TowerGame = ReplicatedStorage.TowerGame
+local Shared = TowerGame.Shared
 
 local Types = require(Shared.Types)
 
@@ -23,7 +24,7 @@ local AntiCheat = {}
 
 	@within AntiCheat
 ]=]
-function AntiCheat:ValidateWin(player: PlayerInfo, tower: TowerInfo, ending: EndingInfo)
+function AntiCheat.validateWin(player: PlayerInfo, tower: TowerInfo, ending: EndingInfo)
 	-- Check to see if this ending is from this tower, if it's not, the player is probably cheating
 	if ending.ParentTower ~= player.CurrentTower then
 		return false, "Touched the winpad of a tower you're not in"

@@ -1,8 +1,4 @@
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
-
-local Shared = ReplicatedStorage.Shared
-
-local Types = require(Shared.Types)
+local Types = require("../Shared/Types")
 
 type TowerStat = Types.TowerStat
 
@@ -98,6 +94,8 @@ local Config = {
 		AllJumps = 0,
 		CompletedTowers = {} :: { string },
 		TowerStats = {} :: { [string]: TowerStat },
+		CompletedTowerRushes = {} :: { string },
+		TowerRushStats = {} :: { [string]: TowerStat },
 	},
 
 	----------------------------------------------------------------

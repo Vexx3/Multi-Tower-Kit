@@ -44,7 +44,7 @@ end
 
 local LegacyButtonPlatforms = {}
 
-function LegacyButtonPlatforms.Init(): ()
+function LegacyButtonPlatforms.init(): ()
 	workspace.ChildAdded:Connect(function(child)
 		if child:IsA("Folder") then
 			monitorFolder(child)

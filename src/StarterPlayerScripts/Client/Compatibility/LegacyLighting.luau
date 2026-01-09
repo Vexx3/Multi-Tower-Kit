@@ -22,7 +22,7 @@ local LocalPlayer = Players.LocalPlayer
 	Wraps v5 flat config with Type = "Lighting".
 ]=]
 local function setLighting(config: LegacyLightingConfig): ()
-	LightingManager:ChangeLighting({
+	LightingManager.changeLighting({
 		Type = "Lighting",
 		Configuration = config,
 	} :: any)
@@ -65,18 +65,18 @@ end
 
 local LegacyLighting = {}
 
-function LegacyLighting.Init(): ()
+function LegacyLighting.init(): ()
 	if LocalPlayer.Character then
 		task.spawn(onCharacterAdded, LocalPlayer.Character)
 	end
 	LocalPlayer.CharacterAdded:Connect(onCharacterAdded)
 
-	_G.SetLighting = setLighting
+	_G.setLighting = setLighting
 
 	local changeLighting = ReplicatedStorage:FindFirstChild("ChangeLighting")
 	if changeLighting and changeLighting:IsA("BindableEvent") then
 		changeLighting.Event:Connect(function(config: any)
-			LightingManager:ChangeLighting(config)
+			LightingManager.changeLighting(config)
 		end)
 	end
 end

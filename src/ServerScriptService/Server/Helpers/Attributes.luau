@@ -1,6 +1,6 @@
 local Attributes = {}
 
-function Attributes:GetNumber(instance: Instance, name: string): number?
+function Attributes.getNumber(instance: Instance, name: string): number?
 	local child = instance:FindFirstChild(name)
 	if child and child:IsA("NumberValue") then
 		return child.Value
@@ -8,7 +8,7 @@ function Attributes:GetNumber(instance: Instance, name: string): number?
 	return instance:GetAttribute(name) :: number?
 end
 
-function Attributes:GetInt(instance: Instance, name: string): number?
+function Attributes.getInt(instance: Instance, name: string): number?
 	local child = instance:FindFirstChild(name)
 	if child and child:IsA("IntValue") then
 		return child.Value
@@ -16,7 +16,7 @@ function Attributes:GetInt(instance: Instance, name: string): number?
 	return instance:GetAttribute(name) :: number?
 end
 
-function Attributes:GetString(instance: Instance, name: string): string?
+function Attributes.getString(instance: Instance, name: string): string?
 	local child = instance:FindFirstChild(name)
 	if child and child:IsA("StringValue") then
 		return child.Value
@@ -24,7 +24,7 @@ function Attributes:GetString(instance: Instance, name: string): string?
 	return instance:GetAttribute(name) :: string?
 end
 
-function Attributes:GetBoolean(instance: Instance, name: string): boolean?
+function Attributes.getBoolean(instance: Instance, name: string): boolean?
 	local child = instance:FindFirstChild(name)
 	if child and child:IsA("BoolValue") then
 		return child.Value

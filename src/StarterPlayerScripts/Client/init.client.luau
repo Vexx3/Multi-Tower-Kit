@@ -14,9 +14,9 @@ local RunService = game:GetService("RunService")
 local StarterGui = game:GetService("StarterGui")
 local UserInputService = game:GetService("UserInputService")
 
-local BlinkClient = require(ReplicatedStorage.Network.BlinkClient)
+local BlinkClient = require(ReplicatedStorage.TowerGame.Network.BlinkClient)
 
-local Shared = ReplicatedStorage.Shared
+local Shared = ReplicatedStorage.TowerGame.Shared
 
 local Framework = ReplicatedStorage.Framework
 local Kit = Framework.Kit
@@ -24,7 +24,7 @@ local Kit = Framework.Kit
 -- Modules
 local Announcements = require("@self/Game/Announcements")
 local ClientObjects = require("@self/Game/ClientObjects")
-local GameConfig = require(ReplicatedStorage.GameData.Config)
+local GameConfig = require(ReplicatedStorage.TowerGame.GameData.Config)
 local ModuleLoader = require(Shared.ModuleLoader)
 local TowerGUI = require("@self/UI/TowerGUI")
 local conch = require(ReplicatedStorage.Packages.conch)
@@ -53,10 +53,10 @@ local function loadTower(acronym: string, purist: boolean, resetTimer: boolean)
 
 	if resetTimer then
 		TowerTimer = 0
-		TowerGUI:SetBoostsUsed(false)
+		TowerGUI.setBoostsUsed(false)
 	end
 
-	TowerGUI:SetTowerAcronym(acronym)
+	TowerGUI.setTowerAcronym(acronym)
 	ResetEffectGui:Fire()
 
 	RestartTime = 0
@@ -71,7 +71,7 @@ local function loadTower(acronym: string, purist: boolean, resetTimer: boolean)
 		local COFolder: Instance? = LocalPlayer:WaitForChild("ClientSidedObjects", 10)
 		if COFolder then
 			-- Let the module dedicated to loading client objects load the client objects
-			ClientObjects:LoadClientObjects(COFolder, false, acronym)
+			ClientObjects.loadClientObjects(COFolder, false, acronym)
 		else
 			error(
 				"A tower has attempted to loaded in. It wasn't marked as purist but no ClientSidedObjects folder was sent over. Bad internet connection?"
@@ -90,13 +90,13 @@ local function unloadTower()
 	RestartTime = 0
 
 	ResetEffectGui:Fire()
-	ClientObjects:UnloadClientObjects()
+	ClientObjects.unloadClientObjects()
 
-	TowerGUI:SetTowerAcronym("")
-	TowerGUI:SetTowerTimer(0)
-	TowerGUI:SetTowerRush(0, 0)
-	TowerGUI:SetBoostsUsed(false)
-	TowerGUI:SetRestartLabel(0)
+	TowerGUI.setTowerAcronym("")
+	TowerGUI.setTowerTimer(0)
+	TowerGUI.setTowerRush(0, 0)
+	TowerGUI.setBoostsUsed(false)
+	TowerGUI.setRestartLabel(0)
 end
 
 -- Should fire every ~2 or so seconds to ensure the client's timer and the server's timer aren't out of sync
@@ -106,7 +106,7 @@ local function correctTimer(time: number)
 end
 
 local function updateTowerRush(index: number, end_: number)
-	TowerGUI:SetTowerRush(index, end_)
+	TowerGUI.setTowerRush(index, end_)
 end
 
 local function onCharacterAdded(character: Model)
@@ -117,7 +117,7 @@ local function onCharacterAdded(character: Model)
 
 			-- If this is a boost item and the player is in a tower
 			if BoostName and BoostName ~= "" and CurrentTower ~= "" then
-				TowerGUI:SetBoostsUsed(true)
+				TowerGUI.setBoostsUsed(true)
 			end
 		end
 	end)
@@ -135,7 +135,7 @@ local function onStep(deltaTime: number)
 	if CurrentTower == "" then
 		if TowerTimer ~= 0 then
 			TowerTimer = 0
-			TowerGUI:SetTowerTimer(0)
+			TowerGUI.setTowerTimer(0)
 			lastDisplayedTimer = 0
 		end
 		RestartTime = 0
@@ -159,7 +159,7 @@ local function onStep(deltaTime: number)
 
 		-- Only update timer display when it visually changes (every 10ms)
 		if mathAbs(TowerTimer - lastDisplayedTimer) >= TIMER_UPDATE_THRESHOLD then
-			TowerGUI:SetTowerTimer(TowerTimer)
+			TowerGUI.setTowerTimer(TowerTimer)
 			lastDisplayedTimer = TowerTimer
 		end
 	end
@@ -167,7 +167,7 @@ local function onStep(deltaTime: number)
 	-- Only update restart label when progress changes
 	local restartProgress = RestartTime / RestartTimeMax
 	if restartProgress ~= lastRestartProgress then
-		TowerGUI:SetRestartLabel(restartProgress)
+		TowerGUI.setRestartLabel(restartProgress)
 		lastRestartProgress = restartProgress
 	end
 end
@@ -175,8 +175,9 @@ end
 local function init()
 	StarterGui:SetCoreGuiEnabled(Enum.CoreGuiType.EmotesMenu, false)
 
-	TowerGUI:ShowLoadingScreen("Loading Data...", false)
+	TowerGUI.showLoadingScreen("Loading data...", false)
 
+	-- Initialize v6 managers
 	CharacterManager:Init()
 	ClientObjectManager:Init()
 	FlipManager:Init()
@@ -190,14 +191,14 @@ local function init()
 	conch.initiate_default_lifecycle()
 	conchui.bind_to(GameConfig.ADMIN_HOTKEY)
 
-	Announcements:Init()
+	Announcements.init()
 
-	ModuleLoader.LoadAndInit(script, { script.Game, script.UI })
+	ModuleLoader.loadAndInit(script, { script.Game, script.UI })
 
 	-- Request everpresent client objects
 	local ECOs: boolean, ECOFolder: Folder? = BlinkClient.RequestEverpresentCOs.Invoke()
 	if ECOs and ECOFolder then
-		ClientObjects:LoadClientObjects(ECOFolder, true, "EverpresentCOs")
+		ClientObjects.loadClientObjects(ECOFolder, true, "EverpresentCOs")
 	end
 
 	LocalPlayer.CharacterAdded:Connect(onCharacterAdded)
@@ -207,18 +208,18 @@ local function init()
 	BlinkClient.UnloadTower.On(unloadTower)
 	RunService.RenderStepped:Connect(onStep)
 
-	TowerGUI:SetTowerTimer(0)
-	TowerGUI:SetTowerAcronym("")
-	TowerGUI:SetTowerRush(0, 0)
+	TowerGUI.setTowerTimer(0)
+	TowerGUI.setTowerAcronym("")
+	TowerGUI.setTowerRush(0, 0)
 
 	local dataLoaded = LocalPlayer:GetAttribute("DataLoaded")
 	if dataLoaded then
-		TowerGUI:HideLoadingScreen()
+		TowerGUI.hideLoadingScreen()
 	else
 		LocalPlayer:GetAttributeChangedSignal("DataLoaded"):Connect(function()
 			local loaded = LocalPlayer:GetAttribute("DataLoaded")
 			if loaded == true then
-				TowerGUI:HideLoadingScreen()
+				TowerGUI.hideLoadingScreen()
 			end
 		end)
 	end

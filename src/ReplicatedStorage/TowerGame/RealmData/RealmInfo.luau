@@ -19,7 +19,8 @@
     [AREA FIELDS]
     - Towers: Table containing all towers in this area.
     - Requirements: Values needed to enter (Points and DifficultyLocks).
-    - PlaceId: The Roblox Place ID for teleportation.
+    - PlaceID: The Roblox Place ID for teleportation.
+	- Emblem: The Image ID for the Ring/Zone icon (Used in UIs)
 
 	[RATING REFERENCE]
     [1] Easy          [2] Medium        [3] Hard         [4] Difficult
@@ -30,9 +31,13 @@
 
 return {
 	World1 = {
-		["Ring 1: Limbo"] = {
+		["Ring 1"] = {
+			Title = "Limbo",
+			Emblem = "rbxassetid://110375453605989",
+			PlaceID = 0,
+
 			Towers = {
-				ETV5 = {  Name = "Example Tower V5", BadgeID = 0, Rating = 1, NumDifficulty = 0.00 },
+				ETV5 = { Name = "Example Tower V5", BadgeID = 0, Rating = 1, NumDifficulty = 0.00 },
 				ETV6 = { Name = "Example Tower V6", BadgeID = 0, Rating = 8, NumDifficulty = 0.00 },
 				ToCAP = { Name = "Tower of Climbing A Pillar", BadgeID = 0, Rating = 8, NumDifficulty = 0.00 },
 				ToDIM = { Name = "Tower of Diving Into Madness", BadgeID = 0, Rating = 6, NumDifficulty = 0.52 },
@@ -40,6 +45,7 @@ return {
 				ToNC = { Name = "Tower of No Context", BadgeID = 0, Rating = 6, NumDifficulty = 0.00 },
 				ToUC = { Name = "Tower of Ultra Cool", BadgeID = 0, Rating = 2, NumDifficulty = 0.00 },
 				ToVP = { Name = "Tower of Vela Pulsar", BadgeID = 0, Rating = 5, NumDifficulty = 0.00 },
+				TSR = { Name = "Tower Storage Rush", BadgeID = 0, Rating = 7, NumDifficulty = 0.75, Rush = true }
 			},
 			Requirements = {
 				Points = 22,
@@ -48,12 +54,15 @@ return {
 					{ Rating = 5, Count = 1 }, -- Beat 1 Challenging Difficulty Tower+
 				},
 			},
-			PlaceId = 0,
 		},
 	},
 
 	-- World2 = {
 	-- 	["Zone 1: Sea"] = {
+	-- 		Title = "Sea",
+	-- 		Emblem = "rbxassetid://0",
+	-- 		PlaceID = 0,
+
 	-- 		Towers = {
 	-- 			ToU = { Name = "Tower of Unreal", BadgeID = 0, Rating = 13, NumDifficulty = 0.95 },
 	-- 		},
@@ -63,7 +72,6 @@ return {
 	-- 				{ Rating = 2, Count = 1 }, -- Beat 1 Medium Difficulty Tower+
 	-- 			},
 	-- 		},
-	-- 		PlaceId = 0,
 	-- 	},
 	-- },
 }

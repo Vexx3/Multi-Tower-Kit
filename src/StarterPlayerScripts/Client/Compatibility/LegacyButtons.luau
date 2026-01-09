@@ -80,7 +80,7 @@ end
 
 local LegacyButtons = {}
 
-function LegacyButtons.Init(): ()
+function LegacyButtons.init(): ()
 	_G.Buttons = setmetatable({}, ButtonMT)
 end
 

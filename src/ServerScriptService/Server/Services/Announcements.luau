@@ -9,8 +9,8 @@ local HttpService = game:GetService("HttpService")
 local MessagingService = game:GetService("MessagingService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
-local GameData = ReplicatedStorage.GameData
-local Shared = ReplicatedStorage.Shared
+local GameData = ReplicatedStorage.TowerGame.GameData
+local Shared = ReplicatedStorage.TowerGame.Shared
 
 local BlinkServer = require(script.Parent.Parent.Network.BlinkServer)
 local Config = require(GameData.Config)
@@ -51,28 +51,28 @@ local _latestGlobalMessageID = ""
 
 local Announcements = {}
 
-local function broadcastWinAnnouncement(info: WinMessageInfo)
-	local endingDifficulty = Util:GetDifficulty(info.DifficultyName)
+local function _broadcastWinAnnouncement(info: WinMessageInfo)
+	local difficultyInfo = Util.getDifficulty(info.DifficultyName)
 
 	local clientMsgInfo: ClientWinMessageInfo = {
 		PlayerName = info.PlayerName,
 		EndingName = info.EndingName,
 		Time = info.Time,
 		BoostsUsed = info.BoostsUsed,
-		Color = endingDifficulty.Color,
-		FancyFont = endingDifficulty.FancyFont,
-		Global = endingDifficulty.GlobalAnnouncement,
+		Color = difficultyInfo.Color,
+		FancyFont = difficultyInfo.FancyFont,
+		Global = difficultyInfo.GlobalAnnouncement,
 	}
 
 	BlinkServer.GameWinAnnouncement.FireAll(clientMsgInfo)
 end
 
-local function onGlobalWinMessage(message: Message)
+local function _onGlobalWinMessage(message: Message)
 	local info: WinMessageInfo = message.Data
 	if info.MessageID == _latestGlobalMessageID then
 		return
 	end
-	broadcastWinAnnouncement(info)
+	_broadcastWinAnnouncement(info)
 end
 
 --[=[
@@ -81,13 +81,13 @@ end
 
 	@within Announcements
 ]=]
-function Announcements:WinAnnouncement(
+function Announcements.winAnnouncement(
 	player: PlayerInfo,
 	endingName: string,
 	difficultyName: string,
 	timeOverride: number?
 )
-	local endingDifficulty = Util:GetDifficulty(difficultyName)
+	local difficultyInfo = Util.getDifficulty(difficultyName)
 	local finalTime = timeOverride or player.TowerTimer
 
 	local playerName = if Config.USE_DISPLAY_NAME then player.Player.DisplayName else player.Player.Name
@@ -99,16 +99,16 @@ function Announcements:WinAnnouncement(
 		DifficultyName = difficultyName,
 		Time = finalTime,
 		BoostsUsed = player.BoostItemNames,
-		Global = endingDifficulty.GlobalAnnouncement,
+		Global = difficultyInfo.GlobalAnnouncement,
 	}
 
-	if endingDifficulty.GlobalAnnouncement then
+	if difficultyInfo.GlobalAnnouncement then
 		_latestGlobalMessageID = info.MessageID
 		MessagingService:PublishAsync("GlobalWin", info)
 	end
 
-	broadcastWinAnnouncement(info)
-	task.spawn(Webhook.SendMessage, Webhook, player, endingName, difficultyName, finalTime)
+	_broadcastWinAnnouncement(info)
+	task.spawn(Webhook.sendMessage, player, endingName, difficultyName, finalTime)
 end
 
 --[=[
@@ -116,8 +116,8 @@ end
 
 	@within Announcements
 ]=]
-function Announcements:GameAnnouncement(message: string, color: Color3, fancyText: boolean?)
-	BlinkServer.GameAnnouncement.FireAll(message, color, fancyText)
+function Announcements.gameAnnouncement(message: string, color: Color3, isFancyText: boolean?)
+	BlinkServer.GameAnnouncement.FireAll(message, color, isFancyText)
 end
 
 --[=[
@@ -125,16 +125,16 @@ end
 
 	@within Announcements
 ]=]
-function Announcements:AntiCheatKick(player: Player, reason: string)
+function Announcements.antiCheatKick(player: Player, reason: string)
 	local kickMessage = KickMessages[math.random(1, #KickMessages)]
 	kickMessage = kickMessage:gsub("{Player}", if Config.USE_DISPLAY_NAME then player.DisplayName else player.Name)
 
-	Announcements:GameAnnouncement(kickMessage, Color3.new(1, 0, 0))
+	Announcements.gameAnnouncement(kickMessage, Color3.new(1, 0, 0))
 	player:Kick(reason)
 end
 
-function Announcements:Init()
-	MessagingService:SubscribeAsync("GlobalWin", onGlobalWinMessage)
+function Announcements.init()
+	MessagingService:SubscribeAsync("GlobalWin", _onGlobalWinMessage)
 end
 
 return Announcements

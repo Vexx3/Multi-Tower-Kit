@@ -1,6 +1,7 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
-local Shared = ReplicatedStorage.Shared
+local TowerGame = ReplicatedStorage.TowerGame
+local Shared = TowerGame.Shared
 
 local Types = require(Shared.Types)
 

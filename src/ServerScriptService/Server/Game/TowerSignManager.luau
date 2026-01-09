@@ -31,7 +31,7 @@ end
 
 	@within TowerSignManager
 ]=]
-function TowerSignManager:MarkTowerCompleted(towerName: string)
+function TowerSignManager.markTowerCompleted(towerName: string)
 	local towerFolder = TOWERS:FindFirstChild(towerName)
 	if not towerFolder then
 		return
@@ -47,14 +47,14 @@ end
 
 	@within TowerSignManager
 ]=]
-function TowerSignManager:UpdateCompletedTowersForPlayer(player: Player)
-	local data = PlayerData:GetData(player)
+function TowerSignManager.updateCompletedTowersForPlayer(player: Player)
+	local data = PlayerData.getData(player)
 	if not data or not data.CompletedTowers then
 		return
 	end
 
 	for _, towerName in data.CompletedTowers do
-		self:MarkTowerCompleted(towerName)
+		TowerSignManager.markTowerCompleted(towerName)
 	end
 end
 

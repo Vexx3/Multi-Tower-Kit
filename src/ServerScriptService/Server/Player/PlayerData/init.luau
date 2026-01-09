@@ -11,7 +11,7 @@ local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 
-local GameData = ReplicatedStorage.GameData
+local GameData = ReplicatedStorage.TowerGame.GameData
 local Packages = ReplicatedStorage.Packages
 
 local BlinkServer = require("../Network/BlinkServer")
@@ -72,22 +72,51 @@ local function syncWithClient(key: string, newData: Config.PlayerData, oldData: 
 		hasChanges = true
 	end
 
-	local newStats = newData.TowerStats or {}
-	local oldStats = oldData.TowerStats or {}
+	if newData.TowerStats or oldData.TowerStats then
+		local newStats = newData.TowerStats
+		local oldStats = oldData.TowerStats
 
-	if newStats ~= oldStats then
 		local towerStatsChanges = {}
 		local statsChanged = false
 
-		for name, stat in pairs(newStats) do
-			if stat ~= oldStats[name] then
-				towerStatsChanges[name] = stat
-				statsChanged = true
+		if newStats ~= oldStats then
+			for name, stat in newStats do
+				if stat ~= oldStats[name] then
+					towerStatsChanges[name] = stat
+					statsChanged = true
+				end
 			end
 		end
 
 		if statsChanged then
 			changes.TowerStats = towerStatsChanges
+			hasChanges = true
+		end
+	end
+
+	if newData.CompletedTowerRushes ~= oldData.CompletedTowerRushes then
+		changes.CompletedTowerRushes = newData.CompletedTowerRushes
+		hasChanges = true
+	end
+
+	if newData.TowerRushStats or oldData.TowerRushStats then
+		local newStats = newData.TowerRushStats
+		local oldStats = oldData.TowerRushStats
+
+		local towerRushStatsChanges = {}
+		local statsChanged = false
+
+		if newStats ~= oldStats then
+			for name, stat in newStats do
+				if stat ~= oldStats[name] then
+					towerRushStatsChanges[name] = stat
+					statsChanged = true
+				end
+			end
+		end
+
+		if statsChanged then
+			changes.TowerRushStats = towerRushStatsChanges
 			hasChanges = true
 		end
 	end
@@ -105,6 +134,8 @@ local store = Lyra.createPlayerStore({
 		AllJumps = t.optional(t.number),
 		CompletedTowers = t.array(t.string),
 		TowerStats = t.table,
+		CompletedTowerRushes = t.array(t.string),
+		TowerRushStats = t.table,
 	}),
 	changedCallbacks = { syncWithClient },
 	migrationSteps = {
@@ -151,7 +182,7 @@ local PlayerData = {}
 	@within PlayerData
 	@return Config.PlayerData?
 ]=]
-function PlayerData:GetData(player: Player): Config.PlayerData?
+function PlayerData.getData(player: Player): Config.PlayerData?
 	while not Loaded[player] and player.Parent do
 		task.wait()
 	end
@@ -168,11 +199,11 @@ end
 
 	@within PlayerData
 ]=]
-function PlayerData:UpdateAsync(player: Player, fn: (data: Config.PlayerData) -> boolean)
+function PlayerData.updateAsync(player: Player, fn: (data: Config.PlayerData) -> boolean)
 	return store:updateAsync(player, fn)
 end
 
-function PlayerData:Init()
+function PlayerData.init()
 	Players.PlayerAdded:Connect(function(player)
 		-- Set attribute to false initially to indicate data is loading
 		player:SetAttribute("DataLoaded", false)

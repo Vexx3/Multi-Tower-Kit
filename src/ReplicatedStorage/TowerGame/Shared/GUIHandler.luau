@@ -9,7 +9,7 @@ local originalSizes: { [GuiObject]: UDim2 } = {}
 -- show: true to show (0), false to hide (1), nil to auto-toggle based on current state
 -- duration: optional tween duration (default 0.5)
 -- callback: optional function called when tween completes
-function GUIHandler:ToggleUI(
+function GUIHandler.toggleUI(
 	canvasGroup: CanvasGroup,
 	show: boolean?,
 	duration: number?,
@@ -46,7 +46,7 @@ end
 -- show: true to show, false to hide, nil to auto-toggle based on current visibility
 -- duration: optional animation duration (default 0.3)
 -- callback: optional function called when animation completes
-function GUIHandler:ShrinkAnimation(
+function GUIHandler.shrinkAnimation(
 	guiObject: GuiObject,
 	show: boolean?,
 	duration: number?,

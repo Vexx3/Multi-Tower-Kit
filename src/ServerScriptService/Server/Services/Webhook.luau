@@ -8,8 +8,8 @@
 local HttpService = game:GetService("HttpService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
-local GameData = ReplicatedStorage.GameData
-local Shared = ReplicatedStorage.Shared
+local GameData = ReplicatedStorage.TowerGame.GameData
+local Shared = ReplicatedStorage.TowerGame.Shared
 local Config = require(GameData.Config)
 local Types = require(Shared.Types)
 local Util = require(Shared.Util)
@@ -44,36 +44,29 @@ end
 
 	@within Webhook
 ]=]
-function Webhook:SendMessage(
-	player: Types.PlayerInfo,
-	endingName: string,
-	difficultyName: string,
-	finalTime: number?
-)
+function Webhook.sendMessage(player: Types.PlayerInfo, endingName: string, difficultyName: string, finalTime: number?)
 	if not Config.WEBHOOKS_ENABLED then
 		return
 	end
 
-	local boostList = Util:FormatBoosts(player.BoostItemNames)
-	local endingDifficulty = Util:GetDifficulty(difficultyName)
-	local formattedTime = Util:FormatTimer(finalTime or player.TowerTimer)
+	local boostList = Util.formatBoosts(player.BoostItemNames)
+	local difficultyInfo = Util.getDifficulty(difficultyName)
+	local formattedTime = Util.formatTimer(finalTime or player.TowerTimer)
 
-	local playerName = if Config.USE_DISPLAY_NAME
-		then player.Player.DisplayName
-		else player.Player.Name
+	local playerName = if Config.USE_DISPLAY_NAME then player.Player.DisplayName else player.Player.Name
 
 	local message = formatWebhookMessage(
 		Config.WEBHOOK_NORMAL_MESSAGE,
 		playerName,
 		endingName,
-		endingDifficulty.DifficultyEmoji or "",
+		difficultyInfo.DifficultyEmoji or "",
 		formattedTime,
 		boostList
 	)
 
-	local isSC = endingDifficulty.GlobalAnnouncement
+	local isSuperChallenge = difficultyInfo.GlobalAnnouncement
 
-	local webhookLink = if isSC
+	local webhookLink = if isSuperChallenge
 		then HttpService:GetSecret("SC_WEBHOOK")
 		else HttpService:GetSecret("NORMAL_WEBHOOK")
 
@@ -81,14 +74,14 @@ function Webhook:SendMessage(
 		["content"] = message,
 	}
 
-	data = HttpService:JSONEncode(data)
+	local encodedData = HttpService:JSONEncode(data)
 
 	local success, response = pcall(function()
-		return HttpService:PostAsync(webhookLink, data)
+		return HttpService:PostAsync(webhookLink, encodedData)
 	end)
 
 	if not success then
-		Util:Warn(`Failed to send webhook message: {response}`)
+		Util.warn(`Failed to send webhook message: {response}`)
 	end
 end
 

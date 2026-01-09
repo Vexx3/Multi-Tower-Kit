@@ -15,7 +15,7 @@ export type TowerInfo = {
 	BadgeID: number,
 	TowerPoints: number,
 	AJBadgeID: number?,
-	NoBoostItems: boolean?,
+	NoBoosts: boolean?,
 
 	-- Important instances
 	Folder: Instance,
@@ -37,8 +37,8 @@ export type TowerStat = {
 	AllJumpsWins: number,
 	TotalTimeSpentSeconds: number,
 	TotalTimeSpentFormatted: string,
-	BestWinTimeItemlessSeconds: number?,
-	BestWinTimeItemlessFormatted: string?,
+	BestWinTimeSeconds: number,
+	BestWinTimeFormatted: string,
 }
 
 -- The Ending type represents an ending for a tower, this type was created to account for "secret endings" some towers have
@@ -63,12 +63,9 @@ export type EndingInfo = {
 
 -- Represents a tower rush
 export type TowerRush = {
-	BadgeID: number,
-	Title: string,
-	Difficulty: string,
 	WinroomMarker: string,
 	Towers: List<string>,
-	NoBoostItems: boolean,
+	NoBoosts: boolean,
 }
 
 -- Represents a player, also containing information specific to them
@@ -90,6 +87,7 @@ export type PlayerInfo = {
 	-- Tower rush information
 	CurrentTowerRush: string,
 	CurrentTowerRushIndex: number,
+	CurrentTowerRushSplitTime: number,
 
 	-- Technical flags
 	TouchEventBusy: boolean,

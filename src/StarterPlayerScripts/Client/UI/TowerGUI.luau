@@ -11,15 +11,13 @@ local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 
-local GUIHandler = require(ReplicatedStorage.Shared.GUIHandler)
+local GUIHandler = require(ReplicatedStorage.TowerGame.Shared.GUIHandler)
 local Icon = require(ReplicatedStorage.Packages.topbarplus)
-local TowerRushes = require(ReplicatedStorage.RealmData.TowerRushes)
-local Util = require(ReplicatedStorage.Shared.Util)
+local TowerRushes = require(ReplicatedStorage.TowerGame.RealmData.TowerRushes)
+local Util = require(ReplicatedStorage.TowerGame.Shared.Util)
 
 local LocalPlayer = Players.LocalPlayer :: Player
 local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
-
-local Towers = workspace.Towers
 
 local TowerGui = PlayerGui:WaitForChild("TowerGUI") :: ScreenGui
 TowerGui.Enabled = true
@@ -85,7 +83,7 @@ local GUI = {}
 	@param message string -- The loading message to display
 	@param showAttention boolean? -- Whether to show the attention label (for tower loading)
 ]=]
-function GUI:ShowLoadingScreen(message: string, showAttention: boolean?)
+function GUI.showLoadingScreen(message: string, showAttention: boolean?)
 	if LoadingLabel then
 		LoadingLabel.Text = message
 	end
@@ -94,7 +92,7 @@ function GUI:ShowLoadingScreen(message: string, showAttention: boolean?)
 	end
 	if LoadingScreen then
 		LoadingScreen.Visible = true
-		GUIHandler:ToggleUI(LoadingScreen, true, 1)
+		GUIHandler.toggleUI(LoadingScreen, true, 1)
 	end
 end
 
@@ -102,9 +100,9 @@ end
 	Hides the loading screen.
 	@within GUI
 ]=]
-function GUI:HideLoadingScreen()
+function GUI.hideLoadingScreen()
 	if LoadingScreen then
-		GUIHandler:ToggleUI(LoadingScreen, false, 1, function()
+		GUIHandler.toggleUI(LoadingScreen, false, 1, function()
 			if AttentionLabel then
 				AttentionLabel.Visible = false
 			end
@@ -169,7 +167,7 @@ local function rebuildTowerRushList()
 		clone.Name = `RushTower_{acronym}`
 		clone.Text = acronym
 
-		local textColor, strokeColor = Util:GetTowerColors(acronym)
+		local textColor, strokeColor = Util.getTowerColors(acronym)
 		clone.TextColor3 = textColor
 		clone.TextStrokeColor3 = strokeColor
 
@@ -207,8 +205,15 @@ local function updateTowerRush()
 	local rush = if rushId ~= "" then TowerRushes[rushId] else nil
 
 	if rush then
-		currentRushName = rush.Title
-		local textColor = Util:GetDifficultyColors(rush.Difficulty)
+		local realmInfo = Util.getRealmTowerInfo(rushId)
+		currentRushName = if realmInfo and realmInfo.Name then realmInfo.Name else rush.Title
+
+		local diff = rush.Difficulty
+		if realmInfo and realmInfo.Rating then
+			diff = Util.getDifficultyByRating(realmInfo.Rating)
+		end
+
+		local textColor = Util.getDifficultyColors(diff)
 		currentRushDifficultyColor = textColor
 
 		local list = {}
@@ -230,7 +235,7 @@ local function updateTowerRush()
 	refreshTowerRushUI()
 end
 
-function GUI:SetTowerAcronym(acronym: string)
+function GUI.setTowerAcronym(acronym: string)
 	if not TowerAcronym then
 		return
 	end
@@ -239,13 +244,13 @@ function GUI:SetTowerAcronym(acronym: string)
 	TowerAcronym.Visible = acronym ~= ""
 	TowerAcronym.Text = acronym
 
-	local textColor, strokeColor = Util:GetTowerColors(acronym)
+	local textColor, strokeColor = Util.getTowerColors(acronym)
 	TowerAcronym.TextColor3 = textColor
 	TowerAcronym.TextStrokeColor3 = strokeColor
 
 	towerName = acronym -- Default to acronym if name not found
 
-	local realmTower = Util:GetRealmTowerInfo(acronym)
+	local realmTower = Util.getRealmTowerInfo(acronym)
 	if realmTower and realmTower.Name then
 		towerName = realmTower.Name
 	end
@@ -256,7 +261,7 @@ end
 
 	@within GUI
 ]=]
-function GUI:SetTowerRush(progress: number, max: number)
+function GUI.setTowerRush(progress: number, max: number)
 	if TowerRushProgress then
 		TowerRushProgress.Text = `{progress}/{max}`
 		TowerRushProgress.Visible = max ~= 0
@@ -286,9 +291,9 @@ end
 	@within GUI
 	@param time number
 ]=]
-function GUI:SetTowerTimer(_time: number)
+function GUI.setTowerTimer(_time: number)
 	if Timer then
-		Timer.Text = Util:FormatTimer(_time)
+		Timer.Text = Util.formatTimer(_time)
 	end
 end
 
@@ -297,7 +302,7 @@ end
 
 	@within GUI
 ]=]
-function GUI:SetBoostsUsed(value: boolean)
+function GUI.setBoostsUsed(value: boolean)
 	if BoostsUsed then
 		BoostsUsed.Visible = value
 	end
@@ -316,7 +321,7 @@ end
 	@within GUI
 	@param t number -- 0-1 visibility factor
 ]=]
-function GUI:SetRestartLabel(t: number)
+function GUI.setRestartLabel(t: number)
 	if RestartLabel then
 		RestartLabel.Visible = t > 0
 		RestartLabel.TextTransparency = 1 - (t * (1 - restartTransparency))

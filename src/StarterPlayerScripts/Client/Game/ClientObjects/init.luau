@@ -35,7 +35,7 @@ local ClientObjects = {}
 	@param context ModuleScript | StringValue -- either ClientObjectScript or RunRepoScript
 	@param orphaned boolean -- true for everpresent objects that persist across towers
 ]=]
-function ClientObjects:LoadClientObjectScript(context: COScriptContext, orphaned: boolean)
+function ClientObjects.loadClientObjectScript(context: COScriptContext, orphaned: boolean)
 	-- Clone the thread template and set it up
 	local thread = ClientObjectThread:Clone()
 	thread.Name = HttpService:GenerateGUID(false)
@@ -57,12 +57,12 @@ end
 	@param orphaned boolean -- true to load into everpresent scope without touching current tower objects
 	@param acronym string -- tower acronym for repository lookup
 ]=]
-function ClientObjects:LoadClientObjects(coFolder: Instance, orphaned: boolean, acronym: string)
+function ClientObjects.loadClientObjects(coFolder: Instance, orphaned: boolean, acronym: string)
 	-- If "orphaned" do not do anything to the ClientObjects variable
 	-- Usually used for loading everpresent COs without touching tower COs
 	if not orphaned then
 		-- If there are already client objects present, delete them
-		ClientObjects:UnloadClientObjects()
+		ClientObjects.unloadClientObjects()
 	end
 
 	local isKitV6 = coFolder:GetAttribute("KitVersion")
@@ -87,7 +87,7 @@ function ClientObjects:LoadClientObjects(coFolder: Instance, orphaned: boolean, 
 			(name == "ClientObjectScript" and v:IsA("ModuleScript"))
 			or (name == "RunRepoScript" and v:IsA("StringValue"))
 		then
-			ClientObjects:LoadClientObjectScript(v, orphaned)
+			ClientObjects.loadClientObjectScript(v, orphaned)
 		elseif name == "SetCollisionGroup" and v:IsA("StringValue") and parent and parent:IsA("BasePart") then
 			parent.CollisionGroup = v.Value
 		elseif v:IsA("BasePart") and (name == "LightingChanger" or v:FindFirstChild("Invisible")) then
@@ -138,7 +138,7 @@ end
 
     @within ClientObjects
 ]=]
-function ClientObjects:UnloadClientObjects()
+function ClientObjects.unloadClientObjects()
 	-- v6
 	if objectScope then
 		objectScope:cleanup(false, true)

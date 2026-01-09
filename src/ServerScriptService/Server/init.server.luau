@@ -12,8 +12,8 @@ local ServerStorage = game:GetService("ServerStorage")
 local StarterPack = game:GetService("StarterPack")
 local Teams = game:GetService("Teams")
 
-local GameData = ReplicatedStorage.GameData
-local Shared = ReplicatedStorage.Shared
+local GameData = ReplicatedStorage.TowerGame.GameData
+local Shared = ReplicatedStorage.TowerGame.Shared
 
 local BlinkServer = require("@self/Network/BlinkServer")
 local Config = require(GameData.Config)
@@ -26,7 +26,7 @@ local ToolManager = require("@self/Helpers/ToolManager")
 local TowerData = require("@self/Player/PlayerData/TowerData")
 local TowerManager = require("@self/Game/TowerManager")
 local TowerRushManager = require("@self/Game/TowerRushManager")
-local TowerRushes = require(ReplicatedStorage.RealmData.TowerRushes)
+local TowerRushes = require(ReplicatedStorage.TowerGame.RealmData.TowerRushes)
 local TowerSignManager = require("@self/Game/TowerSignManager")
 local Types = require(Shared.Types)
 local Util = require(Shared.Util)
@@ -72,12 +72,12 @@ local function onPlayerRestartRequested(playerInstance: Player)
 			return
 		end
 
-		TowerData:AddTowerTimeSpent(player.Player, player.CurrentTower, player.TowerTimer)
+		TowerData.addTowerTimeSpent(player.Player, player.CurrentTower, player.TowerTimer)
 
 		if player.CurrentTowerRush == "" then
-			TowerManager:LoadTower(playerInstance.Name, player.CurrentTower, true)
+			TowerManager.loadTower(playerInstance.Name, player.CurrentTower, true)
 		else
-			TowerRushManager:LoadTowerRush(playerInstance.Name, player.CurrentTowerRush)
+			TowerRushManager.loadTowerRush(playerInstance.Name, player.CurrentTowerRush)
 		end
 	end
 end
@@ -104,7 +104,7 @@ local function onPlayerEquippedTool(player: PlayerInfo, item: Tool)
 
 	if player.CurrentTowerRush ~= "" then
 		local rush = TowerRushes[player.CurrentTowerRush]
-		if rush and rush.NoBoostItems then
+		if rush and rush.NoBoosts then
 			local character = player.Player.Character
 			local humanoid = character and character:FindFirstChildOfClass("Humanoid")
 			if humanoid then
@@ -122,10 +122,10 @@ local function initMarker(marker: BasePart)
 			"Could not initialize LobbyTP because a SpawnLocation couldn't be found"
 		)
 
-		Util:RegisterTouch(marker, function(playerName)
+		Util.registerTouch(marker, function(playerName)
 			local player: PlayerInfo = DataInfo.PlayerInfo[playerName]
 			player.Player.Team = Teams.Start
-			Util:TeleportPlayerToPart(player.Player, spawnLocation)
+			Util.teleportPlayerToPart(player.Player, spawnLocation)
 		end)
 	end
 end
@@ -141,7 +141,7 @@ end
 local function onCharacterAdded(character: Model)
 	local humanoid = character:FindFirstChildOfClass("Humanoid")
 	if humanoid and humanoid.RigType == Enum.HumanoidRigType.R15 and Config.R15_WARNING then
-		Util:Warn(
+		Util.warn(
 			"Character spawned with R15 rig type, most obbying techniques are impossible. Ensure that the rig type is R6 in game settings."
 		)
 	end
@@ -162,8 +162,12 @@ local function onCharacterAdded(character: Model)
 			return
 		end
 
+		if player.CurrentTower ~= "" then
+			TowerData.addTowerTimeSpent(player.Player, player.CurrentTower, player.TowerTimer)
+		end
+
 		BlinkServer.UnloadTower.Fire(player.Player)
-		PlayerState:ResetPlayerInfo(player)
+		PlayerState.resetPlayerInfo(player)
 	end
 end
 
@@ -183,6 +187,7 @@ local function onPlayerAdded(player: Player)
 
 		CurrentTowerRush = "",
 		CurrentTowerRushIndex = 0,
+		CurrentTowerRushSplitTime = 0,
 
 		TouchEventBusy = false,
 		IsLoadingTower = false,
@@ -190,13 +195,13 @@ local function onPlayerAdded(player: Player)
 		DebugItemUsed = false,
 	}
 
-	PlayerState:UpdatePlayerInfoStats(info)
+	PlayerState.updatePlayerInfoStats(info)
 
 	DataInfo.PlayerInfo[player.Name] = info
 
-	LeaderstatsManager:InitPlayer(player)
-	TowerSignManager:UpdateCompletedTowersForPlayer(player)
-	ToolManager:GiveAllCompletedTowerTools(player)
+	LeaderstatsManager.initPlayer(player)
+	TowerSignManager.updateCompletedTowersForPlayer(player)
+	ToolManager.giveAllCompletedTowerTools(player)
 
 	if player.Character then
 		onCharacterAdded(player.Character)
@@ -227,20 +232,20 @@ local function onStepped(_time: number, deltaTime: number)
 		end
 
 		-- Update the Player Attributes
-		PlayerState:UpdatePlayerInfoStats(v)
+		PlayerState.updatePlayerInfoStats(v)
 
 		-- Checkpoint detection
 		local prevInterval = math.floor((_time - deltaTime) / Config.CHECKPOINT_INTERVAL) * Config.CHECKPOINT_INTERVAL
 		local currentInterval = math.floor(_time / Config.CHECKPOINT_INTERVAL) * Config.CHECKPOINT_INTERVAL
 		if prevInterval < currentInterval then
-			local Character = v.Player.Character
+			local character = v.Player.Character
 			-- If the player is in a tower
-			if v.CurrentTower ~= "" and Character then
+			if v.CurrentTower ~= "" and character then
 				local tower: TowerInfo = DataInfo.TowerInfo[v.CurrentTower]
 				local checkpoint: BasePart? = tower.Checkpoints[v.CurrentTowerCheckpoint]
 				if checkpoint then
-					local point = Character:GetPivot().Position
-					local touching = Util:IsPointInPart(point, checkpoint)
+					local point = character:GetPivot().Position
+					local touching = Util.isPointInPart(point, checkpoint)
 					if touching then
 						v.CurrentTowerCheckpoint += 1
 					end
@@ -284,7 +289,7 @@ local function init()
 
 		local boostNameValue = tool:FindFirstChild("BoostName")
 		if boostNameValue and boostNameValue:IsA("StringValue") then
-			Util:Warn(
+			Util.warn(
 				`Boost item {tool.Name} uses a StringValue for BoostName, please change it to an attribute, as a StringValue can be manipulated (or even deleted by client)`
 			)
 			tool:SetAttribute("BoostName", boostNameValue.Value)
@@ -293,13 +298,13 @@ local function init()
 
 	EVERPRESENT_COS.Parent = ServerStorage
 
-	TowerManager:InitTowers()
-	WinpadManager:InitWinpads()
-	PortalHandler:InitPortals()
+	TowerManager.initTowers()
+	WinpadManager.initWinpads()
+	PortalHandler.initPortals()
 	initMarkers()
 
 	-- Load and initialize all other modules (excluding Network folder)
-	ModuleLoader.LoadAndInit(script, { script.Network })
+	ModuleLoader.loadAndInit(script, { script.Network })
 
 	Players.PlayerAdded:Connect(onPlayerAdded)
 	Players.PlayerRemoving:Connect(onPlayerRemoving)

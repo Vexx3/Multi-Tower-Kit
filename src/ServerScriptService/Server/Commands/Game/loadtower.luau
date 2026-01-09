@@ -1,6 +1,6 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
-local Shared = ReplicatedStorage.Shared
+local Shared = ReplicatedStorage.TowerGame.Shared
 
 local TowerManager = require("../../Game/TowerManager")
 local args = require(Shared.ConchTypes)

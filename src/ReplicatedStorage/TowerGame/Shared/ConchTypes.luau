@@ -1,10 +1,9 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
-local GameData = ReplicatedStorage.GameData
 local Packages = ReplicatedStorage.Packages
 
-local Badges = require(GameData.Badges)
-local DifficultiesModule = require(GameData.Difficulties)
+local Badges = require("../GameData/Badges")
+local DifficultiesModule = require("../GameData/Difficulties")
 local Difficulties = DifficultiesModule.Data
 local conch = require(Packages.conch)
 
@@ -13,7 +12,6 @@ local Towers = workspace.Towers
 
 local markerMap = {}
 local towerArray = {}
-local toolMap = {}
 local difficultyArray = {}
 
 for _, child in Markers:GetChildren() do

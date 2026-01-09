@@ -1,7 +1,7 @@
 local BadgeService = game:GetService("BadgeService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
-local Shared = ReplicatedStorage.Shared
+local Shared = ReplicatedStorage.TowerGame.Shared
 
 local args = require(Shared.ConchTypes)
 local conch = require(ReplicatedStorage.Packages.conch)

@@ -8,7 +8,7 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Teams = game:GetService("Teams")
 
-local Shared = ReplicatedStorage.Shared
+local Shared = ReplicatedStorage.TowerGame.Shared
 
 local BlinkServer = require("../Network/BlinkServer")
 local Types = require(Shared.Types)
@@ -27,15 +27,15 @@ local PlayerState = {}
 	@within PlayerState
 	@server
 ]=]
-function PlayerState:UpdatePlayerInfoStats(player: PlayerInfo)
-	local boostList = Util:FormatBoosts(player.BoostItemNames)
+function PlayerState.updatePlayerInfoStats(player: PlayerInfo)
+	local boostList = Util.formatBoosts(player.BoostItemNames)
 
 	player.Player:SetAttribute("CurrentTower", player.CurrentTower)
 	player.Player:SetAttribute("AllJumpsMode", player.AllJumpsMode)
 	player.Player:SetAttribute("PracticeMode", player.PracticeMode)
 	player.Player:SetAttribute("CurrentTowerRush", player.CurrentTowerRush)
 	player.Player:SetAttribute("CurrentTowerRushIndex", player.CurrentTowerRushIndex)
-	player.Player:SetAttribute("TowerTimer", Util:FormatTimer(player.TowerTimer))
+	player.Player:SetAttribute("TowerTimer", Util.formatTimer(player.TowerTimer))
 	player.Player:SetAttribute("BoostItemUsed", player.BoostItemUsed)
 	player.Player:SetAttribute("BoostItemNames", boostList)
 end
@@ -45,7 +45,7 @@ end
 
 	@within PlayerState
 ]=]
-function PlayerState:ResetPlayerInfo(player: PlayerInfo)
+function PlayerState.resetPlayerInfo(player: PlayerInfo)
 	player.TowerTimer = 0
 	player.CurrentTower = ""
 	player.AllJumpsMode = false
@@ -53,13 +53,14 @@ function PlayerState:ResetPlayerInfo(player: PlayerInfo)
 	player.CurrentTowerCheckpoint = 0
 	player.CurrentTowerRush = ""
 	player.CurrentTowerRushIndex = 0
+	player.CurrentTowerRushSplitTime = 0
 	player.BoostItemNames = {}
 	player.BoostItemUsed = false
 	player.DebugItemUsed = false
 
 	--------------------------------------------
 
-	PlayerState:UpdatePlayerInfoStats(player)
+	PlayerState.updatePlayerInfoStats(player)
 end
 
 --[=[
@@ -69,7 +70,7 @@ end
 	@within PlayerState
 	@param winroomMarker string -- Optional marker name; defaults to WinroomSpawn
 ]=]
-function PlayerState:TeleportToWinroom(player: PlayerInfo, winroomMarker: string?)
+function PlayerState.teleportToWinroom(player: PlayerInfo, winroomMarker: string?)
 	winroomMarker = winroomMarker or ""
 	player.TouchEventBusy = true
 
@@ -78,7 +79,7 @@ function PlayerState:TeleportToWinroom(player: PlayerInfo, winroomMarker: string
 	BlinkServer.UnloadTower.Fire(player.Player)
 
 	-- Clean up the player info
-	PlayerState:ResetPlayerInfo(player)
+	PlayerState.resetPlayerInfo(player)
 
 	-- Find the winroom
 	local winroomPart
@@ -90,7 +91,7 @@ function PlayerState:TeleportToWinroom(player: PlayerInfo, winroomMarker: string
 
 	-- Teleport to the winroom
 	if winroomPart and winroomPart:IsA("BasePart") then
-		Util:RespawnAndTeleport(player.Player, winroomPart)
+		Util.respawnAndTeleport(player.Player, winroomPart)
 	end
 
 	player.TouchEventBusy = false

@@ -10,7 +10,7 @@ local ToolManager = {}
 	Gives tools from a tower's folder in ServerStorage to a player.
 	Ensures no duplicates are given.
 ]=]
-function ToolManager:GiveTowerTools(player: Player, towerAcronym: string)
+function ToolManager.giveTowerTools(player: Player, towerAcronym: string)
 	local towerFolder = CompletionTools:FindFirstChild(towerAcronym)
 	if not towerFolder then
 		return
@@ -44,14 +44,14 @@ end
 --[=[
 	Gives tools for all towers the player has completed.
 ]=]
-function ToolManager:GiveAllCompletedTowerTools(player: Player)
-	local data = PlayerData:GetData(player)
+function ToolManager.giveAllCompletedTowerTools(player: Player)
+	local data = PlayerData.getData(player)
 	if not data or not data.CompletedTowers then
 		return
 	end
 
 	for _, acronym in data.CompletedTowers do
-		self:GiveTowerTools(player, acronym)
+		ToolManager.giveTowerTools(player, acronym)
 	end
 end
 

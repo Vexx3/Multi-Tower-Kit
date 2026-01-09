@@ -1,8 +1,6 @@
 -- More info: https://vexx3.github.io/MTK-Dev/docs/Configuration#configuring-difficulties
 
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
-
-local Types = require(ReplicatedStorage.Shared.Types)
+local Types = require("../Shared/Types")
 
 type DifficultyInfo = Types.DifficultyInfo
 

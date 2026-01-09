@@ -3,13 +3,9 @@ local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local TextChatService = game:GetService("TextChatService")
 
-local ChatTags = require(ReplicatedStorage.GameData.ChatTags)
+local ChatTags = require(ReplicatedStorage.TowerGame.GameData.ChatTags)
 
 local playerTags: { [number]: { Text: string, Color: string } } = {}
-
-local function getHex(color: Color3)
-	return string.format("#%02X%02X%02X", color.R * 255, color.G * 255, color.B * 255)
-end
 
 local function updatePlayerTag(player: Player)
 	local name = ChatTags.USER_TAGS[player.UserId]
@@ -40,13 +36,13 @@ local function updatePlayerTag(player: Player)
 
 	local tag = name and ChatTags.TAGS[name]
 	if tag then
-		playerTags[player.UserId] = { Text = tag.Text, Color = getHex(tag.Color) }
+		playerTags[player.UserId] = { Text = tag.Text, Color = `#{tag.Color:ToHex()}` }
 	end
 end
 
 local ChatTagsModule = {}
 
-function ChatTagsModule.Init()
+function ChatTagsModule.init()
 	local function onAdded(player)
 		task.spawn(updatePlayerTag, player)
 	end
@@ -63,7 +59,7 @@ function ChatTagsModule.Init()
 		local tag = player and playerTags[player.UserId]
 
 		if tag then
-			props.PrefixText = `<font color='{tag.Color}'>{tag.Text}</font> ` .. message.PrefixText
+			props.PrefixText = `<font color='{tag.Color}'>{tag.Text}</font> {message.PrefixText}`
 		end
 
 		return props

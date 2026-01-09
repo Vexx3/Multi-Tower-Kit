@@ -20,9 +20,9 @@ type ClientWinMessageInfo = {
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local TextChatService = game:GetService("TextChatService")
 
-local Shared = ReplicatedStorage.Shared
+local Shared = ReplicatedStorage.TowerGame.Shared
 
-local BlinkClient = require(ReplicatedStorage.Network.BlinkClient)
+local BlinkClient = require(ReplicatedStorage.TowerGame.Network.BlinkClient)
 local Config = require("../Config")
 local Util = require(Shared.Util)
 
@@ -33,9 +33,9 @@ local Announcements = {}
 
 	@within ClientAnnouncements
 ]=]
-function Announcements:DisplayWinMessage(info: ClientWinMessageInfo)
+function Announcements.displayWinMessage(info: ClientWinMessageInfo)
 	-- Convert boost dictionary to list
-	local boostList = Util:FormatBoosts(info.BoostsUsed)
+	local boostList = Util.formatBoosts(info.BoostsUsed)
 
 	-- Construct the win message
 	local message = Config.WinMessage
@@ -53,7 +53,7 @@ function Announcements:DisplayWinMessage(info: ClientWinMessageInfo)
 	local serverPrefix = if info.Global then "[GLOBAL]:" else "[SERVER]:"
 	local finalMessage = `{serverPrefix} {message}`
 
-	Announcements:DisplayMessage(finalMessage, info.Color, info.FancyFont)
+	Announcements.displayMessage(finalMessage, info.Color, info.FancyFont)
 end
 
 --[=[
@@ -61,20 +61,20 @@ end
 
 	@within ClientAnnouncements
 ]=]
-function Announcements:DisplayMessage(Message: string, Color: Color3, FancyText: boolean?)
+function Announcements.displayMessage(message: string, color: Color3, isFancyText: boolean?)
 	-- Format instances of "{Time:???}"
-	Message = Util:FormatTimeSyntax(Message)
+	message = Util.formatTimeSyntax(message)
 
 	-- Get folder of text channels
-	local Channels = TextChatService:FindFirstChild("TextChannels")
-	if not Channels then
+	local channels = TextChatService:FindFirstChild("TextChannels")
+	if not channels then
 		error("Message could not be displayed, could not find TextChannels folder")
 		return
 	end
 
 	-- Get the appropriate text channel
-	local TextChannel = Channels:FindFirstChild(Config.ChatChannel)
-	if not TextChannel or not TextChannel:IsA("TextChannel") then
+	local textChannel = channels:FindFirstChild(Config.ChatChannel)
+	if not textChannel or not textChannel:IsA("TextChannel") then
 		error(
 			"Could not find appropriate TextChannel, likely because either ChatChannel wasn't configured properly, or TextChatService.CreateDefaultTextChannels is disabled"
 		)
@@ -82,30 +82,28 @@ function Announcements:DisplayMessage(Message: string, Color: Color3, FancyText:
 	end
 
 	-- Construct information to use with the font XML tag
-	local colorString = `rgb({math.floor(Color.R * 255)}, {math.floor(Color.G * 255)}, {math.floor(Color.B * 255)})`
-	local faceString = if FancyText then Config.ChatFancyFontFace else Config.ChatFontFace
-	local sizeString = if FancyText then tostring(Config.ChatFancyFontSize) else tostring(Config.ChatFontSize)
+	local colorString = `rgb({math.floor(color.R * 255)}, {math.floor(color.G * 255)}, {math.floor(color.B * 255)})`
+	local faceString = if isFancyText then Config.ChatFancyFontFace else Config.ChatFontFace
+	local sizeString = if isFancyText then tostring(Config.ChatFancyFontSize) else tostring(Config.ChatFontSize)
 
 	-- Apply the strings to the tag
 	local finalMessage = Config.ChatFont
 	finalMessage = finalMessage:gsub("{FontColor}", colorString)
 	finalMessage = finalMessage:gsub("{FontFace}", faceString)
 	finalMessage = finalMessage:gsub("{FontSize}", sizeString)
-	finalMessage = finalMessage:gsub("{Message}", Message)
+	finalMessage = finalMessage:gsub("{Message}", message)
 
 	-- Finally, actually display the message
-	TextChannel:DisplaySystemMessage(finalMessage, "MTKv4System")
+	textChannel:DisplaySystemMessage(finalMessage, "MTKv4System")
 end
 
-function Announcements:CreateChatChannel() end
-
-function Announcements:Init()
+function Announcements.init()
 	BlinkClient.GameAnnouncement.On(function(...)
-		Announcements:DisplayMessage(...)
+		Announcements.displayMessage(...)
 	end)
 
 	BlinkClient.GameWinAnnouncement.On(function(...: ClientWinMessageInfo)
-		Announcements:DisplayWinMessage(...)
+		Announcements.displayWinMessage(...)
 	end)
 end
 

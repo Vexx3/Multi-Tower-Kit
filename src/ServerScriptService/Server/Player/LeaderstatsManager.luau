@@ -11,7 +11,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local PlayerData = require(script.Parent.PlayerData)
 local ToolManager = require(script.Parent.Parent.Helpers.ToolManager)
 local TowerData = require(script.Parent.PlayerData.TowerData)
-local Types = require(ReplicatedStorage.Shared.Types)
+local Types = require(ReplicatedStorage.TowerGame.Shared.Types)
 
 type PlayerInfo = {
 	Player: Player,
@@ -24,8 +24,8 @@ local _players: { [string]: PlayerInfo } = {}
 
 local LeaderstatsManager = {}
 
-function LeaderstatsManager:InitPlayer(player: Player)
-	local data = PlayerData:GetData(player)
+function LeaderstatsManager.initPlayer(player: Player)
+	local data = PlayerData.getData(player)
 	if not data then
 		return
 	end
@@ -60,13 +60,13 @@ end
 	@within LeaderstatsManager
 	@param stat number -- amount to add to the Towers stat
 ]=]
-function LeaderstatsManager:SetTowerStat(player: Player, towerInfo: Types.TowerInfo, stat: number)
+function LeaderstatsManager.setTowerStat(player: Player, towerInfo: Types.TowerInfo, stat: number)
 	local info = _players[player.Name]
 	if not info then
 		return
 	end
 
-	local playerData = PlayerData:GetData(player)
+	local playerData = PlayerData.getData(player)
 	if not playerData then
 		return
 	end
@@ -77,14 +77,14 @@ function LeaderstatsManager:SetTowerStat(player: Player, towerInfo: Types.TowerI
 		return
 	end
 
-	PlayerData:UpdateAsync(player, function(data)
+	PlayerData.updateAsync(player, function(data)
 		data.Towers += stat
 		info.TowerStat.Value = data.Towers
 		table.insert(data.CompletedTowers, acronym)
 		return true
 	end)
 
-	ToolManager:GiveTowerTools(player, acronym)
+	ToolManager.giveTowerTools(player, acronym)
 end
 
 --[=[
@@ -94,19 +94,19 @@ end
 	@within LeaderstatsManager
 	@param stat number -- amount to add to the All-jumps stat
 ]=]
-function LeaderstatsManager:SetAllJumpsStat(player: Player, towerInfo: Types.TowerInfo, stat: number)
+function LeaderstatsManager.setAllJumpsStat(player: Player, towerInfo: Types.TowerInfo, stat: number)
 	local info = _players[player.Name]
 	if not info then
 		return
 	end
 
 	local towerKey = towerInfo.Folder.Name
-	local towerStat = TowerData:GetTowerStat(player, towerKey)
+	local towerStat = TowerData.getTowerStat(player, towerKey)
 	if towerStat and towerStat.AllJumpsWins and towerStat.AllJumpsWins > 1 then
 		return
 	end
 
-	PlayerData:UpdateAsync(player, function(data)
+	PlayerData.updateAsync(player, function(data)
 		local current = data.AllJumps or 0
 		data.AllJumps = current + stat
 		info.AllJumpsStat.Value = data.AllJumps

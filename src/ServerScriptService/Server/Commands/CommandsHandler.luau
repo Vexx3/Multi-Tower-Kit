@@ -1,9 +1,9 @@
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
-local GameData = ReplicatedStorage.GameData
+local GameData = ReplicatedStorage.TowerGame.GameData
 local Packages = ReplicatedStorage.Packages
-local Shared = ReplicatedStorage.Shared
+local Shared = ReplicatedStorage.TowerGame.Shared
 
 local Config = require(GameData.Config)
 local conch = require(Packages.conch)
@@ -20,7 +20,7 @@ end
 
 local CommandsHandler = {}
 
-function CommandsHandler:Init()
+function CommandsHandler.init()
 	require(Shared.ConchTypes)
 
 	conch.initiate_default_lifecycle()

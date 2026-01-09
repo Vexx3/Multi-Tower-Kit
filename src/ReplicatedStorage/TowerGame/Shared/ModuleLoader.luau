@@ -8,18 +8,18 @@
 local ModuleLoader = {}
 
 export type InitModule = {
-	Init: () -> (),
+	init: () -> (),
 }
 
 --[=[
 	Loads all ModuleScripts that are descendants of the given parent.
-	Returns a list of modules that have an Init function.
+	Returns a list of modules that have an init function.
 
 	@param parent Instance -- The parent to search for ModuleScripts
 	@param ignore {Instance}? -- Optional list of instances to ignore
 	@return {InitModule}
 ]=]
-function ModuleLoader.LoadModules(parent: Instance, ignore: { Instance }?): { InitModule }
+function ModuleLoader.loadModules(parent: Instance, ignore: { Instance }?): { InitModule }
 	local modules: { InitModule } = {}
 	local ignoreSet: { [Instance]: boolean } = {}
 
@@ -54,7 +54,7 @@ function ModuleLoader.LoadModules(parent: Instance, ignore: { Instance }?): { In
 			continue
 		end
 
-		if type(result) == "table" and type(result.Init) == "function" then
+		if type(result) == "table" and type(result.init) == "function" then
 			table.insert(modules, result)
 		end
 	end
@@ -63,14 +63,14 @@ function ModuleLoader.LoadModules(parent: Instance, ignore: { Instance }?): { In
 end
 
 --[=[
-	Initializes all modules by calling their Init function.
+	Initializes all modules by calling their init function.
 
 	@param modules {InitModule} -- List of modules to initialize
 ]=]
-function ModuleLoader.InitAll(modules: { InitModule }): ()
+function ModuleLoader.initAll(modules: { InitModule }): ()
 	for _, module in modules do
 		task.spawn(function()
-			local success, err = pcall(module.Init, module)
+			local success, err = pcall(module.init, module)
 			if not success then
 				warn(`[ModuleLoader] Init failed: {err}`)
 			end
@@ -84,9 +84,9 @@ end
 	@param parent Instance -- The parent to search for ModuleScripts
 	@param ignore {Instance}? -- Optional list of instances to ignore
 ]=]
-function ModuleLoader.LoadAndInit(parent: Instance, ignore: { Instance }?): ()
-	local modules = ModuleLoader.LoadModules(parent, ignore)
-	ModuleLoader.InitAll(modules)
+function ModuleLoader.loadAndInit(parent: Instance, ignore: { Instance }?): ()
+	local modules = ModuleLoader.loadModules(parent, ignore)
+	ModuleLoader.initAll(modules)
 end
 
 return ModuleLoader

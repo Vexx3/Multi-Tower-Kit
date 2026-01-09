@@ -1,6 +1,7 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
-local Shared = ReplicatedStorage.Shared
+local TowerGame = ReplicatedStorage.TowerGame
+local Shared = TowerGame.Shared
 
 local DataInfo = require("./DataInfo")
 local TowerManager = require("./TowerManager")
@@ -38,7 +39,7 @@ local function RegisterStringPortal(
 	value: StringValue,
 	onTouch: (playerName: string, value: string) -> ()
 )
-	Util:RegisterTouch(part, function(playerName)
+	Util.registerTouch(part, function(playerName)
 		onTouch(playerName, value.Value)
 	end)
 end
@@ -48,7 +49,7 @@ local function Setup(portalPart: BasePart)
 	if TowerPortal then
 		RegisterStringPortal(portalPart, TowerPortal, function(playerName, value)
 			if canEnter(playerName, value) then
-				TowerManager:LoadTower(playerName, value, true)
+				TowerManager.loadTower(playerName, value, true)
 			end
 		end)
 		return
@@ -58,7 +59,7 @@ local function Setup(portalPart: BasePart)
 	if TowerRush then
 		RegisterStringPortal(portalPart, TowerRush, function(playerName, value)
 			if canEnter(playerName) then
-				TowerRushManager:LoadTowerRush(playerName, value)
+				TowerRushManager.loadTowerRush(playerName, value)
 			end
 		end)
 		return
@@ -66,27 +67,27 @@ local function Setup(portalPart: BasePart)
 
 	local LobbyTeleporter = portalPart:FindFirstChild("LobbyTeleporter") :: StringValue
 	if not LobbyTeleporter then
-		Util:Warn(`Part "{portalPart.Name}" was found in the portal folder but it isn't a portal`)
+		Util.warn(`Part "{portalPart.Name}" was found in the portal folder but it isn't a portal`)
 		return
 	end
 
 	local targetPart = MARKERS:FindFirstChild(LobbyTeleporter.Value, true) :: BasePart
 	if targetPart and targetPart:IsA("BasePart") then
-		Util:RegisterTouch(portalPart, function(playerName)
+		Util.registerTouch(portalPart, function(playerName)
 			local player: PlayerInfo = DataInfo.PlayerInfo[playerName]
 			if player and not player.TouchEventBusy then
 				player.TouchEventBusy = true
-				Util:TeleportPlayerToPart(player.Player, targetPart)
+				Util.teleportPlayerToPart(player.Player, targetPart)
 				player.TouchEventBusy = false
 			end
 		end)
 	else
-		Util:Warn(`Could not setup teleporter "{portalPart:GetFullName()}" because it does not reference a BasePart`)
+		Util.warn(`Could not setup teleporter "{portalPart:GetFullName()}" because it does not reference a BasePart`)
 	end
 	return
 end
 
-function PortalHandler:InitPortals()
+function PortalHandler.initPortals()
 	for _, child in PORTALS:GetChildren() do
 		if child:IsA("BasePart") then
 			Setup(child)
