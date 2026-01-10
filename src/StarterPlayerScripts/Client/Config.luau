@@ -4,6 +4,9 @@ return {
 	-- What does the win announcement look like?
 	WinMessage = "{PlayerName} has beaten {EndingName} in {Time}",
 
+	-- What does the all-jump win announcement look like?
+	WinMessageAJ = "{PlayerName} has all-jumped {EndingName} in {Time}",
+
 	-- How will it display what boosts the player used?
 	-- Setting this to an empty string effectively disables showing boosts used
 	WinMessageBoostsUsed = "\nUsed: {BoostList}",

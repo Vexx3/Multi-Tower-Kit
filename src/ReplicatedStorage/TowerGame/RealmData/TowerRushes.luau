@@ -1,7 +1,7 @@
 -- A config module containing every tower rush in this realm.
 -- More info: https://vexx3.github.io/MTK-Dev/docs/Configuration#adding-a-tower-rush
 
-return table.freeze({
+return {
 	ETR = {
 		WinroomMarker = "WinroomSpawn",
 		Towers = {
@@ -19,7 +19,6 @@ return table.freeze({
 			"ToNC",
 			"ToDIM",
 			"ToMD",
-			"ToCAP",
 		},
 		NoBoosts = true,
 	},
@@ -29,4 +28,4 @@ return table.freeze({
 		Towers = table.create(100, "ETV5"),
 		NoBoosts = false,
 	},
-})
+}

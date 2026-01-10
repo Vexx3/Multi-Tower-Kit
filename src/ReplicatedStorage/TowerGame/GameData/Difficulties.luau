@@ -13,6 +13,8 @@ local Difficulties: { [string]: DifficultyInfo } = {
 		Color = Color3.fromRGB(124, 255, 77),
 		GlobalAnnouncement = false,
 
+		DifficultyImage = "rbxassetid://83047584080250",
+
 		DifficultyEmoji = "<:Easy:1301038309509955605>",
 	},
 
@@ -23,6 +25,8 @@ local Difficulties: { [string]: DifficultyInfo } = {
 		FancyFont = false,
 		Color = Color3.fromRGB(255, 255, 0),
 		GlobalAnnouncement = false,
+
+		DifficultyImage = "rbxassetid://119769712720704",
 
 		DifficultyEmoji = "<:Medium:1301040372608143401>",
 	},
@@ -35,6 +39,8 @@ local Difficulties: { [string]: DifficultyInfo } = {
 		Color = Color3.fromRGB(255, 162, 0),
 		GlobalAnnouncement = false,
 
+		DifficultyImage = "rbxassetid://140187386588235",
+
 		DifficultyEmoji = "<:Hard:1301040697356582933>",
 	},
 
@@ -45,6 +51,8 @@ local Difficulties: { [string]: DifficultyInfo } = {
 		FancyFont = false,
 		Color = Color3.fromRGB(255, 80, 80),
 		GlobalAnnouncement = false,
+
+		DifficultyImage = "rbxassetid://139841926896555",
 
 		DifficultyEmoji = "<:Difficult:1301040794169511977>",
 	},
@@ -57,6 +65,8 @@ local Difficulties: { [string]: DifficultyInfo } = {
 		Color = Color3.fromRGB(200, 0, 0),
 		GlobalAnnouncement = false,
 
+		DifficultyImage = "rbxassetid://94154288411120",
+
 		DifficultyEmoji = "<:Challenging:1301041033382985789>",
 	},
 
@@ -67,6 +77,8 @@ local Difficulties: { [string]: DifficultyInfo } = {
 		FancyFont = false,
 		Color = Color3.fromRGB(0, 0, 0),
 		GlobalAnnouncement = false,
+
+		DifficultyImage = "rbxassetid://101774383327800",
 
 		DifficultyEmoji = "<:Intense:1301041176098508851>",
 	},
@@ -79,6 +91,8 @@ local Difficulties: { [string]: DifficultyInfo } = {
 		Color = Color3.fromRGB(255, 0, 230),
 		GlobalAnnouncement = false,
 
+		DifficultyImage = "rbxassetid://116331833567780",
+
 		DifficultyEmoji = "<:Remorseless:1301041291215241321>",
 	},
 
@@ -89,6 +103,8 @@ local Difficulties: { [string]: DifficultyInfo } = {
 		FancyFont = false,
 		Color = Color3.fromRGB(0, 0, 255),
 		GlobalAnnouncement = true,
+
+		DifficultyImage = "rbxassetid://82804483457618",
 
 		DifficultyEmoji = "<:Insane:1301041430445162528>",
 	},
@@ -101,6 +117,8 @@ local Difficulties: { [string]: DifficultyInfo } = {
 		Color = Color3.fromRGB(3, 137, 255),
 		GlobalAnnouncement = true,
 
+		DifficultyImage = "rbxassetid://92001649502043",
+
 		DifficultyEmoji = "<:Extreme:1301041835854004265>",
 	},
 
@@ -111,6 +129,8 @@ local Difficulties: { [string]: DifficultyInfo } = {
 		FancyFont = false,
 		Color = Color3.fromRGB(0, 255, 255),
 		GlobalAnnouncement = true,
+
+		DifficultyImage = "rbxassetid://86595383533997",
 
 		DifficultyEmoji = "<:Terrifying:1301041950010642483>",
 	},
@@ -123,6 +143,8 @@ local Difficulties: { [string]: DifficultyInfo } = {
 		Color = Color3.fromRGB(255, 255, 255),
 		GlobalAnnouncement = true,
 
+		DifficultyImage = "rbxassetid://102078640534270",
+
 		DifficultyEmoji = "<:Catastrophic:1301042083179663362>",
 	},
 
@@ -133,6 +155,8 @@ local Difficulties: { [string]: DifficultyInfo } = {
 		FancyFont = true,
 		Color = Color3.fromRGB(255, 163, 252),
 		GlobalAnnouncement = true,
+
+		DifficultyImage = "rbxassetid://87361619716878",
 	},
 
 	Unreal = {
@@ -142,6 +166,8 @@ local Difficulties: { [string]: DifficultyInfo } = {
 		FancyFont = true,
 		Color = Color3.fromRGB(161, 0, 194),
 		GlobalAnnouncement = true,
+
+		DifficultyImage = "rbxassetid://76309329757383",
 	},
 }
 

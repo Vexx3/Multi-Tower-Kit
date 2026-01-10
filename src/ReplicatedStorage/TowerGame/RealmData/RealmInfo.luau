@@ -38,14 +38,14 @@ return {
 
 			Towers = {
 				ETV5 = { Name = "Example Tower V5", BadgeID = 0, Rating = 1, NumDifficulty = 0.00 },
-				ETV6 = { Name = "Example Tower V6", BadgeID = 0, Rating = 8, NumDifficulty = 0.00 },
-				ToCAP = { Name = "Tower of Climbing A Pillar", BadgeID = 0, Rating = 8, NumDifficulty = 0.00 },
-				ToDIM = { Name = "Tower of Diving Into Madness", BadgeID = 0, Rating = 6, NumDifficulty = 0.52 },
-				ToMD = { Name = "Tower of Mechanical Disarray", BadgeID = 0, Rating = 7, NumDifficulty = 0.00 },
-				ToNC = { Name = "Tower of No Context", BadgeID = 0, Rating = 6, NumDifficulty = 0.00 },
-				ToUC = { Name = "Tower of Ultra Cool", BadgeID = 0, Rating = 2, NumDifficulty = 0.00 },
-				ToVP = { Name = "Tower of Vela Pulsar", BadgeID = 0, Rating = 5, NumDifficulty = 0.00 },
-				TSR = { Name = "Tower Storage Rush", BadgeID = 0, Rating = 7, NumDifficulty = 0.75, Rush = true }
+				ETV6 = { Name = "Example Tower V6", BadgeID = 0, Rating = 8, NumDifficulty = 0.01 },
+				ToCAP = { Name = "Tower of Climbing A Pillar", BadgeID = 0, Rating = 8, NumDifficulty = 0.34 },
+				ToDIM = { Name = "Tower of Diving Into Madness", BadgeID = 0, Rating = 6, NumDifficulty = 0.45 },
+				ToMD = { Name = "Tower of Mechanical Disarray", BadgeID = 0, Rating = 7, NumDifficulty = 0.56 },
+				ToNC = { Name = "Tower of No Context", BadgeID = 0, Rating = 6, NumDifficulty = 0.38 },
+				ToUC = { Name = "Tower of Ultra Cool", BadgeID = 0, Rating = 2, NumDifficulty = 0.26 },
+				ToVP = { Name = "Tower of Vela Pulsar", BadgeID = 0, Rating = 5, NumDifficulty = 0.55 },
+				TSR = { Name = "Tower Storage Rush", BadgeID = 0, Rating = 7, NumDifficulty = 0.75, Rush = true },
 			},
 			Requirements = {
 				Points = 22,

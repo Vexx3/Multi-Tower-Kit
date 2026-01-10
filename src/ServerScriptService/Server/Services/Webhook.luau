@@ -55,8 +55,9 @@ function Webhook.sendMessage(player: Types.PlayerInfo, endingName: string, diffi
 
 	local playerName = if Config.USE_DISPLAY_NAME then player.Player.DisplayName else player.Player.Name
 
+	local messageTemplate = if player.AllJumpsMode then Config.WEBHOOK_AJ_MESSAGE else Config.WEBHOOK_NORMAL_MESSAGE
 	local message = formatWebhookMessage(
-		Config.WEBHOOK_NORMAL_MESSAGE,
+		messageTemplate,
 		playerName,
 		endingName,
 		difficultyInfo.DifficultyEmoji or "",
@@ -64,11 +65,17 @@ function Webhook.sendMessage(player: Types.PlayerInfo, endingName: string, diffi
 		boostList
 	)
 
-	local isSuperChallenge = difficultyInfo.GlobalAnnouncement
+	local isSoulCrushing = difficultyInfo.Rating >= 8
+	local isAllJumps = player.AllJumpsMode
 
-	local webhookLink = if isSuperChallenge
-		then HttpService:GetSecret("SC_WEBHOOK")
-		else HttpService:GetSecret("NORMAL_WEBHOOK")
+	local webhookLink
+	if isAllJumps then
+		webhookLink = HttpService:GetSecret("ALL_JUMPS_WEBHOOK")
+	elseif isSoulCrushing then
+		webhookLink = HttpService:GetSecret("SC_WEBHOOK")
+	else
+		webhookLink = HttpService:GetSecret("NORMAL_WEBHOOK")
+	end
 
 	local data = {
 		["content"] = message,

@@ -10,6 +10,7 @@ type ClientWinMessageInfo = {
 	EndingName: string,
 	Time: number,
 	BoostsUsed: { [string]: string },
+	AllJumps: boolean,
 
 	Color: Color3,
 	FancyFont: boolean,
@@ -38,7 +39,8 @@ function Announcements.displayWinMessage(info: ClientWinMessageInfo)
 	local boostList = Util.formatBoosts(info.BoostsUsed)
 
 	-- Construct the win message
-	local message = Config.WinMessage
+	local messageTemplate = if info.AllJumps then Config.WinMessageAJ else Config.WinMessage
+	local message = messageTemplate
 		:gsub("{PlayerName}", info.PlayerName)
 		:gsub("{EndingName}", info.EndingName)
 		:gsub("{Time}", "{Time:" .. tostring(info.Time) .. "}")

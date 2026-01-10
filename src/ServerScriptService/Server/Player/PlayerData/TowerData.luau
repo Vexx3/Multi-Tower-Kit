@@ -24,6 +24,8 @@ local DEFAULT_DIFFICULTY_STAT: TowerStat = {
 	TotalTimeSpentFormatted = "0m 0s",
 	BestWinTimeSeconds = 0,
 	BestWinTimeFormatted = "N/A",
+	BestAJWinTimeSeconds = 0,
+	BestAJWinTimeFormatted = "N/A",
 }
 
 local TowerData = {}
@@ -109,6 +111,14 @@ function TowerData.recordTowerWin(
 
 		if awardAllJumps then
 			stat.AllJumpsWins += 1
+
+			if not isBoostUsed and cleanRunTime > 0 then
+				local best = stat.BestAJWinTimeSeconds
+				if best == 0 or cleanRunTime < best then
+					stat.BestAJWinTimeSeconds = cleanRunTime
+					stat.BestAJWinTimeFormatted = Util.formatTimer(cleanRunTime)
+				end
+			end
 		else
 			stat.Wins += 1
 		end

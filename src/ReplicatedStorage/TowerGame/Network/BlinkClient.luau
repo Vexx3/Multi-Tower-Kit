@@ -165,7 +165,7 @@ Queue.Reliable[4] = table.create(256)
 Queue.Reliable[5] = table.create(256)
 Queue.Reliable[6] = table.create(256)
 Queue.Reliable[7] = table.create(256)
-export type ClientWinMessageInfo = { PlayerName: string, EndingName: string, Time: number, BoostsUsed: {[string]: string}, Color: Color3, FancyFont: boolean, Global: boolean }
+export type ClientWinMessageInfo = { PlayerName: string, EndingName: string, Time: number, BoostsUsed: {[string]: string}, AllJumps: boolean, Color: Color3, FancyFont: boolean, Global: boolean }
 local function WriteEVENT_RestartRequested(Value: nil): ()
 	-- Allocate BLOCK: 1 bytes
 	local BLOCK_START = Allocate(1)
@@ -243,9 +243,9 @@ local function ReadEVENT_GameAnnouncement(): (string, Color3, boolean?)
 	return Value1, Value2, Value3
 end
 
-local function ReadEVENT_GameWinAnnouncement(): ({ PlayerName: string, EndingName: string, Time: number, BoostsUsed: {[string]: string}, Color: Color3, FancyFont: boolean, Global: boolean })
-	-- Read BLOCK: 15 bytes
-	local BLOCK_START = Read(15)
+local function ReadEVENT_GameWinAnnouncement(): ({ PlayerName: string, EndingName: string, Time: number, BoostsUsed: {[string]: string}, AllJumps: boolean, Color: Color3, FancyFont: boolean, Global: boolean })
+	-- Read BLOCK: 16 bytes
+	local BLOCK_START = Read(16)
 	local Value = {} :: any
 	local Length = buffer.readu16(RecieveBuffer, BLOCK_START + 0)
 	Value.PlayerName = buffer.readstring(RecieveBuffer, Read(Length), Length)
@@ -263,9 +263,10 @@ local function ReadEVENT_GameWinAnnouncement(): ({ PlayerName: string, EndingNam
 		local Element_1 = buffer.readstring(RecieveBuffer, Read(Length), Length)
 		Value.BoostsUsed[Key_1] = Element_1
 	end
-	Value.Color = Color3.fromRGB(buffer.readu8(RecieveBuffer, BLOCK_START + 10), buffer.readu8(RecieveBuffer, BLOCK_START + 11), buffer.readu8(RecieveBuffer, BLOCK_START + 12))
-	Value.FancyFont = (buffer.readu8(RecieveBuffer, BLOCK_START + 13) == 1)
-	Value.Global = (buffer.readu8(RecieveBuffer, BLOCK_START + 14) == 1)
+	Value.AllJumps = (buffer.readu8(RecieveBuffer, BLOCK_START + 10) == 1)
+	Value.Color = Color3.fromRGB(buffer.readu8(RecieveBuffer, BLOCK_START + 11), buffer.readu8(RecieveBuffer, BLOCK_START + 12), buffer.readu8(RecieveBuffer, BLOCK_START + 13))
+	Value.FancyFont = (buffer.readu8(RecieveBuffer, BLOCK_START + 14) == 1)
+	Value.Global = (buffer.readu8(RecieveBuffer, BLOCK_START + 15) == 1)
 	return Value
 end
 
@@ -273,6 +274,26 @@ local function ReadEVENT_PlayerDataUpdate(): (any)
 	RecieveInstanceCursor += 1
 	local Value = RecieveInstances[RecieveInstanceCursor]
 	return Value
+end
+
+local function WriteEVENT_SetAllJumpsMode(Value: boolean): ()
+	-- Allocate BLOCK: 2 bytes
+	local BLOCK_START = Allocate(2)
+	buffer.writeu8(SendBuffer, BLOCK_START + 0, 8)
+	buffer.writeu8(SendBuffer, BLOCK_START + 1, Value and 1 or 0)
+end
+
+local function WriteEVENT_ExitTowerRequest(Value: nil): ()
+	-- Allocate BLOCK: 1 bytes
+	local BLOCK_START = Allocate(1)
+	buffer.writeu8(SendBuffer, BLOCK_START + 0, 9)
+end
+
+local function WriteEVENT_SetPracticeMode(Value: boolean): ()
+	-- Allocate BLOCK: 2 bytes
+	local BLOCK_START = Allocate(2)
+	buffer.writeu8(SendBuffer, BLOCK_START + 0, 10)
+	buffer.writeu8(SendBuffer, BLOCK_START + 1, Value and 1 or 0)
 end
 
 if not RunService:IsRunning() then
@@ -304,6 +325,15 @@ if not RunService:IsRunning() then
 	},
 	PlayerDataUpdate = {
 		On = NOOP
+	},
+	SetAllJumpsMode = {
+		Fire = NOOP
+	},
+	ExitTowerRequest = {
+		Fire = NOOP
+	},
+	SetPracticeMode = {
+		Fire = NOOP
 	},
 	})
 	return Returns :: BLINK_EVENTS_SYMBOL
@@ -399,7 +429,7 @@ Reliable.OnClientEvent:Connect(function(Buffer: buffer, Instances: {Instance})
 				table.insert(Queue.Reliable[5], {Value1, Value2, Value3} :: {any})
 			end
 		elseif Index == 6 then
-			local Value: { PlayerName: string, EndingName: string, Time: number, BoostsUsed: {[string]: string}, Color: Color3, FancyFont: boolean, Global: boolean } = ReadEVENT_GameWinAnnouncement()
+			local Value: { PlayerName: string, EndingName: string, Time: number, BoostsUsed: {[string]: string}, AllJumps: boolean, Color: Color3, FancyFont: boolean, Global: boolean } = ReadEVENT_GameWinAnnouncement()
 			if Events.Reliable[6] ~= nil then
 				task.spawn(Events.Reliable[6], Value)
 			else
@@ -537,7 +567,7 @@ local Returns = table.freeze({
 		end
 	},
 	GameWinAnnouncement = {
-		On = function(Listener: (Value: { PlayerName: string, EndingName: string, Time: number, BoostsUsed: {[string]: string}, Color: Color3, FancyFont: boolean, Global: boolean }) -> ()): () -> ()
+		On = function(Listener: (Value: { PlayerName: string, EndingName: string, Time: number, BoostsUsed: {[string]: string}, AllJumps: boolean, Color: Color3, FancyFont: boolean, Global: boolean }) -> ()): () -> ()
 			Events.Reliable[6] = Listener
 			for Index, Arguments in Queue.Reliable[6] do
 				task.spawn(Listener, table.unpack(Arguments))
@@ -562,6 +592,21 @@ local Returns = table.freeze({
 					Events.Reliable[7] = nil
 				end
 			end
+		end
+	},
+	SetAllJumpsMode = {
+		Fire = function(Value: boolean): ()
+			WriteEVENT_SetAllJumpsMode(Value)
+		end
+	},
+	ExitTowerRequest = {
+		Fire = function(Value: nil): ()
+			WriteEVENT_ExitTowerRequest(Value)
+		end
+	},
+	SetPracticeMode = {
+		Fire = function(Value: boolean): ()
+			WriteEVENT_SetPracticeMode(Value)
 		end
 	},
 })

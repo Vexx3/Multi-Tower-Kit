@@ -82,6 +82,72 @@ local function onPlayerRestartRequested(playerInstance: Player)
 	end
 end
 
+local function onPlayerSetAllJumpsMode(playerInstance: Player, enabled: boolean)
+	local player: PlayerInfo = DataInfo.PlayerInfo[playerInstance.Name]
+	if not player then
+		return
+	end
+
+	if enabled then
+		player.PracticeMode = false
+	end
+
+	-- If they toggle AJ mode while in a tower, we reset their run to apply it correctly
+	-- and prevent them from completing half a tower in normal mode then switching.
+	if player.CurrentTower ~= "" then
+		TowerData.addTowerTimeSpent(player.Player, player.CurrentTower, player.TowerTimer)
+		player.AllJumpsMode = enabled
+
+		if player.CurrentTowerRush == "" then
+			TowerManager.loadTower(playerInstance.Name, player.CurrentTower, true)
+		else
+			TowerRushManager.loadTowerRush(playerInstance.Name, player.CurrentTowerRush)
+		end
+	else
+		player.AllJumpsMode = enabled
+	end
+
+	PlayerState.updatePlayerInfoStats(player)
+end
+
+local function onPlayerSetPracticeMode(playerInstance: Player, enabled: boolean)
+	local player: PlayerInfo = DataInfo.PlayerInfo[playerInstance.Name]
+	if not player then
+		return
+	end
+
+	if enabled then
+		player.AllJumpsMode = false
+	end
+
+	-- If they toggle Practice mode while in a tower, we reset their run to apply it correctly.
+	if player.CurrentTower ~= "" then
+		TowerData.addTowerTimeSpent(player.Player, player.CurrentTower, player.TowerTimer)
+		player.PracticeMode = enabled
+
+		if player.CurrentTowerRush == "" then
+			TowerManager.loadTower(playerInstance.Name, player.CurrentTower, true)
+		else
+			TowerRushManager.loadTowerRush(playerInstance.Name, player.CurrentTowerRush)
+		end
+	else
+		player.PracticeMode = enabled
+	end
+
+	PlayerState.updatePlayerInfoStats(player)
+end
+
+local function onExitTowerRequest(playerInstance: Player)
+	local player: PlayerInfo = DataInfo.PlayerInfo[playerInstance.Name]
+	if not player then
+		return
+	end
+
+	if player.CurrentTower ~= "" then
+		player.Player:LoadCharacterAsync()
+	end
+end
+
 local function onPlayerEquippedTool(player: PlayerInfo, item: Tool)
 	if player.CurrentTower == "" then
 		return
@@ -309,6 +375,9 @@ local function init()
 	Players.PlayerAdded:Connect(onPlayerAdded)
 	Players.PlayerRemoving:Connect(onPlayerRemoving)
 	BlinkServer.RestartRequested.On(onPlayerRestartRequested)
+	BlinkServer.SetAllJumpsMode.On(onPlayerSetAllJumpsMode)
+	BlinkServer.SetPracticeMode.On(onPlayerSetPracticeMode)
+	BlinkServer.ExitTowerRequest.On(onExitTowerRequest)
 	BlinkServer.RequestEverpresentCOs.On(onEverpresentCOsRequested)
 	RunService.Stepped:Connect(onStepped)
 end

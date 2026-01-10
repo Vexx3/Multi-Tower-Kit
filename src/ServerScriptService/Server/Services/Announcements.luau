@@ -29,6 +29,7 @@ type WinMessageInfo = {
 	DifficultyName: string,
 	Time: number,
 	BoostsUsed: Dictionary<string>,
+	AllJumps: boolean,
 	Global: boolean,
 }
 
@@ -37,6 +38,7 @@ type ClientWinMessageInfo = {
 	EndingName: string,
 	Time: number,
 	BoostsUsed: Dictionary<string>,
+	AllJumps: boolean,
 	Color: Color3,
 	FancyFont: boolean,
 	Global: boolean,
@@ -59,6 +61,7 @@ local function _broadcastWinAnnouncement(info: WinMessageInfo)
 		EndingName = info.EndingName,
 		Time = info.Time,
 		BoostsUsed = info.BoostsUsed,
+		AllJumps = info.AllJumps,
 		Color = difficultyInfo.Color,
 		FancyFont = difficultyInfo.FancyFont,
 		Global = difficultyInfo.GlobalAnnouncement,
@@ -99,6 +102,7 @@ function Announcements.winAnnouncement(
 		DifficultyName = difficultyName,
 		Time = finalTime,
 		BoostsUsed = player.BoostItemNames,
+		AllJumps = player.AllJumpsMode,
 		Global = difficultyInfo.GlobalAnnouncement,
 	}
 

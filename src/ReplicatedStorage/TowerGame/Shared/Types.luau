@@ -39,6 +39,8 @@ export type TowerStat = {
 	TotalTimeSpentFormatted: string,
 	BestWinTimeSeconds: number,
 	BestWinTimeFormatted: string,
+	BestAJWinTimeSeconds: number,
+	BestAJWinTimeFormatted: string,
 }
 
 -- The Ending type represents an ending for a tower, this type was created to account for "secret endings" some towers have
@@ -104,6 +106,9 @@ export type DifficultyInfo = {
 	FancyFont: boolean,
 	Color: Color3,
 	GlobalAnnouncement: boolean,
+
+	-- realm related
+	DifficultyImage: string?,
 
 	-- webhook emojis
 	DifficultyEmoji: string?,

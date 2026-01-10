@@ -208,11 +208,14 @@ function PlayerData.init()
 		-- Set attribute to false initially to indicate data is loading
 		player:SetAttribute("DataLoaded", false)
 
-		local success = pcall(store.loadAsync, store, player)
+		local success, message = pcall(store.loadAsync, store, player)
 		if success then
 			Loaded[player] = true
 			-- Signal to client that data has been loaded
 			player:SetAttribute("DataLoaded", true)
+		else
+			warn(`Failed to load data for {player.Name}: {message}`)
+			player:Kick("Failed to load your data. Please rejoin.")
 		end
 	end)
 

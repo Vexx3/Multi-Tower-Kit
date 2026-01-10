@@ -111,6 +111,9 @@ local Config = {
 	-- Template for the standard win announcement webhook.
 	WEBHOOK_NORMAL_MESSAGE = "**{PlayerName}** has beaten **{EndingName} [{DifficultyEmoji}]** in `{Time}`",
 
+	-- Template for the all-jumps win announcement webhook.
+	WEBHOOK_AJ_MESSAGE = "**{PlayerName}** has all-jumped **{EndingName} [{DifficultyEmoji}]** in `{Time}`",
+
 	-- Template for the message boosts used
 	WEBHOOK_BOOSTS_USED = "\nUsed: {BoostList}",
 
@@ -147,4 +150,4 @@ local Config = {
 
 export type PlayerData = typeof(Config.DEFAULT_PLAYER_DATA)
 
-return table.freeze(Config)
+return Config

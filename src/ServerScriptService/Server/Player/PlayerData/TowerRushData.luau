@@ -24,6 +24,8 @@ local DEFAULT_RUSH_STAT: TowerStat = {
 	TotalTimeSpentFormatted = "0m 0s",
 	BestWinTimeSeconds = 0,
 	BestWinTimeFormatted = "N/A",
+	BestAJWinTimeSeconds = 0,
+	BestAJWinTimeFormatted = "N/A",
 }
 
 local TowerRushData = {}

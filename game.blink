@@ -1,4 +1,4 @@
-option ClientOutput = "src/ReplicatedStorage/Network/BlinkClient.luau"
+option ClientOutput = "src/ReplicatedStorage/TowerGame/Network/BlinkClient.luau"
 option ServerOutput = "src/ServerScriptService/Server/Network/BlinkServer.luau"
 
 struct ClientWinMessageInfo {
@@ -6,6 +6,7 @@ struct ClientWinMessageInfo {
     EndingName: string,
     Time: f32,
     BoostsUsed: map { [string]: string },
+    AllJumps: boolean,
 
     Color: Color3,
     FancyFont: boolean,
@@ -70,4 +71,24 @@ event PlayerDataUpdate {
     Type: Reliable,
     Call: SingleAsync,
     Data: unknown
+}
+
+event SetAllJumpsMode {
+    From: Client,
+    Type: Reliable,
+    Call: SingleAsync,
+    Data: boolean
+}
+
+event ExitTowerRequest {
+    From: Client,
+    Type: Reliable,
+    Call: SingleAsync
+}
+
+event SetPracticeMode {
+    From: Client,
+    Type: Reliable,
+    Call: SingleAsync,
+    Data: boolean
 }
