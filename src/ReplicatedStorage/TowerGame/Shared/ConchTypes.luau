@@ -1,11 +1,7 @@
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
-
-local Packages = ReplicatedStorage.Packages
-
 local Badges = require("../GameData/Badges")
 local DifficultiesModule = require("../GameData/Difficulties")
 local Difficulties = DifficultiesModule.Data
-local conch = require(Packages.conch)
+local conch = require("@game/ReplicatedStorage/Packages/conch")
 
 local Markers = workspace.Markers
 local Towers = workspace.Towers

@@ -4,7 +4,7 @@ local Shared = ReplicatedStorage.TowerGame.Shared
 
 local TowerManager = require("../../Game/TowerManager")
 local args = require(Shared.ConchTypes)
-local conch = require(ReplicatedStorage.Packages.conch)
+local conch = require("@game/ReplicatedStorage/Packages/conch")
 
 return function()
 	conch.register("loadtower", {
@@ -16,7 +16,7 @@ return function()
 		end,
 
 		callback = function(target: Player, towerName: string)
-			TowerManager:LoadTower(target.Name, towerName, true)
+			TowerManager.loadTower(target.Name, towerName, true)
 			conch.log("info", `Loaded tower '{towerName}' for {target.Name}`)
 		end,
 	})

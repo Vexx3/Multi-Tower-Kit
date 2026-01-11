@@ -1,7 +1,5 @@
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
-
-local BlinkServer = require(script.Parent.Parent.Parent.Network.BlinkServer)
-local conch = require(ReplicatedStorage.Packages.conch)
+local BlinkServer = require("../../Network/BlinkServer")
+local conch = require("@game/ReplicatedStorage/Packages/conch")
 
 return function()
 	conch.register("unloadtower", {

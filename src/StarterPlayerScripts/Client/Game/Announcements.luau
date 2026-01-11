@@ -23,9 +23,9 @@ local TextChatService = game:GetService("TextChatService")
 
 local Shared = ReplicatedStorage.TowerGame.Shared
 
-local BlinkClient = require(ReplicatedStorage.TowerGame.Network.BlinkClient)
+local BlinkClient = require("@game/ReplicatedStorage/TowerGame/Network/BlinkClient")
 local Config = require("../Config")
-local Util = require(Shared.Util)
+local Util = require("@game/ReplicatedStorage/TowerGame/Shared/Util")
 
 local Announcements = {}
 
@@ -90,10 +90,10 @@ function Announcements.displayMessage(message: string, color: Color3, isFancyTex
 
 	-- Apply the strings to the tag
 	local finalMessage = Config.ChatFont
-	finalMessage = finalMessage:gsub("{FontColor}", colorString)
-	finalMessage = finalMessage:gsub("{FontFace}", faceString)
-	finalMessage = finalMessage:gsub("{FontSize}", sizeString)
-	finalMessage = finalMessage:gsub("{Message}", message)
+		:gsub("{FontColor}", colorString)
+		:gsub("{FontFace}", faceString)
+		:gsub("{FontSize}", sizeString)
+		:gsub("{Message}", message)
 
 	-- Finally, actually display the message
 	textChannel:DisplaySystemMessage(finalMessage, "MTKv4System")

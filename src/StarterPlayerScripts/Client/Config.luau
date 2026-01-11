@@ -20,10 +20,10 @@ return {
 	ChatChannel = "RBXSystem",
 
 	-- The font to use for normal system messages
-	ChatFontFace = "GothamBold",
-	ChatFontSize = 14,
+	ChatFontFace = "SourceSansBold",
+	ChatFontSize = 18,
 
 	-- The font to use for fancy system messages
-	ChatFancyFontFace = "Bodoni",
+	ChatFancyFontFace = "Fantasy",
 	ChatFancyFontSize = 22,
 }

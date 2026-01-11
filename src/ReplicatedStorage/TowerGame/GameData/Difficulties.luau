@@ -12,7 +12,6 @@ local Difficulties: { [string]: DifficultyInfo } = {
 		FancyFont = false,
 		Color = Color3.fromRGB(124, 255, 77),
 		GlobalAnnouncement = false,
-		GlobalAJAnnouncement = false,
 
 		DifficultyImage = "rbxassetid://83047584080250",
 
@@ -104,7 +103,6 @@ local Difficulties: { [string]: DifficultyInfo } = {
 		FancyFont = false,
 		Color = Color3.fromRGB(0, 0, 255),
 		GlobalAnnouncement = true,
-		GlobalAJAnnouncement = true,
 
 		DifficultyImage = "rbxassetid://82804483457618",
 
@@ -171,6 +169,18 @@ local Difficulties: { [string]: DifficultyInfo } = {
 
 		DifficultyImage = "rbxassetid://76309329757383",
 	},
+
+	["Nil"] = {
+		Title = "Nil",
+		Rating = 14,
+
+		FancyFont = true,
+		Color = Color3.fromRGB(101, 102, 109),
+		GlobalAnnouncement = true,
+		GlobalAJAnnouncement = true,
+
+		DifficultyImage = "rbxassetid://71617965011918",
+	},
 }
 
 local function GetSubDetails(num: number)
@@ -198,7 +208,7 @@ local function GetSubDetails(num: number)
 	return "Unknown", Color3.fromRGB(255, 255, 255)
 end
 
-return table.freeze({
+return {
 	Data = Difficulties,
 	GetSubDetails = GetSubDetails,
-})
+}

@@ -2,10 +2,10 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Shared = ReplicatedStorage.TowerGame.Shared
 
-local BlinkServer = require(script.Parent.Parent.Parent.Network.BlinkServer)
+local BlinkServer = require("../../Network/BlinkServer")
 local Util = require(Shared.Util)
 local args = require(Shared.ConchTypes)
-local conch = require(ReplicatedStorage.Packages.conch)
+local conch = require("@game/ReplicatedStorage/Packages/conch")
 
 return function()
 	conch.register("fakewin", {
@@ -24,12 +24,13 @@ return function()
 			local runTime = time or 0
 			local globalFlag = if isGlobal then isGlobal else false
 
-			local diffInfo = Util:GetDifficulty(difficultyName)
+			local diffInfo = Util.getDifficulty(difficultyName)
 			local clientMsgInfo = {
 				PlayerName = player.Name,
 				EndingName = endingName,
 				Time = runTime,
 				BoostsUsed = {},
+				AllJumps = false,
 				Color = diffInfo.Color,
 				FancyFont = diffInfo.FancyFont,
 				Global = globalFlag,

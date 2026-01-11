@@ -4,7 +4,7 @@ local Shared = ReplicatedStorage.TowerGame.Shared
 
 local Util = require(Shared.Util)
 local args = require(Shared.ConchTypes)
-local conch = require(ReplicatedStorage.Packages.conch)
+local conch = require("@game/ReplicatedStorage/Packages/conch")
 
 return function()
 	conch.register("tpmarker", {
@@ -16,7 +16,7 @@ return function()
 		end,
 
 		callback = function(who: Player, marker: BasePart)
-			Util:TeleportPlayerToPart(who, marker)
+			Util.teleportPlayerToPart(who, marker)
 			conch.log("info", `Teleported {who.Name} to marker {marker.Name}`)
 		end,
 	})

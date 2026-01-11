@@ -1,7 +1,6 @@
 local Players = game:GetService("Players")
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
-local conch = require(ReplicatedStorage.Packages.conch)
+local conch = require("@game/ReplicatedStorage/Packages/conch")
 
 local function resolveUser(userInput: string | number): number?
 	if type(userInput) == "number" then

@@ -96,9 +96,7 @@ function Announcements.winAnnouncement(
 	local playerName = if Config.USE_DISPLAY_NAME then player.Player.DisplayName else player.Player.Name
 
 	local isGlobal = if player.AllJumpsMode
-		then (if difficultyInfo.GlobalAJAnnouncement ~= nil
-			then difficultyInfo.GlobalAJAnnouncement
-			else difficultyInfo.GlobalAnnouncement)
+		then difficultyInfo.GlobalAJAnnouncement == true
 		else difficultyInfo.GlobalAnnouncement
 
 	local info: WinMessageInfo = {
