@@ -12,6 +12,7 @@ local Difficulties: { [string]: DifficultyInfo } = {
 		FancyFont = false,
 		Color = Color3.fromRGB(124, 255, 77),
 		GlobalAnnouncement = false,
+		GlobalAJAnnouncement = false,
 
 		DifficultyImage = "rbxassetid://83047584080250",
 
@@ -103,6 +104,7 @@ local Difficulties: { [string]: DifficultyInfo } = {
 		FancyFont = false,
 		Color = Color3.fromRGB(0, 0, 255),
 		GlobalAnnouncement = true,
+		GlobalAJAnnouncement = true,
 
 		DifficultyImage = "rbxassetid://82804483457618",
 

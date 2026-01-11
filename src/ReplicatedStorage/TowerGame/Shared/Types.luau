@@ -14,6 +14,7 @@ export type TowerInfo = {
 	Difficulty: string,
 	BadgeID: number,
 	TowerPoints: number,
+	AllJumpsPoints: number?,
 	AJBadgeID: number?,
 	NoBoosts: boolean?,
 
@@ -106,6 +107,7 @@ export type DifficultyInfo = {
 	FancyFont: boolean,
 	Color: Color3,
 	GlobalAnnouncement: boolean,
+	GlobalAJAnnouncement: boolean?,
 
 	-- realm related
 	DifficultyImage: string?,

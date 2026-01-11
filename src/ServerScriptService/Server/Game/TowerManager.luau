@@ -167,6 +167,7 @@ local function initTower(towerFolder: Instance)
 		BadgeID = towerBadgeID,
 		AJBadgeID = Attributes.getInt(towerFolder, "AJBadgeID") or 0,
 		TowerPoints = Attributes.getInt(towerFolder, "TowerPoints") or 1,
+		AllJumpsPoints = Attributes.getInt(towerFolder, "AllJumpsPoints"),
 		NoBoosts = towerFolder:HasTag("NoBoosts"),
 
 		Folder = towerFolder,

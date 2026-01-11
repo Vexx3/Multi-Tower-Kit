@@ -24,6 +24,7 @@ local DEFAULT_DIFFICULTY: Difficulty = {
 
 	FancyFont = false,
 	GlobalAnnouncement = false,
+	GlobalAJAnnouncement = false,
 }
 
 local Util = {}

@@ -55,7 +55,7 @@ local function awardTowerCompletion(playerInfo: Types.PlayerInfo, towerInfo: Typ
 		if towerInfo.AJBadgeID and towerInfo.AJBadgeID ~= 0 then
 			BadgeService:AwardBadgeAsync(player.UserId, towerInfo.AJBadgeID)
 		end
-		LeaderstatsManager.setAllJumpsStat(player, towerInfo, towerInfo.TowerPoints)
+		LeaderstatsManager.setAllJumpsStat(player, towerInfo, towerInfo.AllJumpsPoints or towerInfo.TowerPoints)
 	else
 		if towerInfo.BadgeID ~= 0 then
 			BadgeService:AwardBadgeAsync(player.UserId, towerInfo.BadgeID)

@@ -95,6 +95,12 @@ function Announcements.winAnnouncement(
 
 	local playerName = if Config.USE_DISPLAY_NAME then player.Player.DisplayName else player.Player.Name
 
+	local isGlobal = if player.AllJumpsMode
+		then (if difficultyInfo.GlobalAJAnnouncement ~= nil
+			then difficultyInfo.GlobalAJAnnouncement
+			else difficultyInfo.GlobalAnnouncement)
+		else difficultyInfo.GlobalAnnouncement
+
 	local info: WinMessageInfo = {
 		MessageID = HttpService:GenerateGUID(false),
 		PlayerName = playerName,
@@ -103,10 +109,10 @@ function Announcements.winAnnouncement(
 		Time = finalTime,
 		BoostsUsed = player.BoostItemNames,
 		AllJumps = player.AllJumpsMode,
-		Global = difficultyInfo.GlobalAnnouncement,
+		Global = isGlobal,
 	}
 
-	if difficultyInfo.GlobalAnnouncement then
+	if isGlobal then
 		_latestGlobalMessageID = info.MessageID
 		MessagingService:PublishAsync("GlobalWin", info)
 	end

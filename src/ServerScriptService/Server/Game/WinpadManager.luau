@@ -108,7 +108,7 @@ local function onPlayerTouchedWinpad(playerName: string, towerName: string, endi
 				end
 
 				TowerData.recordTowerWin(player.Player, towerName, runTime, player.BoostItemUsed, true)
-				LeaderstatsManager.setAllJumpsStat(player.Player, tower, tower.TowerPoints)
+				LeaderstatsManager.setAllJumpsStat(player.Player, tower, tower.AllJumpsPoints or tower.TowerPoints)
 			else
 				TowerData.recordTowerWin(player.Player, towerName, runTime, player.BoostItemUsed)
 				LeaderstatsManager.setTowerStat(player.Player, tower, tower.TowerPoints)
