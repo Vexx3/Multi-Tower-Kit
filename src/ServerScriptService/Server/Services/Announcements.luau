@@ -64,7 +64,7 @@ local function _broadcastWinAnnouncement(info: WinMessageInfo)
 		AllJumps = info.AllJumps,
 		Color = difficultyInfo.Color,
 		FancyFont = difficultyInfo.FancyFont,
-		Global = difficultyInfo.GlobalAnnouncement,
+		Global = info.Global,
 	}
 
 	BlinkServer.GameWinAnnouncement.FireAll(clientMsgInfo)

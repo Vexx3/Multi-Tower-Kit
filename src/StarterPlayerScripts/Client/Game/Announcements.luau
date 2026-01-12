@@ -18,10 +18,7 @@ type ClientWinMessageInfo = {
 	Global: boolean,
 }
 
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local TextChatService = game:GetService("TextChatService")
-
-local Shared = ReplicatedStorage.TowerGame.Shared
 
 local BlinkClient = require("@game/ReplicatedStorage/TowerGame/Network/BlinkClient")
 local Config = require("../Config")

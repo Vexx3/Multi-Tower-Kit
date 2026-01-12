@@ -92,3 +92,9 @@ event SetPracticeMode {
     Call: SingleAsync,
     Data: boolean
 }
+
+function GetPlayerData {
+    Yield: Coroutine,
+    Data: u32,
+    Return: unknown
+}

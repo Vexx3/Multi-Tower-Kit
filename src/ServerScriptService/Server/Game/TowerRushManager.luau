@@ -56,12 +56,18 @@ local function awardTowerCompletion(playerInfo: Types.PlayerInfo, towerInfo: Typ
 			BadgeService:AwardBadgeAsync(player.UserId, towerInfo.AJBadgeID)
 		end
 		LeaderstatsManager.setAllJumpsStat(player, towerInfo, towerInfo.AllJumpsPoints or towerInfo.TowerPoints)
+
+		local stats = TowerData.getTowerStat(player, towerInfo.Folder.Name)
+		local hasNormalWin = stats and stats.Wins and stats.Wins > 0
+		if not hasNormalWin then
+			TowerSignManager.markTowerCompleted(towerInfo.Folder.Name, TowerSignManager.AJ_COMPLETED_COLOR)
+		end
 	else
 		if towerInfo.BadgeID ~= 0 then
 			BadgeService:AwardBadgeAsync(player.UserId, towerInfo.BadgeID)
 		end
 		LeaderstatsManager.setTowerStat(player, towerInfo, towerInfo.TowerPoints)
-		TowerSignManager.markTowerCompleted(towerInfo.Folder.Name)
+		TowerSignManager.markTowerCompleted(towerInfo.Folder.Name, TowerSignManager.COMPLETED_COLOR)
 	end
 end
 

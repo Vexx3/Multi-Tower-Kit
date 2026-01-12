@@ -109,10 +109,16 @@ local function onPlayerTouchedWinpad(playerName: string, towerName: string, endi
 
 				TowerData.recordTowerWin(player.Player, towerName, runTime, player.BoostItemUsed, true)
 				LeaderstatsManager.setAllJumpsStat(player.Player, tower, tower.AllJumpsPoints or tower.TowerPoints)
+
+				local stats = TowerData.getTowerStat(player.Player, towerName)
+				local hasNormalWin = stats and stats.Wins and stats.Wins > 0
+				if not hasNormalWin then
+					TowerSignManager.markTowerCompleted(towerName, TowerSignManager.AJ_COMPLETED_COLOR)
+				end
 			else
 				TowerData.recordTowerWin(player.Player, towerName, runTime, player.BoostItemUsed)
 				LeaderstatsManager.setTowerStat(player.Player, tower, tower.TowerPoints)
-				TowerSignManager.markTowerCompleted(towerName)
+				TowerSignManager.markTowerCompleted(towerName, TowerSignManager.COMPLETED_COLOR)
 			end
 		end
 

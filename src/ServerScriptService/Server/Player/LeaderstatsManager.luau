@@ -10,7 +10,6 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local PlayerData = require(script.Parent.PlayerData)
 local ToolManager = require(script.Parent.Parent.Helpers.ToolManager)
-local TowerData = require(script.Parent.PlayerData.TowerData)
 local Types = require(ReplicatedStorage.TowerGame.Shared.Types)
 
 type PlayerInfo = {
@@ -101,8 +100,8 @@ function LeaderstatsManager.setAllJumpsStat(player: Player, towerInfo: Types.Tow
 	end
 
 	local towerKey = towerInfo.Folder.Name
-	local towerStat = TowerData.getTowerStat(player, towerKey)
-	if towerStat and towerStat.AllJumpsWins and towerStat.AllJumpsWins > 1 then
+	local playerData = PlayerData.getData(player)
+	if not playerData or (playerData.CompletedAJTowers and table.find(playerData.CompletedAJTowers, towerKey)) then
 		return
 	end
 
@@ -110,6 +109,12 @@ function LeaderstatsManager.setAllJumpsStat(player: Player, towerInfo: Types.Tow
 		local current = data.AllJumps or 0
 		data.AllJumps = current + stat
 		info.AllJumpsStat.Value = data.AllJumps
+
+		if not data.CompletedAJTowers then
+			data.CompletedAJTowers = {}
+		end
+		table.insert(data.CompletedAJTowers, towerKey)
+
 		return true
 	end)
 end

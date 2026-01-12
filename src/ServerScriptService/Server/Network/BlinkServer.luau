@@ -163,6 +163,7 @@ Queue.Reliable[1] = table.create(256)
 Queue.Reliable[8] = table.create(256)
 Queue.Reliable[9] = table.create(256)
 Queue.Reliable[10] = table.create(256)
+Queue.Reliable[11] = table.create(256)
 export type ClientWinMessageInfo = { PlayerName: string, EndingName: string, Time: number, BoostsUsed: {[string]: string}, AllJumps: boolean, Color: Color3, FancyFont: boolean, Global: boolean }
 local function ReadEVENT_RestartRequested(): (nil)
 	return nil
@@ -297,6 +298,22 @@ local function ReadEVENT_SetPracticeMode(): (boolean)
 	return Value
 end
 
+local function ReadFUNCTION_DATA_GetPlayerData(): (number)
+	-- Read BLOCK: 4 bytes
+	local BLOCK_START = Read(4)
+	local Value = buffer.readu32(RecieveBuffer, BLOCK_START + 0)
+	return Value
+end
+
+local function WriteFUNCTION_RETURN_GetPlayerData(Value: any, InvocationIdentifier: number): ()
+	-- Allocate BLOCK: 3 bytes
+	local BLOCK_START = Allocate(3)
+	buffer.writeu8(SendBuffer, BLOCK_START + 0, 11)
+	buffer.writeu8(SendBuffer, BLOCK_START + 1, InvocationIdentifier)
+	buffer.writeu8(SendBuffer, BLOCK_START + 2, 1)
+	table.insert(SendInstances, if Value == nil then Null else Value)
+end
+
 if not RunService:IsRunning() then
 	local NOOP = function() end
 	local Returns = table.freeze({
@@ -355,6 +372,9 @@ if not RunService:IsRunning() then
 		On = NOOP
 	},
 	SetPracticeMode = {
+		On = NOOP
+	},
+	GetPlayerData = {
 		On = NOOP
 	},
 	})
@@ -471,6 +491,19 @@ Reliable.OnServerEvent:Connect(function(Player: Player, Buffer: buffer, Instance
 					warn("[Blink]: Event queue of \"SetPracticeMode\" exceeded 256, did you forget to implement a listener?")
 				end
 				table.insert(Queue.Reliable[10], {Player, Value} :: {any})
+			end
+		elseif Index == 11 then
+			-- Read BLOCK: 1 bytes
+			local BLOCK_START = Read(1)
+			local InvocationIdentifier = buffer.readu8(RecieveBuffer, BLOCK_START + 0)
+			local Value: number = ReadFUNCTION_DATA_GetPlayerData()
+			if Events.Reliable[11] ~= nil then
+				task.spawn(Events.Reliable[11], Player, Value, InvocationIdentifier)
+			else
+				if #Queue.Reliable[11] > 256 then
+					warn("[Blink]: Event queue of \"GetPlayerData\" exceeded 256, did you forget to implement a listener?")
+				end
+				table.insert(Queue.Reliable[11], {Player, Value, InvocationIdentifier} :: {any})
 			end
 		end
 	end
@@ -892,6 +925,34 @@ local Returns = table.freeze({
 					Events.Reliable[10] = nil
 				end
 			end
+		end
+	},
+	GetPlayerData = {
+		On = function(Listener: (Player, number) -> (any)): ()
+			Events.Reliable[11] = function(Player: Player, Value: number, InvocationIdentifier: number): ()
+				local ReturnValue: any;
+				local Success, Error = pcall(function ()
+					ReturnValue = Listener(Player, Value)
+				end)
+				Load(PlayersMap[Player])
+				if Success ~= true then
+					local Position = Allocate(3)
+					buffer.writeu8(SendBuffer, Position, 11)
+					buffer.writeu8(SendBuffer, Position + 1, InvocationIdentifier)
+					buffer.writeu8(SendBuffer, Position + 2, 0)
+					warn(`"GetPlayerData" encountered an error, {Error}`)
+				else
+					WriteFUNCTION_RETURN_GetPlayerData(ReturnValue, InvocationIdentifier)
+				end
+				PlayersMap[Player] = Save()
+			end
+			task.spawn(function (): ()
+				local EventQueue = Queue.Reliable[11] or {}
+				Queue.Reliable[11] = nil
+				for Index, Arguments in EventQueue do
+					Events.Reliable[11](table.unpack(Arguments))
+				end
+			end)
 		end
 	},
 })

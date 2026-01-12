@@ -26,7 +26,7 @@ local Config = {
 	CHECKPOINT_INTERVAL = 0.25,
 
 	-- Minimum time (in seconds) required between player restarts.
-	RESTART_COOLDOWN = 3,
+	RESTART_COOLDOWN = 1,
 
 	--[[
 		Determines whether holding the R key resets the player's
@@ -85,7 +85,7 @@ local Config = {
 	-- Keys used for player data storage. The studio key is used when
 	-- testing in Roblox Studio.
 	DATA_STORE_KEY = "Production",
-	DATA_STORE_KEY_STUDIO = "Test",
+	DATA_STORE_KEY_STUDIO = "Test1024",
 
 	-- Default player data template. Only modify this if you fully
 	-- understand the implications on data structure and migration.
@@ -93,6 +93,7 @@ local Config = {
 		Towers = 0,
 		AllJumps = 0,
 		CompletedTowers = {} :: { string },
+		CompletedAJTowers = {} :: { string },
 		TowerStats = {} :: { [string]: TowerStat },
 		CompletedTowerRushes = {} :: { string },
 		TowerRushStats = {} :: { [string]: TowerStat },

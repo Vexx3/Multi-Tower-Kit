@@ -48,8 +48,6 @@ end
 function PlayerState.resetPlayerInfo(player: PlayerInfo)
 	player.TowerTimer = 0
 	player.CurrentTower = ""
-	player.AllJumpsMode = false
-	player.PracticeMode = false
 	player.CurrentTowerCheckpoint = 0
 	player.CurrentTowerRush = ""
 	player.CurrentTowerRushIndex = 0

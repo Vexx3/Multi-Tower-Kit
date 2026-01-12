@@ -72,6 +72,11 @@ local function syncWithClient(key: string, newData: Config.PlayerData, oldData: 
 		hasChanges = true
 	end
 
+	if newData.CompletedAJTowers ~= oldData.CompletedAJTowers then
+		changes.CompletedAJTowers = newData.CompletedAJTowers
+		hasChanges = true
+	end
+
 	if newData.TowerStats or oldData.TowerStats then
 		local newStats = newData.TowerStats
 		local oldStats = oldData.TowerStats
@@ -79,9 +84,9 @@ local function syncWithClient(key: string, newData: Config.PlayerData, oldData: 
 		local towerStatsChanges = {}
 		local statsChanged = false
 
-		if newStats ~= oldStats then
+		if newStats ~= oldStats and newStats then
 			for name, stat in newStats do
-				if stat ~= oldStats[name] then
+				if not oldStats or stat ~= oldStats[name] then
 					towerStatsChanges[name] = stat
 					statsChanged = true
 				end
@@ -106,9 +111,9 @@ local function syncWithClient(key: string, newData: Config.PlayerData, oldData: 
 		local towerRushStatsChanges = {}
 		local statsChanged = false
 
-		if newStats ~= oldStats then
+		if newStats ~= oldStats and newStats then
 			for name, stat in newStats do
-				if stat ~= oldStats[name] then
+				if not oldStats or stat ~= oldStats[name] then
 					towerRushStatsChanges[name] = stat
 					statsChanged = true
 				end
@@ -133,6 +138,7 @@ local store = Lyra.createPlayerStore({
 		Towers = t.number,
 		AllJumps = t.optional(t.number),
 		CompletedTowers = t.array(t.string),
+		CompletedAJTowers = t.optional(t.array(t.string)),
 		TowerStats = t.table,
 		CompletedTowerRushes = t.array(t.string),
 		TowerRushStats = t.table,
@@ -177,21 +183,30 @@ local store = Lyra.createPlayerStore({
 local PlayerData = {}
 
 --[=[
-	Return the current data snapshot for a player if loaded.
+	Return the current data snapshot for a player. Returns nil immediately if
+	data is not loaded.
 
 	@within PlayerData
 	@return Config.PlayerData?
 ]=]
 function PlayerData.getData(player: Player): Config.PlayerData?
-	while not Loaded[player] and player.Parent do
-		task.wait()
-	end
-
-	if not player.Parent then
+	if not Loaded[player] then
 		return nil
 	end
-
 	return store:getAsync(player)
+end
+
+--[=[
+	Yields the current thread until the player's data is loaded. Returns the
+	data if successful, or nil if the player left.
+
+	@within PlayerData
+]=]
+function PlayerData.waitForData(player: Player): Config.PlayerData?
+	while not Loaded[player] and player.Parent do
+		player:GetAttributeChangedSignal("DataLoaded"):Wait()
+	end
+	return PlayerData.getData(player)
 end
 
 --[=[
@@ -204,11 +219,18 @@ function PlayerData.updateAsync(player: Player, fn: (data: Config.PlayerData) ->
 end
 
 function PlayerData.init()
-	Players.PlayerAdded:Connect(function(player)
+	BlinkServer.GetPlayerData.On(function(_, userId)
+		return store:peekAsync(userId)
+	end)
+
+	local function onPlayerAdded(player: Player)
 		-- Set attribute to false initially to indicate data is loading
 		player:SetAttribute("DataLoaded", false)
 
-		local success, message = pcall(store.loadAsync, store, player)
+		local success, message = pcall(function()
+			store:loadAsync(player)
+			return nil
+		end)
 		if success then
 			Loaded[player] = true
 			-- Signal to client that data has been loaded
@@ -217,7 +239,12 @@ function PlayerData.init()
 			warn(`Failed to load data for {player.Name}: {message}`)
 			player:Kick("Failed to load your data. Please rejoin.")
 		end
-	end)
+	end
+
+	Players.PlayerAdded:Connect(onPlayerAdded)
+	for _, player in Players:GetPlayers() do
+		task.spawn(onPlayerAdded, player)
+	end
 
 	Players.PlayerRemoving:Connect(function(player)
 		Loaded[player] = nil

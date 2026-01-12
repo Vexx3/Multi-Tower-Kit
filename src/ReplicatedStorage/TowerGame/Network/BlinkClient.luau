@@ -165,6 +165,7 @@ Queue.Reliable[4] = table.create(256)
 Queue.Reliable[5] = table.create(256)
 Queue.Reliable[6] = table.create(256)
 Queue.Reliable[7] = table.create(256)
+Queue.Reliable[11] = table.create(256)
 export type ClientWinMessageInfo = { PlayerName: string, EndingName: string, Time: number, BoostsUsed: {[string]: string}, AllJumps: boolean, Color: Color3, FancyFont: boolean, Global: boolean }
 local function WriteEVENT_RestartRequested(Value: nil): ()
 	-- Allocate BLOCK: 1 bytes
@@ -296,6 +297,26 @@ local function WriteEVENT_SetPracticeMode(Value: boolean): ()
 	buffer.writeu8(SendBuffer, BLOCK_START + 1, Value and 1 or 0)
 end
 
+local function WriteFUNCTION_DATA_GetPlayerData(Value: number, InvocationIdentifier: number): ()
+	-- Allocate BLOCK: 6 bytes
+	local BLOCK_START = Allocate(6)
+	buffer.writeu8(SendBuffer, BLOCK_START + 0, 11)
+	buffer.writeu8(SendBuffer, BLOCK_START + 1, InvocationIdentifier)
+	buffer.writeu32(SendBuffer, BLOCK_START + 2, Value)
+end
+
+local function ReadFUNCTION_RETURN_GetPlayerData(): (any)
+	-- Read BLOCK: 1 bytes
+	local BLOCK_START = Read(1)
+	local Success = buffer.readu8(RecieveBuffer, BLOCK_START + 0)
+	if Success ~= 1 then
+		error("Server encountered an error.")
+	end
+	RecieveInstanceCursor += 1
+	local Value = RecieveInstances[RecieveInstanceCursor]
+	return Value
+end
+
 if not RunService:IsRunning() then
 	local NOOP = function() end
 	local Returns = table.freeze({
@@ -334,6 +355,9 @@ if not RunService:IsRunning() then
 	},
 	SetPracticeMode = {
 		Fire = NOOP
+	},
+	GetPlayerData = {
+		Invoke = NOOP
 	},
 	})
 	return Returns :: BLINK_EVENTS_SYMBOL
@@ -447,6 +471,17 @@ Reliable.OnClientEvent:Connect(function(Buffer: buffer, Instances: {Instance})
 					warn("[Blink]: Event queue of \"PlayerDataUpdate\" exceeded 256, did you forget to implement a listener?")
 				end
 				table.insert(Queue.Reliable[7], {Value} :: {any})
+			end
+		elseif Index == 11 then
+			-- Read BLOCK: 1 bytes
+			local BLOCK_START = Read(1)
+			local InvocationIdentifier = buffer.readu8(RecieveBuffer, BLOCK_START + 0)
+				local Success, ReturnValue = pcall(function ()
+					return ReadFUNCTION_RETURN_GetPlayerData()
+				end)
+			if Calls[InvocationIdentifier] ~= nil then
+				task.spawn(Calls[InvocationIdentifier], Success, ReturnValue)
+				Calls[InvocationIdentifier] = nil
 			end
 		end
 	end
@@ -607,6 +642,22 @@ local Returns = table.freeze({
 	SetPracticeMode = {
 		Fire = function(Value: boolean): ()
 			WriteEVENT_SetPracticeMode(Value)
+		end
+	},
+	GetPlayerData = {
+		Invoke = function(Value: number): (any)
+			local InvocationIdentifier = Invoke()
+			if Calls[InvocationIdentifier] ~= nil then
+				Invocations -= 1
+				error("More than 256 calls are awaiting a response, this packet has been dropped.")
+			end
+			WriteFUNCTION_DATA_GetPlayerData(Value, InvocationIdentifier)
+			Calls[InvocationIdentifier] = coroutine.running()
+			local Success, ReturnValue: any = coroutine.yield()
+			if Success ~= true then
+				error("There was an exception while processing \"GetPlayerData\".")
+			end
+			return ReturnValue
 		end
 	},
 })

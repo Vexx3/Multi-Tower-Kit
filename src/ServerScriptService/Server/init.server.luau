@@ -20,6 +20,7 @@ local Config = require(GameData.Config)
 local DataInfo = require("@self/Game/DataInfo")
 local LeaderstatsManager = require("@self/Player/LeaderstatsManager")
 local ModuleLoader = require(Shared.ModuleLoader)
+local PlayerData = require("@self/Player/PlayerData")
 local PlayerState = require("@self/Player/PlayerState")
 local PortalHandler = require("@self/Game/PortalHandler")
 local ToolManager = require("@self/Helpers/ToolManager")
@@ -265,6 +266,9 @@ local function onPlayerAdded(player: Player)
 
 	DataInfo.PlayerInfo[player.Name] = info
 
+	-- Wait for data to load before initializing dependent systems
+	PlayerData.waitForData(player)
+
 	LeaderstatsManager.initPlayer(player)
 	TowerSignManager.updateCompletedTowersForPlayer(player)
 	ToolManager.giveAllCompletedTowerTools(player)
@@ -373,6 +377,10 @@ local function init()
 	ModuleLoader.loadAndInit(script, { script.Network })
 
 	Players.PlayerAdded:Connect(onPlayerAdded)
+	for _, player in Players:GetPlayers() do
+		task.spawn(onPlayerAdded, player)
+	end
+
 	Players.PlayerRemoving:Connect(onPlayerRemoving)
 	BlinkServer.RestartRequested.On(onPlayerRestartRequested)
 	BlinkServer.SetAllJumpsMode.On(onPlayerSetAllJumpsMode)
