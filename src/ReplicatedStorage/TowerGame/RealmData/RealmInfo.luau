@@ -46,6 +46,7 @@ return {
 				ToUC = { Name = "Tower of Ultra Cool", BadgeID = 0, Rating = 2, NumDifficulty = 0.26 },
 				ToVP = { Name = "Tower of Vela Pulsar", BadgeID = 0, Rating = 5, NumDifficulty = 0.55 },
 				TSR = { Name = "Tower Storage Rush", BadgeID = 0, Rating = 7, NumDifficulty = 0.75, Rush = true },
+				ETR = { Name = "Example Tower Rush", BadgeID = 0, Rating = 8, NumDifficulty = 0.37, Rush = true },
 			},
 			Requirements = {
 				Points = 22,

@@ -96,16 +96,36 @@ function TowerRushData.addRushTimeSpent(player: Player, rushName: string, deltaS
 	end)
 end
 
-function TowerRushData.recordRushWin(player: Player, rushName: string, runTimeSeconds: number, boostItemUsed: boolean)
-	local cleanRunTime = math.max(runTimeSeconds, 0)
+function TowerRushData.recordRushWin(
+	player: Player,
+	rushName: string,
+	runTimeSeconds: number,
+	boostItemUsed: boolean,
+	isAllJumps: boolean?
+)
+	local cleanRunTime = math.round(math.max(runTimeSeconds, 0) * 100) / 100
+	local awardAllJumps = isAllJumps == true
 
 	PlayerData.updateAsync(player, function(data)
 		local stat = ensureStat(data, rushName)
 
-		stat.Wins += 1
+		if awardAllJumps then
+			stat.AllJumpsWins += 1
+
+			if not boostItemUsed and cleanRunTime > 0 then
+				local best = stat.BestAJWinTimeSeconds
+				if best == 0 or cleanRunTime < best then
+					stat.BestAJWinTimeSeconds = cleanRunTime
+					stat.BestAJWinTimeFormatted = Util.formatTimer(cleanRunTime)
+				end
+			end
+		else
+			stat.Wins += 1
+		end
+
 		applyTime(stat, cleanRunTime)
 
-		if not boostItemUsed and cleanRunTime > 0 then
+		if not awardAllJumps and not boostItemUsed and cleanRunTime > 0 then
 			local best = stat.BestWinTimeSeconds
 			if best == 0 or cleanRunTime < best then
 				stat.BestWinTimeSeconds = cleanRunTime

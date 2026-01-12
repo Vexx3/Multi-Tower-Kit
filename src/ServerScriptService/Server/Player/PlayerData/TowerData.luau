@@ -103,7 +103,7 @@ function TowerData.recordTowerWin(
 	isBoostUsed: boolean,
 	isAllJumps: boolean?
 )
-	local cleanRunTime = math.max(runTimeSeconds, 0)
+	local cleanRunTime = math.round(math.max(runTimeSeconds, 0) * 100) / 100
 	local awardAllJumps = isAllJumps == true
 
 	PlayerData.updateAsync(player, function(data)

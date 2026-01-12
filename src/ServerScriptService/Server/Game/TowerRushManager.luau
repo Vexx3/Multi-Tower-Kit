@@ -47,8 +47,6 @@ local function awardTowerCompletion(playerInfo: Types.PlayerInfo, towerInfo: Typ
 	local player = playerInfo.Player
 	local isAllJumps = playerInfo.AllJumpsMode
 
-	Announcements.winAnnouncement(playerInfo, towerInfo.Name, towerInfo.Difficulty, splitTime)
-
 	TowerData.recordTowerWin(player, towerInfo.Folder.Name, splitTime, playerInfo.BoostItemUsed, isAllJumps)
 
 	if isAllJumps then
@@ -85,7 +83,13 @@ local function awardRushCompletion(playerInfo: Types.PlayerInfo, towerRushName: 
 	local badgeId = rushInfo.BadgeID
 
 	Announcements.winAnnouncement(playerInfo, title, difficulty, rushTime)
-	TowerRushData.recordRushWin(playerInfo.Player, towerRushName, rushTime, playerInfo.BoostItemUsed)
+	TowerRushData.recordRushWin(
+		playerInfo.Player,
+		towerRushName,
+		rushTime,
+		playerInfo.BoostItemUsed,
+		playerInfo.AllJumpsMode
+	)
 
 	if badgeId and badgeId ~= 0 then
 		BadgeService:AwardBadgeAsync(playerInfo.Player.UserId, badgeId)
