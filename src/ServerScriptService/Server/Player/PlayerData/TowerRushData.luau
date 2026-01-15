@@ -1,4 +1,4 @@
--- Handles per-towerrush player statistics stored in the profile datastore.
+-- Handles per-tower-rush player statistics stored in the profile datastore.
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
@@ -47,8 +47,6 @@ local function applyTime(stat: TowerStat, deltaSeconds: number)
 	stat.totalTimeSpent.formatted = Util.formatDuration(stat.totalTimeSpent.seconds)
 end
 
-local TowerRushData = {}
-
 local function ensureStat(data: PlayerData, rushName: string): TowerStat
 	local rushStats = if data.towerRushStats then table.clone(data.towerRushStats) else {}
 	data.towerRushStats = rushStats
@@ -65,6 +63,8 @@ local function ensureStat(data: PlayerData, rushName: string): TowerStat
 
 	return stat
 end
+
+local TowerRushData = {}
 
 function TowerRushData.getRushStat(player: Player, rushName: string): TowerStat?
 	local data = PlayerData.getData(player)

@@ -6,25 +6,25 @@ local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 
-local Shared = ReplicatedStorage.TowerGame.Shared
+local TowerGame = ReplicatedStorage.TowerGame
+local Shared = TowerGame.Shared
 local Data = Shared.Data
 local Packages = ReplicatedStorage.Packages
-local t = require(Packages._Index["osyrisrblx_t@3.1.1"].t)
 
-local BlinkServer = require("../Network/BlinkServer")
+local BlinkServer = require(script.Parent.Parent.Network.BlinkServer)
 local Config = require(Data.Config)
-local InternalTemplate = require("@self/InternalTemplate")
+local InternalTemplate = require(script.InternalTemplate)
 local Lyra = require(Packages.Lyra)
+local t = require(Packages._Index["osyrisrblx_t@3.1.1"].t)
 
 export type PlayerData = InternalTemplate.PlayerData
 
-local Loaded: { [Player]: boolean } = {}
-
 local DATA_STORE_KEY: string = if RunService:IsStudio() then Config.dataStoreKeyStudio else Config.dataStoreKey
+
+local Loaded: { [Player]: boolean } = {}
 
 local function createLogger()
 	if RunService:IsStudio() then
-		-- Show all logs in Studio
 		return function(message: any): ()
 			print(`[Lyra][{message.level}] {message.message}`)
 			if message.context then
@@ -32,7 +32,6 @@ local function createLogger()
 			end
 		end
 	else
-		-- Only show errors in production
 		return function(message: any): ()
 			if message.level == "error" or message.level == "fatal" then
 				warn(`[Lyra] {message.message}`)
@@ -48,7 +47,6 @@ local function syncWithClient(key: string, newData: PlayerData, oldData: PlayerD
 	end
 
 	if oldData == nil then
-		-- First time data is loaded
 		BlinkServer.PlayerDataUpdate.Fire(player, newData)
 		return
 	end
@@ -76,6 +74,7 @@ local function syncWithClient(key: string, newData: PlayerData, oldData: PlayerD
 		hasChanges = true
 	end
 
+	-- Sync tower stats changes
 	if newData.towerStats or oldData.towerStats then
 		local newStats: { [string]: any }? = newData.towerStats :: any
 		local oldStats: { [string]: any }? = oldData.towerStats :: any
@@ -103,6 +102,7 @@ local function syncWithClient(key: string, newData: PlayerData, oldData: PlayerD
 		hasChanges = true
 	end
 
+	-- Sync tower rush stats changes
 	if newData.towerRushStats or oldData.towerRushStats then
 		local newStats: { [string]: any }? = newData.towerRushStats :: any
 		local oldStats: { [string]: any }? = oldData.towerRushStats :: any
@@ -135,54 +135,61 @@ local function syncWithClient(key: string, newData: PlayerData, oldData: PlayerD
 	end
 end
 
+-- Schema validator using t library, wrapped for Lyra's expected signature
+local tSchema = t.strictInterface({
+	towers = t.number,
+	allJumps = t.optional(t.number),
+	completedTowers = t.array(t.string),
+	completedAjTowers = t.optional(t.array(t.string)),
+	towerStats = t.table,
+	completedTowerRushes = t.array(t.string),
+	towerRushStats = t.table,
+	settings = t.strictInterface({
+		quickResetDelay = t.number,
+		resetOnDeath = t.boolean,
+		highFPSPhysicsFix = t.boolean,
+		utility = t.union(t.literal("Off"), t.literal("Emote"), t.literal("Alignment")),
+		lowDetailMode = t.union(t.literal("Off"), t.literal("On"), t.literal("Ultra")),
+		fpsDisplay = t.boolean,
+		hideTimer = t.boolean,
+		invisiblePlayers = t.union(
+			t.literal("Off"),
+			t.literal("Not Friended"),
+			t.literal("Everyone Else"),
+			t.literal("Near")
+		),
+		keyDisplayLimit = t.number,
+		hideBubbleChat = t.boolean,
+		musicVolume = t.number,
+		keybinds = t.strictInterface({
+			quickRestart = t.string,
+			cornerFlip = t.string,
+			createCheckpoint = t.string,
+			teleportCheckpoint = t.string,
+			removeCheckpoint = t.string,
+			playAnimation = t.string,
+		}),
+		extendedCompletions = t.boolean,
+	}),
+})
+
+local function playerDataSchema(data: unknown): (boolean, string?)
+	return tSchema(data)
+end
+
 local store = Lyra.createPlayerStore({
 	name = DATA_STORE_KEY,
 	template = InternalTemplate,
-	schema = t.strictInterface({
-		towers = t.number,
-		allJumps = t.optional(t.number),
-		completedTowers = t.array(t.string),
-		completedAjTowers = t.optional(t.array(t.string)),
-		towerStats = t.table,
-		completedTowerRushes = t.array(t.string),
-		towerRushStats = t.table,
-		settings = t.strictInterface({
-			quickResetDelay = t.number,
-			resetOnDeath = t.boolean,
-			highFPSPhysicsFix = t.boolean,
-			utility = t.union(t.literal("Off"), t.literal("Emote"), t.literal("Alignment")),
-			lowDetailMode = t.union(t.literal("Off"), t.literal("On"), t.literal("Ultra")),
-			fpsDisplay = t.boolean,
-			hideTimer = t.boolean,
-			invisiblePlayers = t.union(
-				t.literal("Off"),
-				t.literal("Not Friended"),
-				t.literal("Everyone Else"),
-				t.literal("Near")
-			),
-			keyDisplayLimit = t.number,
-			hideBubbleChat = t.boolean,
-			musicVolume = t.number,
-			keybinds = t.strictInterface({
-				quickRestart = t.string,
-				cornerFlip = t.string,
-				createCheckpoint = t.string,
-				teleportCheckpoint = t.string,
-				removeCheckpoint = t.string,
-				playAnimation = t.string,
-			}),
-			extendedCompletions = t.boolean,
-		}),
-	}),
+	schema = playerDataSchema,
 	changedCallbacks = { syncWithClient },
 	migrationSteps = {
 		Lyra.MigrationStep.transform("migrateLegacyFormat", function(data: any)
-			local mapping = {
+			local mapping: { [string]: string } = {
 				Towers = "towers",
 				CompletedTowers = "completedTowers",
 			}
 
-			for oldKey, newKey in pairs(mapping) do
+			for oldKey, newKey in mapping do
 				if data[oldKey] ~= nil and data[newKey] == nil then
 					data[newKey] = data[oldKey]
 					data[oldKey] = nil
@@ -191,10 +198,10 @@ local store = Lyra.createPlayerStore({
 
 			-- Convert completedTowers map to list if it's in the old dictionary format
 			local completed = data.completedTowers
-			if type(completed) == "table" then
+			if typeof(completed) == "table" then
 				local isDictionary = false
-				for k in pairs(completed) do
-					if type(k) == "string" then
+				for k in completed do
+					if typeof(k) == "string" then
 						isDictionary = true
 						break
 					end
@@ -202,8 +209,8 @@ local store = Lyra.createPlayerStore({
 
 				if isDictionary then
 					local newList = {}
-					for towerName in pairs(completed) do
-						if type(towerName) == "string" then
+					for towerName in completed do
+						if typeof(towerName) == "string" then
 							table.insert(newList, towerName)
 						end
 					end
@@ -245,8 +252,8 @@ local store = Lyra.createPlayerStore({
 
 local PlayerData = {}
 
--- Return the current data snapshot for a player. Returns nil immediately if
--- data is not loaded.
+-- Return the current data snapshot for a player.
+-- Returns nil immediately if data is not loaded.
 function PlayerData.getData(player: Player): PlayerData?
 	if not Loaded[player] then
 		return nil
@@ -254,8 +261,8 @@ function PlayerData.getData(player: Player): PlayerData?
 	return store:getAsync(player)
 end
 
--- Yields the current thread until the player's data is loaded. Returns the
--- data if successful, or nil if the player left.
+-- Yields the current thread until the player's data is loaded.
+-- Returns the data if successful, or nil if the player left.
 function PlayerData.waitForData(player: Player)
 	while not Loaded[player] and player.Parent do
 		player:GetAttributeChangedSignal("DataLoaded"):Wait()
@@ -277,16 +284,15 @@ function PlayerData.init()
 		PlayerData.updateAsync(player, function(data: PlayerData)
 			local changed = false
 			for key, value in updates do
-				-- Handle nested keybinds
-				if key == "keybinds" and type(value) == "table" then
+				if key == "keybinds" and typeof(value) == "table" then
 					for bindKey, bindValue in value do
-						if data.settings.keybinds[bindKey] ~= bindValue then
-							data.settings.keybinds[bindKey] = bindValue
+						if (data.settings.keybinds :: any)[bindKey] ~= bindValue then
+							(data.settings.keybinds :: any)[bindKey] = bindValue
 							changed = true
 						end
 					end
-				elseif data.settings[key] ~= nil and data.settings[key] ~= value then
-					data.settings[key] = value
+				elseif (data.settings :: any)[key] ~= nil and (data.settings :: any)[key] ~= value then
+					(data.settings :: any)[key] = value
 					changed = true
 				end
 			end
@@ -295,16 +301,15 @@ function PlayerData.init()
 	end)
 
 	local function onPlayerAdded(player: Player)
-		-- Set attribute to false initially to indicate data is loading
 		player:SetAttribute("DataLoaded", false)
 
 		local success, message = pcall(function()
 			store:loadAsync(player)
 			return nil
 		end)
+
 		if success then
 			Loaded[player] = true
-			-- Signal to client that data has been loaded
 			player:SetAttribute("DataLoaded", true)
 		else
 			warn(`Failed to load data for {player.Name}: {message}`)

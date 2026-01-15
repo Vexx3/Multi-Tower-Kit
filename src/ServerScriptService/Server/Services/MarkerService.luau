@@ -10,22 +10,26 @@ local PlayerService = require("./PlayerService")
 local Types = require(Shared.Types)
 local Util = require(Shared.Util)
 
-local MARKERS = workspace:FindFirstChild("Markers") :: Folder
+local MARKERS = workspace:FindFirstChild("Markers") :: Folder?
 
 local MarkerService = {}
 
 local function initMarker(marker: BasePart)
 	if marker.Name == "LobbyTP" then
-		local spawnLocation = MARKERS:WaitForChild("SpawnLocation")
+		local spawnLocation = MARKERS and MARKERS:WaitForChild("SpawnLocation")
 		assert(
 			spawnLocation and spawnLocation:IsA("BasePart"),
 			"Could not initialize LobbyTP because a SpawnLocation couldn't be found"
 		)
 
 		Util.registerTouch(marker, function(playerName)
-			local player: Types.PlayerInfo = PlayerService.getSession(playerName)
-			player.player.Team = Teams.Start
-			Util.teleportPlayerToPart(player.player, spawnLocation)
+			local playerInfo: Types.PlayerInfo? = PlayerService.getSession(playerName)
+			if not playerInfo then
+				return
+			end
+
+			playerInfo.player.Team = Teams.Start
+			Util.teleportPlayerToPart(playerInfo.player, spawnLocation)
 		end)
 	end
 end

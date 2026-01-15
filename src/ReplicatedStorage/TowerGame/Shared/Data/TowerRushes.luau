@@ -1,30 +1,24 @@
--- Configures tower rushes for the current realm.
+--[[
+	Tower rush configurations.
+	Each rush defines a sequence of towers that must be completed in order.
+]]
 
-return {
+local Types = require("../Types")
+
+type TowerRush = Types.TowerRush
+
+local TowerRushes: Types.Dictionary<TowerRush> = {
 	ETR = {
 		winroomMarker = "WinroomSpawn",
-		towers = {
-			"ETV5",
-			"ETV6",
-		},
+		towers = { "ETV5", "ETV6" },
 		noBoosts = false,
 	},
 
 	TSR = {
 		winroomMarker = "WinroomSpawn",
-		towers = {
-			"ToUC",
-			"ToVP",
-			"ToNC",
-			"ToDIM",
-			"ToMD",
-		},
+		towers = { "ToUC", "ToVP", "ToNC", "ToDIM", "ToMD" },
 		noBoosts = true,
 	},
-
-	ETR2 = {
-		winroomMarker = "SCWinroom",
-		towers = table.create(100, "ETV5"),
-		noBoosts = false,
-	},
 }
+
+return TowerRushes

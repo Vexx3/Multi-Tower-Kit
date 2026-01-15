@@ -1,11 +1,16 @@
+-- Command: /fakewin <player> <ending> [difficulty] [time] [global]
+-- Broadcasts a fake win message (no stats/badges awarded).
+
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
-local Shared = ReplicatedStorage.TowerGame.Shared
+local TowerGame = ReplicatedStorage.TowerGame
+local Shared = TowerGame.Shared
+local Packages = ReplicatedStorage.Packages
 
 local BlinkServer = require("../../Network/BlinkServer")
+local ConchTypes = require(Shared.ConchTypes)
 local Util = require(Shared.Util)
-local args = require(Shared.ConchTypes)
-local conch = require("@game/ReplicatedStorage/Packages/conch")
+local conch = require(Packages.conch)
 
 return function()
 	conch.register("fakewin", {
@@ -14,7 +19,7 @@ return function()
 		arguments = function()
 			return conch.args.player("player", "Player to display as winner"),
 				conch.args.string("ending", "Ending/Tower name to display"),
-				conch.args.optional(args.difficultyName("difficulty", "Difficulty name")),
+				conch.args.optional(ConchTypes.difficultyName("difficulty", "Difficulty name")),
 				conch.args.optional(conch.args.number("time", "Run time in seconds")),
 				conch.args.optional(conch.args.boolean("global", "Send as global message"))
 		end,

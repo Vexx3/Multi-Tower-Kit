@@ -1,5 +1,12 @@
+-- Command: /unloadtower <target>
+-- Unloads the currently playing tower for a player.
+
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local Packages = ReplicatedStorage.Packages
+
 local BlinkServer = require("../../Network/BlinkServer")
-local conch = require("@game/ReplicatedStorage/Packages/conch")
+local conch = require(Packages.conch)
 
 return function()
 	conch.register("unloadtower", {

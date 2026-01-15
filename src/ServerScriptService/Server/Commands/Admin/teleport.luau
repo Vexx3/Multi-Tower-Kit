@@ -1,6 +1,11 @@
+-- Command: /teleport <targets> [destinationPlayer] [destinationPosition]
+-- Teleports players to another player or a Vector3 position.
+
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
-local conch = require(ReplicatedStorage.Packages.conch)
+local Packages = ReplicatedStorage.Packages
+
+local conch = require(Packages.conch)
 
 return function()
 	conch.register("teleport", {
@@ -17,7 +22,7 @@ return function()
 				return conch.log("warn", "No players to teleport")
 			end
 
-			local destCFrame
+			local destCFrame: CFrame
 
 			if destinationPlayer then
 				local destChar = destinationPlayer.Character

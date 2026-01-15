@@ -1,9 +1,4 @@
---[=[
-	Coordinates tower rush flow: starting rushes, advancing through towers, and awarding completions.
-
-	@class TowerRushService
-	@server
-]=]
+-- Coordinates tower rush flow: starting rushes, advancing through towers, and awarding completions.
 
 local BadgeService = game:GetService("BadgeService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -11,11 +6,12 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local TowerGame = ReplicatedStorage.TowerGame
 local Shared = TowerGame.Shared
 local Data = Shared.Data
+local Framework = ReplicatedStorage.Framework
 
-local AnnouncementService = require("../Services/AnnouncementService")
+local AnnouncementService = require("./AnnouncementService")
 local BlinkServer = require("../Network/BlinkServer")
 local LeaderstatsService = require("./LeaderstatsService")
-local Log = require(ReplicatedStorage.Framework.Log)
+local Log = require(Framework.Log)
 local PlayerState = require("../Player/PlayerState")
 local RealmInfo = require(Data.RealmInfo)
 local TowerData = require("../Player/PlayerData/TowerData")
@@ -24,16 +20,24 @@ local TowerService = require("./TowerService")
 local Types = require(Shared.Types)
 local Util = require(Shared.Util)
 
-local TowerRushes: Types.Dictionary<Types.TowerRush> = require(Data.TowerRushes) :: any
+type TowerRush = Types.TowerRush
+type PlayerInfo = Types.PlayerInfo
+type TowerInfo = Types.TowerInfo
 
-local _rushInfoMap: Types.Dictionary<Types.RealmTowerInfo> = {}
-local realms: Types.Realms = RealmInfo :: any
-for _, world in realms do
-	for _, area in world do
-		if area.towers then
-			for key, data in area.towers do
-				if data.rush then
-					_rushInfoMap[key] = data
+local TowerRushes = require(Data.TowerRushes)
+
+-- Maps rush key to realm tower info (for badge/name lookup).
+local rushInfoMap: Types.Dictionary<Types.RealmTowerInfo> = {}
+
+do
+	local realms: Types.Realms = RealmInfo :: any
+	for _, world in realms do
+		for _, area in world do
+			if area.towers then
+				for key, data in area.towers do
+					if data.rush then
+						rushInfoMap[key] = data
+					end
 				end
 			end
 		end
@@ -42,7 +46,7 @@ end
 
 local TowerRushService = {}
 
-local function awardTowerCompletion(playerInfo: Types.PlayerInfo, towerInfo: Types.TowerInfo, splitTime: number)
+local function awardTowerCompletion(playerInfo: PlayerInfo, towerInfo: TowerInfo, splitTime: number)
 	local player = playerInfo.player
 	local isAllJumps = playerInfo.mode == "AllJumps"
 
@@ -61,8 +65,8 @@ local function awardTowerCompletion(playerInfo: Types.PlayerInfo, towerInfo: Typ
 	end
 end
 
-local function awardRushCompletion(playerInfo: Types.PlayerInfo, towerRushName: string, rushTime: number)
-	local rushInfo = _rushInfoMap[towerRushName]
+local function awardRushCompletion(playerInfo: PlayerInfo, towerRushName: string, rushTime: number)
+	local rushInfo = rushInfoMap[towerRushName]
 	local rushConfig = TowerRushes[towerRushName]
 
 	if not rushInfo or not rushConfig then
@@ -94,8 +98,8 @@ local function awardRushCompletion(playerInfo: Types.PlayerInfo, towerRushName: 
 end
 
 -- Begin a tower rush for the player, initializing rush state and loading the first tower.
-function TowerRushService.loadTowerRush(player: Types.PlayerInfo, towerRushName: string)
-	local towerRush: Types.TowerRush? = TowerRushes[towerRushName]
+function TowerRushService.loadTowerRush(player: PlayerInfo, towerRushName: string)
+	local towerRush: TowerRush? = TowerRushes[towerRushName]
 
 	if not towerRush then
 		Log({
@@ -121,8 +125,8 @@ function TowerRushService.loadTowerRush(player: Types.PlayerInfo, towerRushName:
 end
 
 -- Advance a player to the next tower in their active rush or complete the rush if on the final tower.
-function TowerRushService.advanceTowerRush(player: Types.PlayerInfo)
-	local towerRush: Types.TowerRush? = TowerRushes[player.currentTowerRush]
+function TowerRushService.advanceTowerRush(player: PlayerInfo)
+	local towerRush: TowerRush? = TowerRushes[player.currentTowerRush]
 	if not towerRush then
 		return
 	end
@@ -144,6 +148,7 @@ function TowerRushService.advanceTowerRush(player: Types.PlayerInfo)
 
 	player.currentTowerRushIndex += 1
 	player.currentTowerRushSplitTime = rushTime
+
 	local towerName = towerRush.towers[player.currentTowerRushIndex]
 	TowerService.loadTower(player, towerName, false)
 	BlinkServer.UpdateTowerRush.Fire(player.player, player.currentTowerRushIndex, towerCount)

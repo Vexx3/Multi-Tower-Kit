@@ -1,7 +1,9 @@
+-- Chat tag configuration for player prefixes.
+-- Tags can be assigned by UserId, gamepass ownership, or group rank.
+
 local Types = require("../Types")
 
 local ChatTags: Types.ChatTagsConfig = {
-	-- Tag definitions: name -> { Text, Color }
 	TAGS = {
 		Owner = { Text = "[Owner]", Color = Color3.fromRGB(255, 215, 0) },
 		Administrator = { Text = "[Admin]", Color = Color3.fromRGB(255, 85, 85) },
@@ -12,18 +14,14 @@ local ChatTags: Types.ChatTagsConfig = {
 		VIP = { Text = "[VIP]", Color = Color3.fromRGB(255, 255, 0) },
 	},
 
-	-- UserId -> TagName
 	USER_TAGS = {
 		[949649253] = "Owner",
-		-- [3471772640] = "Administrator",
 	},
 
-	-- Gamepass-based tags: GamepassId -> TagName
 	GAMEPASS_TAGS = {
 		-- [264906725] = "VIP",
 	},
 
-	-- Group-based tags: { GroupId, Roles = { [RankId] = "TagName" } }
 	GROUP_TAGS = {
 		-- {
 		-- 	GroupId = 4777338,

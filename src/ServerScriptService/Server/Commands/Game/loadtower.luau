@@ -1,18 +1,24 @@
+-- Command: /loadtower <target> <tower>
+-- Loads a tower for a player.
+
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
-local Shared = ReplicatedStorage.TowerGame.Shared
+local TowerGame = ReplicatedStorage.TowerGame
+local Shared = TowerGame.Shared
+local Packages = ReplicatedStorage.Packages
 
+local ConchTypes = require(Shared.ConchTypes)
 local PlayerService = require("../../Services/PlayerService")
 local TowerService = require("../../Services/TowerService")
-local args = require(Shared.ConchTypes)
-local conch = require("@game/ReplicatedStorage/Packages/conch")
+local conch = require(Packages.conch)
 
 return function()
 	conch.register("loadtower", {
 		description = "Loads a tower for a player",
 		permissions = { "manage-tower" },
 		arguments = function()
-			return conch.args.player("target", "Player to load the tower for"), args.towerName("tower", "Tower to load")
+			return conch.args.player("target", "Player to load the tower for"),
+				ConchTypes.towerName("tower", "Tower to load")
 		end,
 
 		callback = function(target: Player, towerName: string)

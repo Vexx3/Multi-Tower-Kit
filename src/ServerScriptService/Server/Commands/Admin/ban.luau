@@ -1,7 +1,12 @@
+-- Command: /ban <user> <reason> <privateReason> [duration]
+-- Bans a player from the game by UserId or username.
+
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
-local conch = require(ReplicatedStorage.Packages.conch)
+local Packages = ReplicatedStorage.Packages
+
+local conch = require(Packages.conch)
 
 local function resolveUser(userInput: string | number): number?
 	if typeof(userInput) == "number" then
@@ -13,8 +18,6 @@ local function resolveUser(userInput: string | number): number?
 
 		if success then
 			return userId
-		else
-			return nil
 		end
 	end
 
@@ -34,11 +37,19 @@ return function()
 
 		callback = function(userInput: string | number, reason: string, privateReason: string, duration: number?)
 			local context = conch.get_command_context()
+			if not context then
+				conch.log("warn", "No command context available")
+				return
+			end
+
 			local executor = context.executor
-			local executorPlayer = executor.player
+			local executorPlayer = executor and executor.player
+			if not executorPlayer then
+				conch.log("warn", "Could not determine executor")
+				return
+			end
 
 			duration = tonumber(duration) or -1
-			--reason = reason or "You have been banned from the game"
 
 			local userId = resolveUser(userInput)
 			if not userId then
@@ -52,7 +63,7 @@ return function()
 			end
 
 			local success, err = pcall(function()
-				Players:BanAsync({
+				return Players:BanAsync({
 					UserIds = { userId },
 					Duration = duration,
 					DisplayReason = reason,

@@ -3,7 +3,8 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Teams = game:GetService("Teams")
 
-local Shared = ReplicatedStorage.TowerGame.Shared
+local TowerGame = ReplicatedStorage.TowerGame
+local Shared = TowerGame.Shared
 
 local BlinkServer = require("../Network/BlinkServer")
 local Types = require(Shared.Types)
@@ -49,14 +50,11 @@ function PlayerState.teleportToWinroom(player: PlayerInfo, winroomMarker: string
 	local actualMarker: string = winroomMarker or ""
 	player.touchEventBusy = true
 
-	-- Send player to the winner team and unload the current tower
 	player.player.Team = Teams.Winners
 	BlinkServer.UnloadTower.Fire(player.player)
 
-	-- Clean up the player info
 	PlayerState.resetPlayerInfo(player)
 
-	-- Find the winroom
 	local winroomPart: BasePart?
 	if actualMarker ~= "" then
 		winroomPart = MARKERS:FindFirstChild(actualMarker, true) :: BasePart?
@@ -64,7 +62,6 @@ function PlayerState.teleportToWinroom(player: PlayerInfo, winroomMarker: string
 		winroomPart = MARKERS:FindFirstChild("WinroomSpawn", true) :: BasePart?
 	end
 
-	-- Teleport to the winroom
 	if winroomPart and winroomPart:IsA("BasePart") then
 		Util.respawnAndTeleport(player.player, winroomPart)
 	end

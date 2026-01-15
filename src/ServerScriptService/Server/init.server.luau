@@ -1,15 +1,16 @@
 -- Main server entry point for Multi-Tower Kit.
--- This file is now a slim entry point that boots the MTK framework by discovery.
+-- Boots the MTK server framework by discovering and initializing all services.
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local ServerStorage = game:GetService("ServerStorage")
+
 local TowerGame = ReplicatedStorage.TowerGame
 local Shared = TowerGame.Shared
+local Framework = ReplicatedStorage.Framework
 
-local Log = require(ReplicatedStorage.Framework.Log)
+local Log = require(Framework.Log)
 local ModuleLoader = require(Shared.ModuleLoader)
-
-local TowerService = require("@self/Services/TowerService")
+local TowerService = require(script.Services.TowerService)
 
 local function init()
 	Log({ "Initializing MTK Server Framework..." })

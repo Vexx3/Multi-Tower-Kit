@@ -28,11 +28,10 @@ type List<T> = Types.List<T>
 type PlayerInfo = Types.PlayerInfo
 type TowerInfo = Types.TowerInfo
 
-local TowerRushes: Types.Dictionary<Types.TowerRush> = require(TowerGame.Shared.Data.TowerRushes) :: any
+local TowerRushes = require(Data.TowerRushes)
 
 local TOWERS = workspace.Towers
 local WINPAD_PARTICLES = ServerStorage.WinpadParticles
-
 local WINPAD_MATERIALS = Enum.Material:GetEnumItems()
 
 local winpads: List<BasePart> = {}
@@ -40,9 +39,9 @@ local winpads: List<BasePart> = {}
 local WinpadService = {}
 
 local function updateWinpadAnimations(_time: number, deltaTime: number)
-	-- If the animation time of a winpad has passed
 	local prevInterval = math.floor((_time - deltaTime) / Config.winpadInterval) * Config.winpadInterval
 	local currentInterval = math.floor(_time / Config.winpadInterval) * Config.winpadInterval
+
 	if prevInterval < currentInterval then
 		for _, winpad in winpads do
 			if Config.winpadsChangeColor then
@@ -57,13 +56,14 @@ local function updateWinpadAnimations(_time: number, deltaTime: number)
 end
 
 local function onPlayerTouchedWinpad(playerName: string, towerName: string, endingId: string)
-	local player: PlayerInfo = PlayerService.getSession(playerName)
-	local tower: TowerInfo = TowerService.getTower(towerName)
+	local player = PlayerService.getSession(playerName)
+	local tower = TowerService.getTower(towerName)
 
 	if not player or not tower then
 		return
 	end
 
+	-- Check boost restrictions
 	if player.boostItemUsed then
 		if tower.noBoosts then
 			return
@@ -90,12 +90,14 @@ local function onPlayerTouchedWinpad(playerName: string, towerName: string, endi
 		return
 	end
 
+	-- Validate win through anti-cheat
 	local valid, reason = AntiCheat.validateWin(player, tower, ending)
 	if not valid then
 		AnnouncementService.antiCheatKick(player.player, reason)
 		return
 	end
 
+	-- Handle solo tower completion vs tower rush advancement
 	if player.currentTowerRush == "" then
 		local endingDifficultyName = if endingId == towerName then tower.difficulty else ending.difficulty
 		local endingName = if endingId == towerName then tower.name else ending.name
@@ -104,9 +106,10 @@ local function onPlayerTouchedWinpad(playerName: string, towerName: string, endi
 		local runTime = player.towerTimer
 		AnnouncementService.winAnnouncement(player, endingName, endingDifficultyName, runTime)
 
-		local onAjMode = player.mode == "AllJumps"
+		local isAllJumps = player.mode == "AllJumps"
 
-		if not onAjMode then
+		-- Award badges for normal mode completions
+		if not isAllJumps then
 			if tower.badgeId ~= 0 and not ending.preventTowerBadge then
 				BadgeService:AwardBadgeAsync(player.player.UserId, tower.badgeId)
 			end
@@ -116,8 +119,9 @@ local function onPlayerTouchedWinpad(playerName: string, towerName: string, endi
 			end
 		end
 
+		-- Record completion and update leaderstats
 		if endingId == towerName then
-			if onAjMode then
+			if isAllJumps then
 				if tower.ajBadgeId and tower.ajBadgeId ~= 0 then
 					BadgeService:AwardBadgeAsync(player.player.UserId, tower.ajBadgeId)
 				end
@@ -180,8 +184,8 @@ local function initWinpad(towerName: string, winpad: BasePart)
 end
 
 function WinpadService.init()
-	for _, tower in ipairs(TOWERS:GetChildren()) do
-		for _, descendant in ipairs(tower:GetDescendants()) do
+	for _, tower in TOWERS:GetChildren() do
+		for _, descendant in tower:GetDescendants() do
 			if descendant.Name == "WinPad" and descendant:IsA("BasePart") then
 				initWinpad(tower.Name, descendant)
 			end

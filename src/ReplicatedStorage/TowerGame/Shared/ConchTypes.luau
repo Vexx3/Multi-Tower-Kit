@@ -1,17 +1,23 @@
 -- Defines custom types for the Conch command system.
+-- Registers tower names, marker names, and difficulty names as command arguments.
+
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local Packages = ReplicatedStorage.Packages
 
 local DifficultiesModule = require("./Data/Difficulties")
-local conch = require("@game/ReplicatedStorage/Packages/conch")
+local conch = require(Packages.conch)
 
-local markers = workspace:WaitForChild("Markers")
-local towers = workspace:WaitForChild("Towers")
+local Markers = workspace:WaitForChild("Markers")
+local Towers = workspace:WaitForChild("Towers")
 
-local difficulties = DifficultiesModule.data
+local Difficulties = DifficultiesModule.data
+
 local markerMap: { [string]: BasePart } = {}
 local towerArray: { string } = {}
 local difficultyArray: { string } = {}
 
-for _, child in ipairs(markers:GetChildren()) do
+for _, child in Markers:GetChildren() do
 	if child:IsA("BasePart") then
 		if child.Name == "LobbyTP" then
 			continue
@@ -20,7 +26,7 @@ for _, child in ipairs(markers:GetChildren()) do
 	end
 end
 
-for _, tower in ipairs(towers:GetChildren()) do
+for _, tower in Towers:GetChildren() do
 	if tower:IsA("Folder") then
 		if tower.Name == "EverpresentCOs" then
 			continue
@@ -29,7 +35,7 @@ for _, tower in ipairs(towers:GetChildren()) do
 	end
 end
 
-for name, _ in pairs(difficulties) do
+for name in Difficulties do
 	table.insert(difficultyArray, name)
 end
 
@@ -37,10 +43,10 @@ local difficultyName = conch.register_type("difficulty_name", conch.args.enum_ne
 local markerName = conch.register_type("marker_name", conch.args.enum_map(markerMap))
 local towerName = conch.register_type("tower_name", conch.args.enum_new(towerArray))
 
-local ConchTypes = {}
-
-ConchTypes.difficultyName = difficultyName
-ConchTypes.markerName = markerName
-ConchTypes.towerName = towerName
+local ConchTypes = {
+	difficultyName = difficultyName,
+	markerName = markerName,
+	towerName = towerName,
+}
 
 return ConchTypes

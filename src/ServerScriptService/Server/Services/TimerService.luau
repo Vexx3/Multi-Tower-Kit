@@ -1,4 +1,4 @@
--- Multi Tower Kit: Handles game timers, syncs, and checkpoint detection.
+-- Handles game timers, syncs, and checkpoint detection.
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
@@ -19,8 +19,7 @@ local TimerService = {}
 
 local function onStepped(_time: number, deltaTime: number)
 	for _, v in PlayerService.getAllSessions() do
-		-- Increment the time spent ingame..
-		-- and the time spend in the tower, if in one
+		-- Increment game timer and tower timer
 		v.gameTimer += deltaTime
 		if v.currentTower ~= "" then
 			local tower = TowerService.getTower(v.currentTower)
@@ -31,6 +30,7 @@ local function onStepped(_time: number, deltaTime: number)
 			local oldTowerTimer = v.towerTimer
 			v.towerTimer += deltaTime
 
+			-- Sync timer with client periodically
 			local i = Config.timerSyncInterval
 			local a = math.floor(oldTowerTimer / i) * i
 			local b = math.floor(v.towerTimer / i) * i
@@ -39,7 +39,7 @@ local function onStepped(_time: number, deltaTime: number)
 			end
 		end
 
-		-- Update the Player Attributes
+		-- Update player attributes
 		PlayerState.updatePlayerInfoStats(v)
 
 		-- Checkpoint detection
@@ -47,7 +47,6 @@ local function onStepped(_time: number, deltaTime: number)
 		local currentInterval = math.floor(_time / Config.checkpointInterval) * Config.checkpointInterval
 		if prevInterval < currentInterval then
 			local character = v.player.Character
-			-- If the player is in a tower
 			if v.currentTower ~= "" and character then
 				local tower: Types.TowerInfo? = TowerService.getTower(v.currentTower)
 				if not tower then

@@ -1,9 +1,12 @@
+-- Initializes lobby teleporters and tower portals based on workspace setup.
+
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
-local Log = require(ReplicatedStorage.Framework.Log)
 local TowerGame = ReplicatedStorage.TowerGame
 local Shared = TowerGame.Shared
+local Framework = ReplicatedStorage.Framework
 
+local Log = require(Framework.Log)
 local PlayerService = require("./PlayerService")
 local TowerRushService = require("./TowerRushService")
 local TowerService = require("./TowerService")
@@ -18,7 +21,7 @@ local PORTALS = workspace.Portals
 
 local PortalService = {}
 
-local function canEnter(playerName: string, targetTower: string?)
+local function canEnter(playerName: string, targetTower: string?): boolean
 	local player = PlayerService.getSession(playerName)
 	if not player then
 		return false
@@ -35,7 +38,7 @@ local function canEnter(playerName: string, targetTower: string?)
 	return true
 end
 
-local function RegisterStringPortal(
+local function registerStringPortal(
 	part: BasePart,
 	value: StringValue,
 	onTouch: (playerName: string, value: string) -> ()
@@ -45,10 +48,10 @@ local function RegisterStringPortal(
 	end)
 end
 
-local function Setup(portalPart: BasePart)
-	local TowerPortal = portalPart:FindFirstChild("TowerPortal") :: StringValue
-	if TowerPortal then
-		RegisterStringPortal(portalPart, TowerPortal, function(playerName, value)
+local function setupPortal(portalPart: BasePart)
+	local towerPortal = portalPart:FindFirstChild("TowerPortal") :: StringValue
+	if towerPortal then
+		registerStringPortal(portalPart, towerPortal, function(playerName, value)
 			if canEnter(playerName, value) then
 				local player = PlayerService.getSession(playerName)
 				if player then
@@ -59,9 +62,9 @@ local function Setup(portalPart: BasePart)
 		return
 	end
 
-	local TowerRush = portalPart:FindFirstChild("TowerRush") :: StringValue
-	if TowerRush then
-		RegisterStringPortal(portalPart, TowerRush, function(playerName, value)
+	local towerRush = portalPart:FindFirstChild("TowerRush") :: StringValue
+	if towerRush then
+		registerStringPortal(portalPart, towerRush, function(playerName, value)
 			if canEnter(playerName) then
 				local player = PlayerService.getSession(playerName)
 				if player then
@@ -72,8 +75,8 @@ local function Setup(portalPart: BasePart)
 		return
 	end
 
-	local LobbyTeleporter = portalPart:FindFirstChild("LobbyTeleporter") :: StringValue
-	if not LobbyTeleporter then
+	local lobbyTeleporter = portalPart:FindFirstChild("LobbyTeleporter") :: StringValue
+	if not lobbyTeleporter then
 		Log({
 			type = "warn",
 			[1] = `Part "{portalPart.Name}" was found in the portal folder but it isn't a portal`,
@@ -81,10 +84,10 @@ local function Setup(portalPart: BasePart)
 		return
 	end
 
-	local targetPart = MARKERS:FindFirstChild(LobbyTeleporter.Value, true) :: BasePart
+	local targetPart = MARKERS:FindFirstChild(lobbyTeleporter.Value, true) :: BasePart
 	if targetPart and targetPart:IsA("BasePart") then
 		Util.registerTouch(portalPart, function(playerName)
-			local player: PlayerInfo = PlayerService.getSession(playerName)
+			local player = PlayerService.getSession(playerName)
 			if player and not player.touchEventBusy then
 				player.touchEventBusy = true
 				Util.teleportPlayerToPart(player.player, targetPart)
@@ -97,13 +100,12 @@ local function Setup(portalPart: BasePart)
 			[1] = `Could not setup teleporter "{portalPart:GetFullName()}" because it does not reference a BasePart`,
 		})
 	end
-	return
 end
 
 function PortalService.init()
 	for _, child in PORTALS:GetChildren() do
 		if child:IsA("BasePart") then
-			Setup(child)
+			setupPortal(child)
 		end
 	end
 end

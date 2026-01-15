@@ -1,4 +1,7 @@
--- Configuration for realms, areas, and towers.
+--[[
+	Configuration for realms, areas, and towers.
+	Defines the world structure and tower metadata for each area.
+]]
 
 local Types = require("../Types")
 
@@ -8,7 +11,6 @@ local RealmInfo: Types.Realms = {
 			title = "Limbo",
 			emblem = "rbxassetid://110375453605989",
 			placeId = 0,
-
 			towers = {
 				ETV5 = { name = "Example Tower V5", badgeId = 0, rating = 1, numDifficulty = 0.00 },
 				ETV6 = { name = "Example Tower V6", badgeId = 0, rating = 8, numDifficulty = 0.01 },
@@ -24,8 +26,8 @@ local RealmInfo: Types.Realms = {
 			requirements = {
 				points = 22,
 				difficultyLocks = {
-					{ rating = 4, count = 3 }, -- Beat 3 Difficult Difficulty Towers+
-					{ rating = 5, count = 1 }, -- Beat 1 Challenging Difficulty Tower+
+					{ rating = 4, count = 3 },
+					{ rating = 5, count = 1 },
 				},
 			},
 		},

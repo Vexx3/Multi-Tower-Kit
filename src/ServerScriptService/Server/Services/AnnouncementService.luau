@@ -1,5 +1,5 @@
--- Handles in-server announcements, cross-server global win messages, and
--- anti-cheat kick broadcasts.
+-- Handles in-server announcements, cross-server global win messages,
+-- and anti-cheat kick broadcasts.
 
 local HttpService = game:GetService("HttpService")
 local MessagingService = game:GetService("MessagingService")
@@ -74,7 +74,6 @@ local function onGlobalWinMessage(message: Message)
 	broadcastWinAnnouncement(info)
 end
 
--- Sends a generic server announcement to all players.
 function AnnouncementService.gameAnnouncement(message: string, color: Color3, isFancyText: boolean?)
 	BlinkServer.GameAnnouncement.FireAll(message, color, isFancyText)
 end
@@ -98,7 +97,6 @@ function AnnouncementService.winAnnouncement(
 )
 	local difficultyInfo = Util.getDifficulty(difficultyName)
 	local finalTime = timeOverride or player.towerTimer
-
 	local playerName = if Config.useDisplayName then player.player.DisplayName else player.player.Name
 
 	local isAJ = player.mode == "AllJumps"

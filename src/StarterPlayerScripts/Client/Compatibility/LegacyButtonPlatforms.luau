@@ -1,10 +1,13 @@
---[=[
-	Legacy ButtonActivatedPlatform compatibility for v5 towers.
-	Syncs CanCollide → Activated attribute for CharacterManager.
-]=]
+-- Legacy ButtonActivatedPlatform compatibility for v5 towers.
+-- Syncs CanCollide → Activated attribute for CharacterManager.
 
-local connections: { [Instance]: RBXScriptConnection } = {}
+type ConnectionMap = { [Instance]: RBXScriptConnection }
 
+local connections: ConnectionMap = {}
+
+local LegacyButtonPlatforms = {}
+
+-- Sets up property sync for a ButtonActivatedPlatform.
 local function setupSync(platform: BasePart): ()
 	if connections[platform] then
 		return
@@ -16,10 +19,12 @@ local function setupSync(platform: BasePart): ()
 	end)
 end
 
+-- Checks if a part is a ButtonActivatedPlatform.
 local function isBap(part: BasePart): boolean
 	return part.Name == "ButtonActivatedPlatform" or part:FindFirstChild("ButtonActivated") ~= nil
 end
 
+-- Monitors a folder for ButtonActivatedPlatforms.
 local function monitorFolder(folder: Instance): ()
 	for _, desc in folder:GetDescendants() do
 		if desc:IsA("BasePart") and isBap(desc) then
@@ -42,7 +47,8 @@ local function monitorFolder(folder: Instance): ()
 	end)
 end
 
-local function init(): ()
+-- Initializes monitoring for legacy ButtonActivatedPlatforms.
+function LegacyButtonPlatforms.init(): ()
 	workspace.ChildAdded:Connect(function(child)
 		if child:IsA("Folder") and child:GetAttribute("KitVersion") == nil then
 			monitorFolder(child)
@@ -56,6 +62,4 @@ local function init(): ()
 	end
 end
 
-return {
-	init = init,
-}
+return LegacyButtonPlatforms

@@ -1,10 +1,9 @@
 -- Global configuration for the Multi Tower Kit.
+-- Contains all server and shared configuration values.
 
 local Types = require("../Types")
 
 local Config: Types.GlobalConfig = {
-	-- GAME BEHAVIOR
-
 	-- The client and server both track tower time, but only the
 	-- server value is authoritative. To prevent desynchronization,
 	-- the server periodically sends a corrected timer value to the
@@ -24,8 +23,6 @@ local Config: Types.GlobalConfig = {
 	-- the player's current tower.
 	restartResetsTowerRush = true,
 
-	-- COSMETIC SETTINGS
-
 	-- Interval (in seconds) at which winpads should change color.
 	winpadInterval = 0.25,
 
@@ -39,8 +36,6 @@ local Config: Types.GlobalConfig = {
 	-- in announcements and webhook messages.
 	useDisplayName = false,
 
-	-- WARNINGS & SAFETY CHECKS
-
 	-- Warns if a tower contains no checkpoints.
 	checkpointsMissingWarning = true,
 
@@ -51,21 +46,14 @@ local Config: Types.GlobalConfig = {
 	-- with certain tower elements.
 	r15Warning = true,
 
-	-- DATA STORE
-
-	-- When updating the fangame kit make sure before you update the
-	-- DATA_STORE_KEY must still be the same as before, otherwise
-	-- players will lose all their data!
-
 	-- Keys used for player data storage. The studio key is used when
 	-- testing in Roblox Studio.
+	-- WARNING: Do not change these keys after release or players will lose data!
 	dataStoreKey = "Productionagainnnnnnnnnnnn",
 	dataStoreKeyStudio = "Test1024617",
 
-	-- WEBHOOKS
-
 	-- Enables/disables outgoing webhook notifications.
-	-- Create a webhook in your game settings (create.roblox.com/dashboard/creations) under "Secrets".
+	-- Create a webhook in your game settings under "Secrets".
 	-- Enable HTTP requests for the game.
 	-- Secret name must be "SC_WEBHOOK" or "NORMAL_WEBHOOK".
 	webhooksEnabled = false,
@@ -76,10 +64,8 @@ local Config: Types.GlobalConfig = {
 	-- Template for the all-jumps win announcement webhook.
 	webhookAjMessage = "**{PlayerName}** has all-jumped **{EndingName} [{DifficultyEmoji}]** in `{Time}`",
 
-	-- Template for the message boosts used
+	-- Template for the message boosts used.
 	webhookBoostsUsed = "\nUsed: {BoostList}",
-
-	-- ADMINISTRATION
 
 	-- Role-based permission configuration. Each role defines a list
 	-- of permissions granted to users assigned to that role.
@@ -94,7 +80,7 @@ local Config: Types.GlobalConfig = {
 			"fake-win",
 			"shutdown-server",
 		},
-		player = {}, -- Default role with no special permissions.
+		player = {},
 	},
 
 	-- Maps UserIds to roles. The "super-user" role grants universal

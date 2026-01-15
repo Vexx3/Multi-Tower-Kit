@@ -1,4 +1,5 @@
 -- Utility functions used throughout the Multi Tower Kit.
+-- Contains helpers for player detection, formatting, and gameplay utilities.
 
 local Players = game:GetService("Players")
 
@@ -13,12 +14,12 @@ type Realms = Types.Realms
 
 local DIFFICULTIES = DifficultiesModule.data
 local HIP_OFFSET = CFrame.new(0, 3, 0)
+local RAINBOW_SPEED = 0.2
 
 local DEFAULT_DIFFICULTY: Difficulty = {
 	title = "unknown",
 	rating = 0,
 	color = Color3.new(1, 1, 1),
-
 	fancyFont = false,
 	globalAnnouncement = false,
 	globalAjAnnouncement = false,
@@ -27,9 +28,52 @@ local DEFAULT_DIFFICULTY: Difficulty = {
 local Util = {}
 
 function Util.getDifficulty(difficultyName: string): Difficulty
-	local search: Difficulty? = DIFFICULTIES[difficultyName]
-	return search or DEFAULT_DIFFICULTY
+	return DIFFICULTIES[difficultyName] or DEFAULT_DIFFICULTY
 end
+
+function Util.getDifficultyByRating(rating: number): string
+	for name, info in DIFFICULTIES do
+		if info.rating == rating then
+			return name
+		end
+	end
+	return ""
+end
+
+function Util.getDifficultyColors(difficultyName: string): (Color3, Color3)
+	local difficulty = Util.getDifficulty(difficultyName)
+	local color = difficulty.color
+	return color, Color3.new(color.R * 0.35, color.G * 0.35, color.B * 0.35)
+end
+
+function Util.getFormattedDifficultyRichText(rating: number, numDifficulty: number): string
+	local diffName = Util.getDifficultyByRating(rating) or "Unknown"
+	local subDiff, subColor = DifficultiesModule.getSubDetails(numDifficulty)
+	local difficultyInfo = Util.getDifficulty(diffName)
+	local tColor = difficultyInfo.color
+
+	local subHex = subColor:ToHex()
+	local diffHex = tColor:ToHex()
+
+	local ratingDisplay = tostring(rating)
+	if numDifficulty > 0 then
+		ratingDisplay = string.format("%d.%02d", rating, numDifficulty * 100)
+	end
+
+	return string.format(
+		'<font color="#%s">%s</font> <font color="#%s">%s</font> <font color="#%s">[%s]</font>',
+		subHex,
+		subDiff,
+		diffHex,
+		diffName,
+		subHex,
+		ratingDisplay
+	)
+end
+
+--------------------------------------------------
+-- Player Helpers
+--------------------------------------------------
 
 function Util.isPlayerPart(hit: BasePart): (boolean, string)
 	local parent = hit.Parent
@@ -48,29 +92,35 @@ function Util.isPlayerAlive(character: Model?): boolean
 	end
 
 	local humanoid = character:FindFirstChildOfClass("Humanoid")
-	if humanoid then
-		return humanoid.Health > 0
+	return humanoid ~= nil and humanoid.Health > 0
+end
+
+function Util.teleportPlayerToPart(player: Player, destination: BasePart)
+	local character = player.Character or player.CharacterAdded:Wait()
+	character:PivotTo(destination.CFrame * HIP_OFFSET)
+end
+
+function Util.respawnAndTeleport(player: Player, spawnPart: BasePart)
+	player:LoadCharacterAsync()
+
+	local character = player.Character or player.CharacterAdded:Wait()
+	local forceField = character:FindFirstChildWhichIsA("ForceField")
+	if forceField then
+		forceField:Destroy()
 	end
 
-	return false
+	Util.teleportPlayerToPart(player, spawnPart)
 end
 
 function Util.isPointInPart(point: Vector3, part: BasePart): boolean
-	local localPoint: Vector3 = part.CFrame:PointToObjectSpace(point)
-	local unitPoint: Vector3 = localPoint / part.Size
-	return (
-		unitPoint.X <= 0.5
+	local localPoint = part.CFrame:PointToObjectSpace(point)
+	local unitPoint = localPoint / part.Size
+	return unitPoint.X <= 0.5
 		and unitPoint.X >= -0.5
 		and unitPoint.Y <= 0.5
 		and unitPoint.Y >= -0.5
 		and unitPoint.Z <= 0.5
 		and unitPoint.Z >= -0.5
-	)
-end
-
-function Util.teleportPlayerToPart(player: Player, destination: BasePart): ()
-	local character = player.Character or player.CharacterAdded:Wait()
-	character:PivotTo(destination.CFrame * HIP_OFFSET)
 end
 
 local function padWithLeadingZero(n: number): string
@@ -81,7 +131,6 @@ function Util.formatTimer(time: number): string
 	local ms = math.floor((time % 1) * 100)
 	local s = math.floor(time % 60)
 	local m = math.floor(time / 60)
-
 	return `{padWithLeadingZero(m)}:{padWithLeadingZero(s)}.{padWithLeadingZero(ms)}`
 end
 
@@ -116,14 +165,13 @@ end
 
 function Util.formatBoosts(boosts: Dictionary<string>): string
 	local boostList: { string } = {}
-	for _, boostName in pairs(boosts) do
+	for _, boostName in boosts do
 		table.insert(boostList, boostName)
 	end
-
 	return table.concat(boostList, ", ")
 end
 
-function Util.registerTouch(part: BasePart, onRequestTouch: (playerName: string, part: BasePart) -> ()): ()
+function Util.registerTouch(part: BasePart, onRequestTouch: (playerName: string, part: BasePart) -> ())
 	if not part:IsA("BasePart") then
 		return
 	end
@@ -154,56 +202,16 @@ function Util.registerTouch(part: BasePart, onRequestTouch: (playerName: string,
 	end)
 end
 
-function Util.respawnAndTeleport(player: Player, spawnPart: BasePart): ()
-	player:LoadCharacterAsync()
-
-	local character = player.Character or player.CharacterAdded:Wait()
-
-	local forceField = character:FindFirstChildWhichIsA("ForceField")
-	if forceField then
-		forceField:Destroy()
-	end
-
-	Util.teleportPlayerToPart(player, spawnPart)
-end
-
-function Util.getDifficultyColors(difficultyName: string): (Color3, Color3)
-	local difficulty = Util.getDifficulty(difficultyName)
-	local color = difficulty.color
-
-	return color, Color3.new(color.R * 0.35, color.G * 0.35, color.B * 0.35)
-end
-
 function Util.getRealmTowerInfo(acronym: string): Types.RealmTowerInfo?
 	local realms: Realms = RealmInfo :: any
-	for _, worldData in pairs(realms) do
-		for _, areaData in pairs(worldData) do
+	for _, worldData in realms do
+		for _, areaData in worldData do
 			if areaData.towers and areaData.towers[acronym] then
 				return areaData.towers[acronym]
 			end
 		end
 	end
-
 	return nil
-end
-
-function Util.find<T>(list: List<T>, predicate: (T) -> boolean): T?
-	for _, value in ipairs(list) do
-		if predicate(value) then
-			return value
-		end
-	end
-	return nil
-end
-
-function Util.getDifficultyByRating(rating: number): string
-	for name, info in pairs(DIFFICULTIES) do
-		if info.rating == rating then
-			return name
-		end
-	end
-
-	return ""
 end
 
 function Util.getTowerColors(acronym: string): (Color3, Color3)
@@ -214,39 +222,20 @@ function Util.getTowerColors(acronym: string): (Color3, Color3)
 			return Util.getDifficultyColors(difficultyName)
 		end
 	end
-
 	return Color3.new(1, 1, 1), Color3.new(0.35, 0.35, 0.35)
 end
 
-function Util.getFormattedDifficultyRichText(rating: number, numDifficulty: number): string
-	local diffName = Util.getDifficultyByRating(rating) or "Unknown"
-	local subDiff, subColor = DifficultiesModule.getSubDetails(numDifficulty)
-
-	local difficultyInfo = Util.getDifficulty(diffName)
-	local tColor = difficultyInfo.color
-
-	local subHex = subColor:ToHex()
-	local diffHex = tColor:ToHex()
-
-	local ratingDisplay = tostring(rating)
-	if numDifficulty > 0 then
-		ratingDisplay = string.format("%d.%02d", rating, numDifficulty * 100)
+function Util.find<T>(list: List<T>, predicate: (T) -> boolean): T?
+	for _, value in list do
+		if predicate(value) then
+			return value
+		end
 	end
-
-	return string.format(
-		'<font color="#%s">%s</font> <font color="#%s">%s</font> <font color="#%s">[%s]</font>',
-		subHex,
-		subDiff,
-		diffHex,
-		diffName,
-		subHex,
-		ratingDisplay
-	)
+	return nil
 end
 
 function Util.getRainbowColor(): Color3
-	local speed = 0.2
-	return Color3.fromHSV((os.clock() * speed) % 1, 1, 1)
+	return Color3.fromHSV((os.clock() * RAINBOW_SPEED) % 1, 1, 1)
 end
 
 return Util

@@ -1,24 +1,21 @@
---[=[
-	Creates and updates Roblox leaderstats for players based on their tower completions.
-
-	@class LeaderstatsService
-	@server
-]=]
+-- Creates and updates Roblox leaderstats for players based on their tower completions.
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
+local Shared = ReplicatedStorage.TowerGame.Shared
+
 local PlayerData = require("../Player/PlayerData")
 local ToolService = require("./ToolService")
-local Types = require(ReplicatedStorage.TowerGame.Shared.Types)
+local Types = require(Shared.Types)
 
-type PlayerInfo = {
+type LeaderstatsInfo = {
 	player: Player,
 	leaderStatsFolder: Folder,
 	towerStat: IntValue,
 	allJumpsStat: IntValue,
 }
 
-local players: { [string]: PlayerInfo } = {}
+local players: { [string]: LeaderstatsInfo } = {}
 
 local LeaderstatsService = {}
 
@@ -43,7 +40,7 @@ function LeaderstatsService.initPlayer(player: Player)
 	allJumpsStat.Value = data.allJumps
 	allJumpsStat.Parent = leaderstats
 
-	local info: PlayerInfo = {
+	local info: LeaderstatsInfo = {
 		player = player,
 		leaderStatsFolder = leaderstats,
 		towerStat = towerStat,
@@ -55,7 +52,7 @@ end
 
 -- Awards tower completion, increments the Towers stat, and records the completed tower.
 function LeaderstatsService.setTowerStat(player: Player, towerInfo: Types.TowerInfo, stat: number)
-	local info: PlayerInfo? = players[player.Name]
+	local info: LeaderstatsInfo? = players[player.Name]
 	if not info then
 		return
 	end
@@ -82,7 +79,7 @@ end
 
 -- Awards all-jumps completion for a tower. Updates the All-jumps leaderstat.
 function LeaderstatsService.setAllJumpsStat(player: Player, towerInfo: Types.TowerInfo, stat: number)
-	local info: PlayerInfo? = players[player.Name]
+	local info: LeaderstatsInfo? = players[player.Name]
 	if not info then
 		return
 	end

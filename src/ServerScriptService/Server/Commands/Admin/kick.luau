@@ -1,6 +1,11 @@
+-- Command: /kick <player> [reason]
+-- Kicks a player from the server.
+
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
-local conch = require(ReplicatedStorage.Packages.conch)
+local Packages = ReplicatedStorage.Packages
+
+local conch = require(Packages.conch)
 
 return function()
 	conch.register("kick", {
@@ -13,8 +18,17 @@ return function()
 
 		callback = function(player: Player, reason: string?)
 			local context = conch.get_command_context()
+			if not context then
+				conch.log("warn", "No command context available")
+				return
+			end
+
 			local executor = context.executor
-			local executorPlayer = executor.player
+			local executorPlayer = executor and executor.player
+			if not executorPlayer then
+				conch.log("warn", "Could not determine executor")
+				return
+			end
 
 			if player.UserId == executorPlayer.UserId then
 				conch.log("warn", "You cannot kick yourself.")

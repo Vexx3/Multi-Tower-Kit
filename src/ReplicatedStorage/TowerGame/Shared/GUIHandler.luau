@@ -2,18 +2,20 @@
 
 local TweenService = game:GetService("TweenService")
 
+local DEFAULT_TOGGLE_DURATION = 0.5
+local DEFAULT_SHRINK_DURATION = 0.3
+
 local originalSizes: { [GuiObject]: UDim2 } = {}
 
 local GUIHandler = {}
 
--- Fades a CanvasGroup in or out using the GroupTransparency property.
 function GUIHandler.toggleUI(
 	canvasGroup: CanvasGroup,
 	show: boolean?,
 	duration: number?,
 	callback: ((opening: boolean) -> ())?
 ): ()
-	local tweenDuration = duration or 0.5
+	local tweenDuration = duration or DEFAULT_TOGGLE_DURATION
 	local isVisible = canvasGroup.GroupTransparency < 1
 	local shouldShow = if show ~= nil then show else not isVisible
 	local targetTransparency = if shouldShow then 0 else 1
@@ -40,18 +42,16 @@ function GUIHandler.toggleUI(
 	end)
 end
 
--- Toggles UI visibility using a back-easing scale animation.
 function GUIHandler.shrinkAnimation(
 	guiObject: GuiObject,
 	show: boolean?,
 	duration: number?,
 	callback: ((opening: boolean) -> ())?
 ): ()
-	local tweenDuration = duration or 0.3
+	local tweenDuration = duration or DEFAULT_SHRINK_DURATION
 	local isVisible = guiObject.Visible and guiObject.Size.X.Scale > 0.01
 	local shouldShow = if show ~= nil then show else not isVisible
 
-	-- Store original size if not already cached
 	if not originalSizes[guiObject] then
 		originalSizes[guiObject] = guiObject.Size
 	end

@@ -1,10 +1,15 @@
+-- Command: /tpmarker <player> <marker>
+-- Teleports a player to a named marker.
+
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
-local Shared = ReplicatedStorage.TowerGame.Shared
+local TowerGame = ReplicatedStorage.TowerGame
+local Shared = TowerGame.Shared
+local Packages = ReplicatedStorage.Packages
 
+local ConchTypes = require(Shared.ConchTypes)
 local Util = require(Shared.Util)
-local args = require(Shared.ConchTypes)
-local conch = require("@game/ReplicatedStorage/Packages/conch")
+local conch = require(Packages.conch)
 
 return function()
 	conch.register("tpmarker", {
@@ -12,7 +17,7 @@ return function()
 		permissions = { "teleport-player" },
 		arguments = function()
 			return conch.args.player("player", "The player to teleport"),
-				args.markerName("marker", "Marker to teleport to")
+				ConchTypes.markerName("marker", "Marker to teleport to")
 		end,
 
 		callback = function(who: Player, marker: BasePart)

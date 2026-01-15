@@ -1,19 +1,23 @@
-local Players = game:GetService("Players")
+-- Command: /unban <user>
+-- Unbans a player by UserId or username.
 
-local conch = require("@game/ReplicatedStorage/Packages/conch")
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local Packages = ReplicatedStorage.Packages
+
+local conch = require(Packages.conch)
 
 local function resolveUser(userInput: string | number): number?
-	if type(userInput) == "number" then
+	if typeof(userInput) == "number" then
 		return userInput
-	elseif type(userInput) == "string" then
+	elseif typeof(userInput) == "string" then
 		local success, userId = pcall(function()
 			return Players:GetUserIdFromNameAsync(userInput)
 		end)
 
 		if success then
 			return userId
-		else
-			return nil
 		end
 	end
 
@@ -45,7 +49,7 @@ return function()
 			if success then
 				conch.log("info", `Unbanned {userInput} ({userId})`)
 			else
-				conch.log("warn", `Failed to unban {userInput} ({userId}): {err}`)
+				conch.log("warn", `Failed to unban {userInput} ({userId}): {tostring(err)}`)
 			end
 		end,
 	})

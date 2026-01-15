@@ -1,11 +1,6 @@
---[=[
-	Core server manager for individual tower lifecycle: registers tower metadata,
-	loads client objects, teleports players, and exposes simple APIs for other
-	systems to load towers.
-
-	@class TowerService
-	@server
-]=]
+-- Core server manager for individual tower lifecycle.
+-- Registers tower metadata, loads client objects, teleports players, and
+-- exposes simple APIs for other systems to load towers.
 
 local HttpService = game:GetService("HttpService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -26,13 +21,13 @@ local Util = require(Shared.Util)
 type PlayerInfo = Types.PlayerInfo
 type TowerInfo = Types.TowerInfo
 
-local towers: { [string]: TowerInfo } = {}
-
 local TOWERS = workspace.Towers
 local CLIENT_OBJECTS_FOLDER = ServerStorage.TowerClientObjects
 local TOWER_CHECKPOINTS = ServerStorage.TowerCheckpoints
-
 local POINTER_TAG = "OBJ_POINTER"
+
+local towers: { [string]: TowerInfo } = {}
+
 local pointerTemplate: ObjectValue = Instance.new("ObjectValue")
 pointerTemplate:AddTag(POINTER_TAG)
 
@@ -45,8 +40,6 @@ end
 
 local TowerService = {}
 
--- Loads a tower for a player, cloning client objects, teleporting them to the
--- spawn, and optionally resetting their timers and boost state.
 function TowerService.loadTower(player: PlayerInfo, towerName: string, resetTimer: boolean)
 	-- Get the player and tower info objects being referenced
 	local tower: TowerInfo? = towers[towerName]
@@ -98,9 +91,9 @@ function TowerService.loadTower(player: PlayerInfo, towerName: string, resetTime
 	BlinkServer.LoadTower.Fire(player.player, towerName, purist, resetTimer)
 end
 
-local function initTower(towerFolder: Instance)
+local function initTower(towerFolder: Instance): TowerInfo?
 	if not towerFolder:IsA("Folder") and not towerFolder:IsA("Model") then
-		return
+		return nil
 	end
 
 	local acronym = towerFolder.Name
@@ -112,7 +105,7 @@ local function initTower(towerFolder: Instance)
 			type = "warn",
 			[1] = `Skipping {acronym} because it does not have a SpawnLocation.`,
 		})
-		return
+		return nil
 	end
 
 	-- Get the ClientSidedObjects folder
@@ -147,14 +140,14 @@ local function initTower(towerFolder: Instance)
 					type = "error",
 					[1] = `{acronym} is missing checkpoint {checkpointIndex} in its Checkpoints folder!`,
 				})
-				return
+				return nil
 			end
 			if not checkpoint:IsA("BasePart") then
 				Log({
 					type = "error",
 					[1] = `{acronym} has a non-BasePart ({checkpoint.Name}) in its Checkpoints folder!`,
 				})
-				return
+				return nil
 			end
 
 			table.insert(checkpointsList, (checkpoint :: any) :: BasePart)
@@ -260,16 +253,16 @@ end
 -- Register all towers found in `workspace.Towers`, building the runtime
 -- metadata used elsewhere by MTK.
 function TowerService.init()
-	for _, v: Instance in TOWERS:GetChildren() do
+	for _, v in TOWERS:GetChildren() do
 		initTower(v)
 	end
 end
 
-function TowerService.getTower(acronym: string)
+function TowerService.getTower(acronym: string): TowerInfo?
 	return towers[acronym]
 end
 
-function TowerService.getAllTowers()
+function TowerService.getAllTowers(): { [string]: TowerInfo }
 	return towers
 end
 

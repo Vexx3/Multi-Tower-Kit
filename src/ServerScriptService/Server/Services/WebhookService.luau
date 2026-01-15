@@ -1,12 +1,11 @@
--- Sends Discord webhook notifications for tower clears, including boosts and
--- formatted time.
+-- Sends Discord webhook notifications for tower clears.
+-- Includes boost information and formatted time.
 
 local HttpService = game:GetService("HttpService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Shared = ReplicatedStorage.TowerGame.Shared
 local Data = Shared.Data
-
 local Framework = ReplicatedStorage.Framework
 
 local Config = require(Data.Config)
@@ -14,7 +13,6 @@ local Log = require(Framework.Log)
 local Types = require(Shared.Types)
 local Util = require(Shared.Util)
 
--- formats the message to the config and replaces them
 local function formatWebhookMessage(
 	message: string,
 	playerName: string,
@@ -22,7 +20,7 @@ local function formatWebhookMessage(
 	difficultyEmoji: string,
 	formattedTime: string,
 	boostList: string
-)
+): string
 	local formatted = message
 		:gsub("{PlayerName}", playerName)
 		:gsub("{EndingName}", endingName)
@@ -53,7 +51,6 @@ function WebhookService.sendMessage(
 	local boostList = Util.formatBoosts(player.boostItemNames)
 	local difficultyInfo = Util.getDifficulty(difficultyName)
 	local formattedTime = Util.formatTimer(finalTime or player.towerTimer)
-
 	local playerName = if Config.useDisplayName then player.player.DisplayName else player.player.Name
 
 	local isAllJumps = player.mode == "AllJumps"
@@ -78,10 +75,7 @@ function WebhookService.sendMessage(
 		webhookLink = HttpService:GetSecret("NORMAL_WEBHOOK")
 	end
 
-	local data = {
-		["content"] = message,
-	}
-
+	local data = { content = message }
 	local encodedData = HttpService:JSONEncode(data)
 
 	local success, response = pcall(HttpService.PostAsync, HttpService, webhookLink, encodedData)

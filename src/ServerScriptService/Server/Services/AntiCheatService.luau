@@ -1,9 +1,5 @@
---[=[
-	Anti-cheat checks for tower completion, ensuring players finish towers
-	legitimately before awarding wins.
-
-	@class AntiCheatService
-]=]
+-- Anti-cheat checks for tower completion.
+-- Ensures players finish towers legitimately before awarding wins.
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
@@ -18,14 +14,10 @@ type EndingInfo = Types.EndingInfo
 
 local AntiCheatService = {}
 
---[=[
-	Validate a player's tower completion against minimum time and checkpoint
-	order, unless they used a debug item.
-
-	@within AntiCheatService
-]=]
+-- Validates a player's tower completion against minimum time and checkpoint
+-- order, unless they used a debug item.
 function AntiCheatService.validateWin(player: PlayerInfo, tower: TowerInfo, ending: EndingInfo): (boolean, string)
-	-- Check to see if this ending is from this tower, if it's not, the player is probably cheating
+	-- Check to see if this ending is from this tower
 	if ending.parentTower ~= player.currentTower then
 		return false, "Touched the winpad of a tower you're not in"
 	end

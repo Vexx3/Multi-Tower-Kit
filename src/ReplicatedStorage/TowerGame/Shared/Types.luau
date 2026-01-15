@@ -1,8 +1,15 @@
 -- Defines common types used across the MTK codebase.
+-- All game-wide type definitions should live here.
 
--- Convenience
 export type List<T> = { [number]: T }
 export type Dictionary<T> = { [string]: T }
+
+type Seconds = number
+
+export type TimeStat = {
+	seconds: Seconds,
+	formatted: string,
+}
 
 type BasicTowerInfo = {
 	name: string,
@@ -10,12 +17,45 @@ type BasicTowerInfo = {
 	badgeId: number,
 }
 
-type Seconds = number
+export type TowerInfo = BasicTowerInfo & {
+	towerPoints: number,
+	allJumpsPoints: number?,
+	ajBadgeId: number?,
+	noBoosts: boolean?,
 
-type TimeStat = {
-	seconds: Seconds,
-	formatted: string,
+	folder: Instance,
+	spawnLocation: BasePart,
+	clientObjects: Instance?,
+
+	endings: Dictionary<EndingInfo>,
+
+	minimumTime: Seconds,
+	checkpoints: List<BasePart>,
+	checkpointCount: number,
 }
+
+export type EndingInfo = BasicTowerInfo & {
+	preventTowerBadge: boolean,
+	parentTower: string,
+	winroomMarker: string,
+}
+
+export type TowerRush = {
+	winroomMarker: string,
+	towers: List<string>,
+	noBoosts: boolean,
+}
+
+export type TowerStat = {
+	attempts: number,
+	wins: number,
+	allJumpsWins: number,
+	totalTimeSpent: TimeStat,
+	bestWinTime: TimeStat,
+	bestAjWinTime: TimeStat,
+}
+
+export type PlayerMode = "Normal" | "AllJumps" | "Practice"
 
 type PlayerRunTime = {
 	player: Player,
@@ -45,61 +85,8 @@ type PlayerFlags = {
 	boostItemNames: Dictionary<string>,
 }
 
--- This type represents a tower
--- It uses the Instance type for the folders to allow flexibility between Folders and Models
--- but it mostly is used just to make working with Luau types less annoying lol
-export type TowerInfo = BasicTowerInfo & {
-	-- Basic information
-	towerPoints: number,
-	allJumpsPoints: number?,
-	ajBadgeId: number?,
-	noBoosts: boolean?,
+export type PlayerInfo = PlayerRunTime & PlayerTowerState & PlayerRushState & PlayerFlags
 
-	-- Important instances
-	folder: Instance,
-	spawnLocation: BasePart,
-	clientObjects: Instance?,
-
-	-- Endings
-	endings: Dictionary<EndingInfo>,
-
-	-- Anticheat stuff
-	minimumTime: Seconds,
-	checkpoints: List<BasePart>,
-	checkpointCount: number,
-}
-
-export type TowerStat = {
-	attempts: number,
-	wins: number,
-	allJumpsWins: number,
-
-	totalTimeSpent: TimeStat,
-	bestWinTime: TimeStat,
-	bestAjWinTime: TimeStat,
-}
-
--- Every tower is implicitly given an ending called "default", it inherits the
--- name and difficulty from its parent tower, and if a winpad is not
--- configured to trigger a special ending, the "default" ending will be triggered
-export type EndingInfo = BasicTowerInfo & {
-	preventTowerBadge: boolean,
-
-	-- Relations
-	parentTower: string,
-	winroomMarker: string,
-}
-
--- Represents a tower rush
-export type TowerRush = {
-	winroomMarker: string,
-	towers: List<string>,
-	noBoosts: boolean,
-}
-
-export type PlayerMode = "Normal" | "AllJumps" | "Practice"
-
--- Player Settings
 export type Settings = {
 	quickResetDelay: number,
 	resetOnDeath: boolean,
@@ -123,63 +110,6 @@ export type Settings = {
 	extendedCompletions: boolean,
 }
 
-export type ClientConfig = {
-	winMessage: string,
-	winMessageAj: string,
-	winMessageBoostsUsed: string,
-
-	chatChannel: string,
-	chatFontFace: string,
-	chatFontSize: number,
-	chatFancyFontFace: string,
-	chatFancyFontSize: number,
-}
-
-export type ChatTagDefinition = {
-	read Text: string,
-	read Color: Color3,
-}
-
-export type ChatGroupTag = {
-	read GroupId: number,
-	read Roles: List<string>,
-}
-
-export type ChatTagsConfig = {
-	read TAGS: Dictionary<ChatTagDefinition>,
-	read USER_TAGS: List<string>,
-	read GAMEPASS_TAGS: List<string>,
-	read GROUP_TAGS: List<ChatGroupTag>,
-}
-
-export type GlobalConfig = {
-	timerSyncInterval: number,
-	checkpointInterval: number,
-	restartCooldown: number,
-	restartResetsTowerRush: boolean,
-
-	winpadInterval: number,
-	winpadsChangeColor: boolean,
-	winpadsChangeMaterial: boolean,
-	useDisplayName: boolean,
-
-	checkpointsMissingWarning: boolean,
-	noMinimumTimeWarning: boolean,
-	r15Warning: boolean,
-
-	dataStoreKey: string,
-	dataStoreKeyStudio: string,
-
-	webhooksEnabled: boolean,
-	webhookNormalMessage: string,
-	webhookAjMessage: string,
-	webhookBoostsUsed: string,
-
-	roles: Dictionary<List<string>>,
-	userRoles: { [number]: List<string> },
-	adminHotkey: Enum.KeyCode,
-}
-
 export type PlayerData = {
 	towers: number,
 	allJumps: number,
@@ -191,23 +121,65 @@ export type PlayerData = {
 	settings: Settings,
 }
 
--- Represents a player, also containing information specific to them
-export type PlayerInfo = PlayerRunTime & PlayerTowerState & PlayerRushState & PlayerFlags
+export type ClientConfig = {
+	winMessage: string,
+	winMessageAj: string,
+	winMessageBoostsUsed: string,
+	chatChannel: string,
+	chatFontFace: string,
+	chatFontSize: number,
+	chatFancyFontFace: string,
+	chatFancyFontSize: number,
+}
 
--- Representing a difficulty, storing both cosmetic and pragmatic information about it
+export type GlobalConfig = {
+	timerSyncInterval: number,
+	checkpointInterval: number,
+	restartCooldown: number,
+	restartResetsTowerRush: boolean,
+	winpadInterval: number,
+	winpadsChangeColor: boolean,
+	winpadsChangeMaterial: boolean,
+	useDisplayName: boolean,
+	checkpointsMissingWarning: boolean,
+	noMinimumTimeWarning: boolean,
+	r15Warning: boolean,
+	dataStoreKey: string,
+	dataStoreKeyStudio: string,
+	webhooksEnabled: boolean,
+	webhookNormalMessage: string,
+	webhookAjMessage: string,
+	webhookBoostsUsed: string,
+	roles: Dictionary<List<string>>,
+	userRoles: { [number]: List<string> },
+	adminHotkey: Enum.KeyCode,
+}
+
+export type ChatTagDefinition = {
+	Text: string,
+	Color: Color3,
+}
+
+export type ChatGroupTag = {
+	GroupId: number,
+	Roles: { [number]: string },
+}
+
+export type ChatTagsConfig = {
+	TAGS: Dictionary<ChatTagDefinition>,
+	USER_TAGS: { [number]: string },
+	GAMEPASS_TAGS: { [number]: string },
+	GROUP_TAGS: List<ChatGroupTag>,
+}
+
 export type DifficultyInfo = {
 	read title: string,
 	read rating: number,
-
 	read fancyFont: boolean,
 	read color: Color3,
 	read globalAnnouncement: boolean,
 	read globalAjAnnouncement: boolean?,
-
-	-- realm related
 	read difficultyImage: string?,
-
-	-- webhook emojis
 	read difficultyEmoji: string?,
 }
 

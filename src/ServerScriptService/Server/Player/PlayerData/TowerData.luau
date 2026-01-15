@@ -11,7 +11,7 @@ local Util = require(Shared.Util)
 type TowerStat = Types.TowerStat
 type PlayerData = PlayerData.PlayerData
 
-local DEFAULT_DIFFICULTY_STAT: TowerStat = {
+local DEFAULT_TOWER_STAT: TowerStat = {
 	attempts = 0,
 	wins = 0,
 	allJumpsWins = 0,
@@ -31,7 +31,7 @@ local DEFAULT_DIFFICULTY_STAT: TowerStat = {
 
 local function applyDefaults(stat: TowerStat)
 	local statAny: { [string]: unknown } = stat :: any
-	for key: string, value: unknown in DEFAULT_DIFFICULTY_STAT :: any do
+	for key: string, value: unknown in DEFAULT_TOWER_STAT :: any do
 		if statAny[key] == nil then
 			statAny[key] = value
 		end
@@ -47,8 +47,6 @@ local function applyTime(stat: TowerStat, timeDelta: number)
 	stat.totalTimeSpent.formatted = Util.formatDuration(stat.totalTimeSpent.seconds)
 end
 
-local TowerData = {}
-
 local function ensureStat(data: PlayerData, towerName: string): TowerStat
 	local towerStats: { [string]: TowerStat } = if data.towerStats then table.clone(data.towerStats) else {}
 	data.towerStats = towerStats
@@ -57,7 +55,7 @@ local function ensureStat(data: PlayerData, towerName: string): TowerStat
 	if stat then
 		stat = table.clone(stat :: TowerStat)
 	else
-		stat = table.clone(DEFAULT_DIFFICULTY_STAT)
+		stat = table.clone(DEFAULT_TOWER_STAT)
 	end
 	towerStats[towerName] = stat :: TowerStat
 
@@ -65,6 +63,8 @@ local function ensureStat(data: PlayerData, towerName: string): TowerStat
 
 	return stat :: TowerStat
 end
+
+local TowerData = {}
 
 function TowerData.getTowerStat(player: Player, towerName: string): TowerStat?
 	local data = PlayerData.getData(player)

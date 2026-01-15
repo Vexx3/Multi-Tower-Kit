@@ -1,11 +1,12 @@
--- Configuration for tower difficulties, including cosmetic and gameplay settings.
+-- Configuration for tower difficulties.
+-- Defines cosmetic and gameplay settings for each difficulty tier.
 
 local Types = require("../Types")
 
 type Dictionary<T> = Types.Dictionary<T>
 type DifficultyInfo = Types.DifficultyInfo
 
-local difficulties: Dictionary<DifficultyInfo> = {
+local DIFFICULTIES: Dictionary<DifficultyInfo> = {
 	Easy = {
 		title = "Easy",
 		rating = 1,
@@ -171,46 +172,49 @@ local difficulties: Dictionary<DifficultyInfo> = {
 		difficultyImage = "rbxassetid://76309329757383",
 	},
 
-	["Nil"] = {
+	Nil = {
 		title = "Nil",
 		rating = 14,
-
 		fancyFont = true,
 		color = Color3.fromRGB(101, 102, 109),
 		globalAnnouncement = true,
 		globalAjAnnouncement = true,
-
 		difficultyImage = "rbxassetid://71617965011918",
 	},
 }
 
-local function getSubDetails(num: number)
-	if num == 0 then
-		return "Baseline", Color3.fromRGB(35, 202, 199)
-	elseif num <= 0.11 then
-		return "Bottom", Color3.fromRGB(35, 202, 132)
-	elseif num <= 0.22 then
-		return "Bottom-Low", Color3.fromRGB(35, 202, 65)
-	elseif num <= 0.33 then
-		return "Low", Color3.fromRGB(89, 202, 35)
-	elseif num <= 0.44 then
-		return "Low-Mid", Color3.fromRGB(151, 202, 35)
-	elseif num <= 0.55 then
-		return "Mid", Color3.fromRGB(201, 202, 35)
-	elseif num <= 0.66 then
-		return "Mid-High", Color3.fromRGB(202, 164, 35)
-	elseif num <= 0.77 then
-		return "High", Color3.fromRGB(202, 125, 35)
-	elseif num <= 0.88 then
-		return "High-Peak", Color3.fromRGB(202, 74, 35)
-	elseif num <= 0.99 then
-		return "Peak", Color3.fromRGB(202, 35, 35)
-	end
+--------------------------------------------------
+-- Sub-Difficulty Helpers
+--------------------------------------------------
 
+local SUB_DETAILS = {
+	{ threshold = 0.00, name = "Baseline", color = Color3.fromRGB(35, 202, 199) },
+	{ threshold = 0.11, name = "Bottom", color = Color3.fromRGB(35, 202, 132) },
+	{ threshold = 0.22, name = "Bottom-Low", color = Color3.fromRGB(35, 202, 65) },
+	{ threshold = 0.33, name = "Low", color = Color3.fromRGB(89, 202, 35) },
+	{ threshold = 0.44, name = "Low-Mid", color = Color3.fromRGB(151, 202, 35) },
+	{ threshold = 0.55, name = "Mid", color = Color3.fromRGB(201, 202, 35) },
+	{ threshold = 0.66, name = "Mid-High", color = Color3.fromRGB(202, 164, 35) },
+	{ threshold = 0.77, name = "High", color = Color3.fromRGB(202, 125, 35) },
+	{ threshold = 0.88, name = "High-Peak", color = Color3.fromRGB(202, 74, 35) },
+	{ threshold = 0.99, name = "Peak", color = Color3.fromRGB(202, 35, 35) },
+}
+
+local function getSubDetails(num: number): (string, Color3)
+	for i = #SUB_DETAILS, 1, -1 do
+		local detail = SUB_DETAILS[i]
+		if num >= detail.threshold then
+			return detail.name, detail.color
+		end
+	end
 	return "Unknown", Color3.fromRGB(255, 255, 255)
 end
 
+--------------------------------------------------
+-- Module Export
+--------------------------------------------------
+
 return {
-	data = difficulties,
+	data = DIFFICULTIES,
 	getSubDetails = getSubDetails,
 }

@@ -1,43 +1,35 @@
---[=[
-	Legacy lighting compatibility layer for old v5 tower scripts.
-	
-	@class LegacyLighting
-	@client
-]=]
+-- Legacy lighting compatibility layer for old v5 tower scripts.
 
-local players = game:GetService("Players")
-local replicatedStorage = game:GetService("ReplicatedStorage")
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
-local framework = replicatedStorage.Framework
-local kit = framework.Kit
+local Framework = ReplicatedStorage.Framework
+local Kit = Framework.Kit
 
-local lightingManager = require(kit.Managers.LightingManager)
+local LightingManager = require(Kit.Managers.LightingManager)
 
 export type LegacyLightingConfig = { [string]: unknown } | "Default"
 
-local localPlayer = players.LocalPlayer
+local LocalPlayer = Players.LocalPlayer
 
---[=[
-	Changes lighting using the v6 LightingManager.
-	Wraps v5 flat config with Type = "Lighting".
-]=]
+local LegacyLighting = {}
+
+-- Changes lighting using the v6 LightingManager.
+-- Wraps v5 flat config with Type = "Lighting".
 local function setLighting(config: LegacyLightingConfig): ()
-	lightingManager:ChangeLighting({
+	LightingManager:ChangeLighting({
 		Type = "Lighting",
 		Configuration = config,
 	} :: any)
 end
 
---[=[
-	Handles humanoid touch events for legacy v5 lighting configurations.
-	v5 specifically checks for parts named "LightingChanger" with a Configuration ModuleScript.
-]=]
+-- Handles humanoid touch events for legacy v5 lighting configurations.
+-- v5 specifically checks for parts named "LightingChanger" with a Configuration ModuleScript.
 local function onHumanoidTouched(touchingPart: BasePart, _limb: BasePart)
 	if not touchingPart:IsA("BasePart") then
 		return
 	end
 
-	-- v5 specifically checks for "LightingChanger" named parts
 	if touchingPart.Name ~= "LightingChanger" then
 		return
 	end
@@ -51,9 +43,7 @@ local function onHumanoidTouched(touchingPart: BasePart, _limb: BasePart)
 	end
 end
 
---[=[
-	Sets up touch detection for the character's humanoid.
-]=]
+-- Sets up touch detection for the character's humanoid.
 local function onCharacterAdded(character: Model)
 	local humanoid = character:WaitForChild("Humanoid", 10)
 	if not humanoid or not humanoid:IsA("Humanoid") then
@@ -63,22 +53,21 @@ local function onCharacterAdded(character: Model)
 	humanoid.Touched:Connect(onHumanoidTouched)
 end
 
-local function init(): ()
-	if localPlayer.Character then
-		task.spawn(onCharacterAdded, localPlayer.Character)
+-- Initializes the legacy lighting compatibility layer.
+function LegacyLighting.init(): ()
+	if LocalPlayer.Character then
+		task.spawn(onCharacterAdded, LocalPlayer.Character)
 	end
-	localPlayer.CharacterAdded:Connect(onCharacterAdded)
+	LocalPlayer.CharacterAdded:Connect(onCharacterAdded)
 
 	_G.setLighting = setLighting
 
-	local changeLighting = replicatedStorage:FindFirstChild("ChangeLighting")
+	local changeLighting = ReplicatedStorage:FindFirstChild("ChangeLighting")
 	if changeLighting and changeLighting:IsA("BindableEvent") then
 		changeLighting.Event:Connect(function(config: unknown)
-			lightingManager:ChangeLighting(config :: any)
+			LightingManager:ChangeLighting(config :: any)
 		end)
 	end
 end
 
-return {
-	init = init,
-}
+return LegacyLighting

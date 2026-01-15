@@ -1,14 +1,17 @@
+-- Handles tool equipment logic for anti-cheat and boost tracking.
+
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local ServerStorage = game:GetService("ServerStorage")
 
 local TowerGame = ReplicatedStorage.TowerGame
 local Shared = TowerGame.Shared
-local Types = require(Shared.Types)
 
 local PlayerData = require("../Player/PlayerData")
+local Types = require(Shared.Types)
+
+local TowerRushes = require(Shared.Data.TowerRushes)
 
 local COMPLETION_TOOLS = ServerStorage:FindFirstChild("CompletionTools") :: Folder?
-local TowerRushes: Types.Dictionary<Types.TowerRush> = require(TowerGame.Shared.Data.TowerRushes) :: any
 
 local ToolService = {}
 
@@ -33,6 +36,7 @@ function ToolService.handleToolEquipped(player: Types.PlayerInfo, item: Tool)
 	player.boostItemUsed = true
 	player.boostItemNames[item.Name] = boostName or "Boost Item"
 
+	-- Kill player if using boost in no-boost rush
 	if player.currentTowerRush ~= "" then
 		local rush = TowerRushes[player.currentTowerRush]
 		if rush and rush.noBoosts then
@@ -58,14 +62,13 @@ function ToolService.giveTowerTools(player: Player, towerAcronym: string)
 
 	local backpack = player:FindFirstChild("Backpack") :: Backpack?
 	local starterGear = player:FindFirstChild("StarterGear") :: StarterGear?
-	local character = player.Character :: Model?
+	local character = player.Character
 
 	for _, tool in towerFolder:GetChildren() do
 		if not tool:IsA("Tool") then
 			continue
 		end
 
-		-- Check if player already has this tool
 		local toolName = tool.Name
 		local hasTool = (backpack and backpack:FindFirstChild(toolName))
 			or (character and character:FindFirstChild(toolName))

@@ -1,4 +1,5 @@
--- Handles per-player lifecycle (Joining, Leaving, State Updates) and player-related remotes.
+-- Handles per-player lifecycle (Joining, Leaving, State Updates) and
+-- player-related remotes.
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -8,13 +9,12 @@ local Teams = game:GetService("Teams")
 local TowerGame = ReplicatedStorage.TowerGame
 local Shared = TowerGame.Shared
 local Data = Shared.Data
-
 local Framework = ReplicatedStorage.Framework
-local Log = require(Framework.Log)
 
 local BlinkServer = require("../Network/BlinkServer")
 local Config = require(Data.Config)
 local LeaderstatsService = require("./LeaderstatsService")
+local Log = require(Framework.Log)
 local PlayerData = require("../Player/PlayerData")
 local PlayerState = require("../Player/PlayerState")
 local ToolService = require("./ToolService")
@@ -52,10 +52,9 @@ local function onPlayerRestartRequested(playerInstance: Player)
 		return
 	end
 
-	-- If the player is attempting to restart after the cooldown has ended
 	if player.gameTimer - player.lastRestart >= Config.restartCooldown then
 		player.lastRestart = player.gameTimer
-		-- The player isn't even in a tower
+
 		if player.currentTower == "" then
 			return
 		end
@@ -87,7 +86,6 @@ local function setPlayerMode(playerInstance: Player, mode: Types.PlayerMode)
 		return
 	end
 
-	-- If they toggle mode while in a tower, we reset their run to apply it correctly
 	if player.currentTower ~= "" then
 		TowerData.addTowerTimeSpent(player.player, player.currentTower, player.towerTimer)
 		player.mode = mode
@@ -117,7 +115,7 @@ local function onCharacterAdded(character: Model)
 	if humanoid and humanoid.RigType == Enum.HumanoidRigType.R15 and Config.r15Warning then
 		Log({
 			type = "warn",
-			[1] = "Character spawned with R15 rig type, most obbying techniques are impossible. Ensure that the rig type is R6 in game settings.",
+			[1] = "Character spawned with R15 rig type, most obbying techniques are impossible.",
 		})
 	end
 
@@ -152,18 +150,15 @@ local function onPlayerAdded(player: Player)
 		player = player,
 		gameTimer = 0,
 		lastRestart = 0,
-
 		currentTower = "",
 		currentCheckpoint = 0,
 		boostItemNames = {},
 		boostItemUsed = false,
 		towerTimer = 0,
 		mode = "Normal",
-
 		currentTowerRush = "",
 		currentTowerRushIndex = 0,
 		currentTowerRushSplitTime = 0,
-
 		touchEventBusy = false,
 		isLoadingTower = false,
 		hasEverpresentCOs = false,
@@ -206,11 +201,11 @@ function PlayerService.init()
 	BlinkServer.ExitTowerRequest.On(onExitTowerRequest)
 end
 
-function PlayerService.getSession(playerName: string)
+function PlayerService.getSession(playerName: string): Types.PlayerInfo?
 	return sessions[playerName]
 end
 
-function PlayerService.getAllSessions()
+function PlayerService.getAllSessions(): { [string]: Types.PlayerInfo }
 	return sessions
 end
 

@@ -1,13 +1,5 @@
--- Licensed under the MIT License
--- Copyright (c) 2025 Zylx
-
---[=[
-	Legacy button compatibility layer for older tower scripts.
-	Provides a global _G.Buttons interface for querying and controlling buttons.
-
-	@class LegacyButtons
-	@client
-]=]
+-- Legacy button compatibility layer for older tower scripts.
+-- Provides a global _G.Buttons interface for querying and controlling buttons.
 
 export type ButtonInstance = Model & {
 	ClientObject: Instance,
@@ -21,6 +13,8 @@ type ButtonMetatable = {
 }
 
 type ButtonTable = typeof(setmetatable({} :: {}, {} :: ButtonMetatable))
+
+local LegacyButtons = {}
 
 local function checkColor3(color: unknown): boolean
 	return typeof(color) == "Color3"
@@ -78,10 +72,9 @@ function buttonMt:__call(mode: string, value: boolean?, color: Color3?): { Butto
 	return nil
 end
 
-local function init(): ()
+-- Initializes the legacy buttons interface.
+function LegacyButtons.init(): ()
 	_G.Buttons = setmetatable({}, buttonMt)
 end
 
-return {
-	init = init,
-}
+return LegacyButtons

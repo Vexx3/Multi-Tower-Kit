@@ -1,30 +1,35 @@
---== Multi-Tower Kit Client Config ==--
+-- Client-side configuration for Multi-Tower Kit.
+-- Controls chat announcements, fonts, and display settings.
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
-local Types = require(ReplicatedStorage.TowerGame.Shared.Types)
+local TowerGame = ReplicatedStorage.TowerGame
+local Shared = TowerGame.Shared
+
+local Types = require(Shared.Types)
 
 local Config: Types.ClientConfig = {
-	-- What does the win announcement look like?
+	--== Win Message Templates ==--
+
+	-- Win announcement format.
 	winMessage = "{PlayerName} has beaten {EndingName} in {Time}",
 
-	-- What does the all-jump win announcement look like?
+	-- All-jumps win announcement format.
 	winMessageAj = "{PlayerName} has all-jumped {EndingName} in {Time}",
 
-	-- How will it display what boosts the player used?
-	-- Setting this to an empty string effectively disables showing boosts used
+	-- Boost usage display format. Empty string disables boost display.
 	winMessageBoostsUsed = "\nUsed: {BoostList}",
 
-	--== CHAT SYSTEM CONFIG==--
+	--== Chat System ==--
 
-	-- The chat channel to use for system messages
+	-- Chat channel for system messages.
 	chatChannel = "RBXSystem",
 
-	-- The font to use for normal system messages
+	-- Normal system message font settings.
 	chatFontFace = "SourceSansBold",
 	chatFontSize = 18,
 
-	-- The font to use for fancy system messages
+	-- Fancy system message font settings (for special difficulties).
 	chatFancyFontFace = "Fantasy",
 	chatFancyFontSize = 22,
 }
