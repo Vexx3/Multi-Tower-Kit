@@ -1,10 +1,10 @@
 exclude = [
     "Packages/*",
-    "src/ReplicatedStorage/Framework/*",
-    "src/ServerScriptService/Server/Network/*",
-    "src/ReplicatedStorage/TowerGame/Network/*",
-    "src/StarterPlayerScripts/PlayerModule/*",
-    "src/StarterPlayerScripts/Client/Game/ScriptRepo/*"
+    "src/ReplicatedStorage/Framework/**",
+    "src/ServerScriptService/Server/Network/**",
+    "src/ReplicatedStorage/TowerGame/Network/**",
+    "src/StarterPlayerScripts/PlayerModule/**",
+    "src/StarterPlayerScripts/Client/Game/ScriptRepo/**"
 ]
 std = "selene-std"
 

@@ -1,1 +1,3 @@
-src/ReplicatedStorage/Framework/*
+src/ReplicatedStorage/Framework/**
+src/ReplicatedStorage/TowerGame/Network/**
+src/ServerScriptService/Server/Network/**
