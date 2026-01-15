@@ -101,7 +101,7 @@ function GuiDisplayer.Run(scope: _T.Scope, utility: _T.Utility)
 
 		currentlyDisplaying.Parent = cache.container
 		if typeof(autoRemove) == "number" and autoRemove > 0 then
-			task.wait(autoRemove) -- @v6.0.1 fix
+            task.wait(autoRemove) -- @v6.0.1 fix
 			remove()
 		end
 	end
@@ -113,18 +113,17 @@ function GuiDisplayer.Run(scope: _T.Scope, utility: _T.Utility)
 		end
 
 		scope:attach(part)
-
-		local displayerConfigObject = part:FindFirstChild("DisplayerConfiguration")
-			or part:FindFirstChild("RemoverConfiguration")
+		
+		local displayerConfigObject = part:FindFirstChild("DisplayerConfiguration") or part:FindFirstChild("RemoverConfiguration")
 		local touchConfiguration =
-			Config.GetConfig(scope, displayerConfigObject:FindFirstChild("TouchConfiguration"), Config.TOUCH_CONFIG)
-				:ObserveChanges()
+			Config.GetConfig(scope, displayerConfigObject:FindFirstChild("TouchConfiguration"), Config.TOUCH_CONFIG):ObserveChanges()
 
 		local wrapper
 		if (part.Name == "Displayer" or part:HasTag("GuiDisplayer")) and not currentlyDisplaying and not cooldown then
 			--> Displayer Parts
-			local displayConfig = Config.GetConfig(scope, displayerConfigObject, DISPLAYER_CONFIG_TEMPLATE)
-				:ObserveChanges()
+			local displayConfig =
+				Config.GetConfig(scope, displayerConfigObject, DISPLAYER_CONFIG_TEMPLATE)
+					:ObserveChanges()
 
 			function wrapper()
 				if currentlyDisplaying or cooldown or part:GetAttribute("Activated") == false then

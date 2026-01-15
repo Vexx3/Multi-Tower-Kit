@@ -1,11 +1,11 @@
 {
   "className": "Sound",
   "properties": {
-    "SourceAssetId": 3199239518.0,
+    "Volume": 0.10000000149011612,
     "AudioContent": "rbxassetid://5168204645",
-    "PlaybackSpeed": 2.0,
     "RollOffMaxDistance": 80.0,
-    "Volume": 0.10000000149011612
+    "SourceAssetId": 3199239518.0,
+    "PlaybackSpeed": 2.0
   },
   "attributes": {
     "StartSoundAt": 0.0

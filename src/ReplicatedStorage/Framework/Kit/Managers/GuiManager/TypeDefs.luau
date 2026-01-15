@@ -38,7 +38,7 @@ export type GuiManager = {
 	UnbindKeyCache: (self: GuiManager, cache: KeyGroup_Types.Cache) -> (),
 	__updateKeyDisplay: (self: GuiManager) -> (),
 	__keyCaches: { [string]: KeyGroup_Types.Cache },
-
+	
 	DisplayGUI: (self: GuiManager, guiName: string, ...any) -> (),
 	PlayerGui: PlayerGui,
 

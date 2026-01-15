@@ -15,9 +15,9 @@ Thank you
 --------------------------------------------------------------------------------
 ]]
 
-local Debris = game:GetService("Debris")
 local HttpService = game:GetService("HttpService")
 local TweenService = game:GetService("TweenService")
+local Debris = game:GetService("Debris")
 
 --[=[
     @class Functions
@@ -96,11 +96,11 @@ function Functions.copyCAT(from: Instance, to: Instance)
 		child = child:Clone()
 		child.Parent = to
 	end
-
+	
 	for _, tag in from:GetTags() do
 		to:AddTag(tag)
 	end
-
+	
 	for name, value in from:GetAttributes() do
 		to:SetAttribute(name, value)
 	end
@@ -152,7 +152,7 @@ function Functions.getButtonActivatedTransparency(object: Instance, activated: b
 	if object:HasTag("Invert") then
 		activated = not activated
 	end
-
+	
 	local enabledTransparency = object:GetAttribute("SetTransparency") or 0
 	local disabledTransparency = if object:HasTag("FullHide") then 1 else 0.6
 	return if activated then enabledTransparency else disabledTransparency

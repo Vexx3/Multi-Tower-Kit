@@ -41,9 +41,9 @@ local Framework = ReplicatedStorage.Framework
 local _TDefs = require(script.TypeDefs)
 
 local Kit = Framework.Kit
-local CharacterManager_Types = require(Kit.Managers.CharacterManager.TypeDefs)
-local KitSettings = require(ReplicatedStorage.KitSettings)
 local Log = require(Framework.Log)
+local CharacterManager_Types = require(Kit.Managers.CharacterManager.TypeDefs)
+--local KitSettings = require(ReplicatedStorage.KitSettings)
 
 --[[
 ---------------------------------------------------------------------------
@@ -202,12 +202,12 @@ end
 
 function GuiManager:__updateKeyDisplay()
 	debug.profilebegin("GuiManager > Key Display")
-
+	
 	if not self.Gui then
 		debug.profileend()
 		return
 	end
-
+	
 	local keyFrame = self.Gui:FindFirstChild("Keys")
 	if not keyFrame then
 		debug.profileend()
@@ -335,19 +335,19 @@ function GuiManager:Init()
 	end)
 
 	--> Debug & Settings Gui Init
-	if KitSettings.DisplayDebugGuis then
-		GuiManager:DisplayGUI("debug", KitSettings.DisplayMemoryDebug)
-	end
-	if KitSettings.DisplaySettingsGui then
-		GuiManager:DisplayGUI("settings")
-	end
-	TextChatService.SendingMessage:Connect(function(message)
-		if message.Text:lower() == ".debug" then
-			GuiManager:DisplayGUI("debug", true)
-		elseif message.Text:lower() == ".kitsettings" then
-			GuiManager:DisplayGUI("settings")
-		end
-	end)
+	--if KitSettings.DisplayDebugGuis then
+	--	GuiManager:DisplayGUI("debug", KitSettings.DisplayMemoryDebug)
+	--end
+	--if KitSettings.DisplaySettingsGui then
+	--	GuiManager:DisplayGUI("settings")
+	--end
+	--TextChatService.SendingMessage:Connect(function(message)
+	--	if message.Text:lower() == ".debug" then
+	--		GuiManager:DisplayGUI("debug", true)
+	--	elseif message.Text:lower() == ".kitsettings" then
+	--		GuiManager:DisplayGUI("settings")
+	--	end
+	--end)
 
 	--> Start Key display loop
 	RunService.Heartbeat:Connect(function()

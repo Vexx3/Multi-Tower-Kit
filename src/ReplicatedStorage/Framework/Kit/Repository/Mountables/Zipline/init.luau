@@ -81,14 +81,14 @@ function Zipline.Run(scope: _T.Scope, utility: _T.Utility)
 		scope:log({ errorName .. " is missing one or more critical parts and cannot function.", type = "warn" })
 		return
 	end
-
+	
 	local baseSegment = zipline:FindFirstChild("BaseSegment") or script.BaseSegment
 	local baseSegmentIsDefault = false
 	if not baseSegment or not baseSegment:IsA("BasePart") then
-		scope:log({ `{zipline.Name} has an incorrectly set up BaseSegment. It must be a Part.`, type = "warn" })
+		scope:log({`{zipline.Name} has an incorrectly set up BaseSegment. It must be a Part.`, type = "warn"})
 		return
 	end
-
+	
 	if baseSegment == script.BaseSegment then
 		baseSegment = baseSegment:Clone()
 		baseSegmentIsDefault = true
@@ -156,7 +156,9 @@ function Zipline.Run(scope: _T.Scope, utility: _T.Utility)
 	local segmentLimit = if mountPart.Anchored then 200 else 100
 	configuration.Segments = math.floor(math.min(configuration.Segments, segmentLimit))
 
-	local pointTable: { Vector3 } = if configuration.StartInCenter then {} else { mountPart.Position }
+	local pointTable: { Vector3 } = if configuration.StartInCenter
+		then {} 
+		else {mountPart.Position}
 	local segments: { BasePart } = {}
 
 	for pointNum = 1, #pointFolder:GetChildren() do
@@ -180,12 +182,12 @@ function Zipline.Run(scope: _T.Scope, utility: _T.Utility)
 		if baseSegmentIsDefault then
 			newSegment.Color = mountPart.Color
 		end
-
+		
 		local segmentWeld = Instance.new("WeldConstraint")
 		segmentWeld.Part0 = newSegment
 		segmentWeld.Part1 = mountPart
 		segmentWeld.Parent = newSegment
-
+		
 		local nextCurvePos = bezier(segmentNum / configuration.Segments, pointTable)
 		newSegment.Size = Vector3.new((nextCurvePos - previousCurvePos).Magnitude, newSegment.Size.Y, newSegment.Size.Z)
 		newSegment.CFrame = CFrame.lookAt(previousCurvePos, nextCurvePos) * CFrame.Angles(0, math.pi * 0.5, 0)
@@ -223,7 +225,8 @@ function Zipline.Run(scope: _T.Scope, utility: _T.Utility)
 
 		------------------------------------------------------------------------
 		--> Create ride model
-		local segmentStartCF = (segments[1].CFrame - segments[1].CFrame.RightVector * (segments[1].Size.X * 0.5))
+		local segmentStartCF = 
+			(segments[1].CFrame - segments[1].CFrame.RightVector * (segments[1].Size.X * 0.5))
 			* CFrame.Angles(0, -math.pi * 0.5, 0)
 		local rideModel = rideTemplate:Clone()
 		rideModel:PivotTo(segmentStartCF)
@@ -247,13 +250,13 @@ function Zipline.Run(scope: _T.Scope, utility: _T.Utility)
 			scope:log({ `The {script.Name} script does not have its rope bar correctly set up.`, type = "warn" })
 			return
 		end
-
+		
 		if constraint:IsA("RopeConstraint") then
 			constraint.Length = configuration.RopeLength
 			constraint.Color = mountPart.BrickColor
 		elseif constraint:IsA("WeldConstraint") then
 			ropeBar.CFrame = segmentStartCF * CFrame.new(0, -configuration.RopeLength, 0)
-
+			
 			constraint.Part0 = ropeBar
 			constraint.Part1 = ropeGuide
 			constraint.Parent = ropeBar
@@ -265,7 +268,7 @@ function Zipline.Run(scope: _T.Scope, utility: _T.Utility)
 		if not configuration.AllowUserControl then
 			loopSoundClone:Play()
 		end
-
+		
 		ropeBar.Color = mountPart.Color
 		ropeBar.Anchored = false
 
@@ -282,7 +285,9 @@ function Zipline.Run(scope: _T.Scope, utility: _T.Utility)
 
 		------------------------------------------------------------------------
 		--> Ride variables
-		local currentSegment = if configuration.StartInCenter then math.max(1, math.floor(#segments / 2)) else 1
+		local currentSegment = if configuration.StartInCenter
+			then math.max(1, math.floor(#segments / 2))
+			else 1
 		local segmentProgress = if configuration.StartInCenter and segments[currentSegment]
 			then segments[currentSegment].Size.X * if #segments % 2 == 0 then 0 else 0.5
 			else 0
@@ -297,7 +302,7 @@ function Zipline.Run(scope: _T.Scope, utility: _T.Utility)
 			if isPlayer and humanoid then
 				utility.Character.carryPart(false, ropeBar, not configuration.HandleAnimation)
 				humanoid.PlatformStand = false
-
+				
 				if configuration.JumpOnDismount then
 					humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
 				end
