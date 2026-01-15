@@ -1,4 +1,3 @@
 src/ReplicatedStorage/Framework/**
-src/ReplicatedStorage/TowerGame/Network/**
-src/ServerScriptService/Server/Network/**
-src/StarterPlayerScripts/Client/Game/ScriptRepo/**
+src/**/Network/*
+src/**/ScriptRepo/**
