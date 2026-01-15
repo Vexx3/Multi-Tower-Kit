@@ -60,7 +60,7 @@ local player = Players.LocalPlayer
 local distanceFromCharacter = player.DistanceFromCharacter
 
 local function handleCache(rootScope: _T.Scope, utility: _T.Utility)
-	local cache: {DistanceCullingList} = {}
+	local cache: { DistanceCullingList } = {}
 	local function updateObjects(list: DistanceCullingList)
 		for _, object in list.objects do
 			local range = object.customRange or list.range
@@ -143,7 +143,7 @@ function DistanceCulling.Run(scope: _T.Scope, utility: _T.Utility)
 
 			continue
 		end
-		
+
 		local customRange = object:GetAttribute("CustomRange")
 		if customRange and type(customRange) ~= "number" then
 			scope:log({

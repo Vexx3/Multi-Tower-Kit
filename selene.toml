@@ -1,10 +1,12 @@
-std = "roblox"
 exclude = [
-    "src/ReplicatedStorage/Packages/*",
+    "Packages/*",
     "src/ReplicatedStorage/Framework/*",
+    "src/ServerScriptService/Server/Network/*",
+    "src/ReplicatedStorage/TowerGame/Network/*",
     "src/StarterPlayerScripts/PlayerModule/*",
-    "src/StarterPlayerScripts/MultiTowerClient/ScriptRepo/*"
+    "src/StarterPlayerScripts/Client/Game/ScriptRepo/*"
 ]
+std = "selene-std"
+
 [rules]
 global_usage = "allow"
-incorrect_standard_library_use = "allow"

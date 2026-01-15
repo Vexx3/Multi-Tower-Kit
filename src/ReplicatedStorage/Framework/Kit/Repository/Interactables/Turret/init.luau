@@ -116,10 +116,7 @@ function Turret.Run(scope: _T.Scope, utility: _T.Utility)
 
 	--> Functions
 	local function isValidHit(bullet: BasePart, hitPart: BasePart): TurretHitData
-		if
-			hitPart == turret
-			or hitPart:HasTag("IgnoreBullets")
-		then
+		if hitPart == turret or hitPart:HasTag("IgnoreBullets") then
 			return HIT_TYPES.INVALID
 		end
 

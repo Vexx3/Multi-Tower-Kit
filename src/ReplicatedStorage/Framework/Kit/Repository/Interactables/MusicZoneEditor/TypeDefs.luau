@@ -16,14 +16,14 @@ Thank you
 --------------------------------------------------------------------------------
 ]]
 
-export type PropertyTable = {[string]: any} | "Default"
+export type PropertyTable = { [string]: any } | "Default"
 
 export type ZoneConfiguration = {
 	ZoneDisabled: boolean?,
 	ZonePriority: number?,
 	SoundConfiguration: PropertyTable?,
-	EffectConfiguration: {[string]: PropertyTable}?,
-	ExtraConfiguration: {[string]: any}?,
+	EffectConfiguration: { [string]: PropertyTable }?,
+	ExtraConfiguration: { [string]: any }?,
 }
 
 return nil

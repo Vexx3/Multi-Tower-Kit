@@ -118,7 +118,7 @@ export type Settings = {
 		createCheckpoint: string,
 		teleportCheckpoint: string,
 		removeCheckpoint: string,
-		playAnimation: string
+		playAnimation: string,
 	},
 	extendedCompletions: boolean,
 }

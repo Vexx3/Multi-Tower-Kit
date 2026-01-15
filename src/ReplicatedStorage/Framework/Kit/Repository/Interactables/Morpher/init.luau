@@ -236,21 +236,21 @@ local function handleMorpherCache(rootScope: _T.Scope, utility: _T.Utility)
 			TweenService:GetValue(elapsed, morpherLerp.tweenInfo.EasingStyle, morpherLerp.tweenInfo.EasingDirection)
 
 		local morpherButton = morpherLerp.morpherButton
-		
+
 		local function cleanup()
 			if morpherButton.button and morpherLerp.carryObjects then
 				for _, lerpPart in morpherLerp.parts do
 					lerpPart.part.AssemblyLinearVelocity = Vector3.zero
 				end
 			end
-			
+
 			local thisCache = cache.morpherLerps[morpherButton.morpherID]
 			local tableIndex = table.find(thisCache, morpherLerp)
 			if tableIndex then
 				table.remove(thisCache, tableIndex)
 			end
 		end
-		
+
 		if not morpherButton.button then
 			cleanup()
 			debug.profileend()
@@ -288,7 +288,7 @@ local function handleMorpherCache(rootScope: _T.Scope, utility: _T.Utility)
 		debug.profilebegin("Morpher -> Update Lerp -> BulkMoveTo")
 		Workspace:BulkMoveTo(partList, cframeList, Enum.BulkMoveMode.FireCFrameChanged)
 		debug.profileend()
-		
+
 		if elapsed >= 1 then
 			cleanup()
 			debug.profileend()
@@ -482,7 +482,7 @@ local function handleMorpherCache(rootScope: _T.Scope, utility: _T.Utility)
 		if not buttonConfigObject then
 			return
 		end
-		
+
 		if not cache.morpherButtons[morpherID] then
 			cache.morpherButtons[morpherID] = {}
 		end

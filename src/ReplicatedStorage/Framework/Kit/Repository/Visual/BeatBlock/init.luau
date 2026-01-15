@@ -65,10 +65,10 @@ type Block = {
 	part: BasePart,
 	size: Vector3,
 	material: Enum.Material,
-	children: {Instance},
+	children: { Instance },
 }
 
-local AFFECTED_CHILDREN: {[string]: string} = {
+local AFFECTED_CHILDREN: { [string]: string } = {
 	Decal = "Transparency",
 	Texture = "Transparency",
 	SelectionBox = "Transparency",
@@ -119,7 +119,7 @@ function BeatBlock.Run(scope: _T.Scope, utility: _T.Utility)
 	local beatblockTable: { [number]: { Block } } = {}
 	local tableList = 0
 
-	local function getPartChildren(part: BasePart): {Instance}
+	local function getPartChildren(part: BasePart): { Instance }
 		local children = {}
 
 		for _, child in part:GetChildren() do
@@ -162,7 +162,7 @@ function BeatBlock.Run(scope: _T.Scope, utility: _T.Utility)
 		if sound.TimeLength <= 0 or sound.Volume <= 0 then
 			return
 		end
-		
+
 		local closest = {}
 		for _, part in partList do
 			local distance = localPlayer:DistanceFromCharacter(part.part.Position)
@@ -170,7 +170,7 @@ function BeatBlock.Run(scope: _T.Scope, utility: _T.Utility)
 				closest = { distance, part }
 			end
 		end
-		
+
 		local thisSound = sound:Clone()
 		thisSound.Parent = closest[2].part
 		thisSound:Play()

@@ -8,7 +8,9 @@
 
 _G._BLINK = _G._BLINK or {}
 if _G._BLINK["BLINK"] then
-	error("[Blink]: An instance of blink is already running with the remote scope \"BLINK\". Change the remote scope of either instance to avoid conflicts.")
+	error(
+		'[Blink]: An instance of blink is already running with the remote scope "BLINK". Change the remote scope of either instance to avoid conflicts.'
+	)
 end
 _G._BLINK["BLINK"] = true
 local Players = game:GetService("Players")
@@ -33,127 +35,127 @@ local RecieveInstanceCursor = 0
 local Null = newproxy()
 
 type Entry = {
-    value: any,
-    next: Entry?
+	value: any,
+	next: Entry?,
 }
 
 type Queue = {
-    head: Entry?,
-    tail: Entry?
+	head: Entry?,
+	tail: Entry?,
 }
 
 type BufferSave = {
-    Size: number, 
-    Cursor: number, 
-    Buffer: buffer, 
-    Instances: {Instance}
+	Size: number,
+	Cursor: number,
+	Buffer: buffer,
+	Instances: { Instance },
 }
 
 local function Read(Bytes: number)
-    local Offset = RecieveCursor
-    RecieveCursor += Bytes
-    return Offset
+	local Offset = RecieveCursor
+	RecieveCursor += Bytes
+	return Offset
 end
 
 local function Save(): BufferSave
-    return {
-        Size = SendSize,
-        Cursor = SendCursor,
-        Buffer = SendBuffer,
-        Instances = SendInstances
-    }
+	return {
+		Size = SendSize,
+		Cursor = SendCursor,
+		Buffer = SendBuffer,
+		Instances = SendInstances,
+	}
 end
 
 local function Load(Save: BufferSave?)
-    if Save then
-        SendSize = Save.Size
-        SendCursor = Save.Cursor
-        SendOffset = Save.Cursor
-        SendBuffer = Save.Buffer
-        SendInstances = Save.Instances
-        return
-    end
+	if Save then
+		SendSize = Save.Size
+		SendCursor = Save.Cursor
+		SendOffset = Save.Cursor
+		SendBuffer = Save.Buffer
+		SendInstances = Save.Instances
+		return
+	end
 
-    SendSize = 64
-    SendCursor = 0
-    SendOffset = 0
-    SendBuffer = buffer.create(64)
-    SendInstances = {}
+	SendSize = 64
+	SendCursor = 0
+	SendOffset = 0
+	SendBuffer = buffer.create(64)
+	SendInstances = {}
 end
 
 local function Invoke()
-    if Invocations == 255 then
-        Invocations = 0
-    end
+	if Invocations == 255 then
+		Invocations = 0
+	end
 
-    local Invocation = Invocations
-    Invocations += 1
-    return Invocation
+	local Invocation = Invocations
+	Invocations += 1
+	return Invocation
 end
 
 local function Allocate(Bytes: number)
-    local InUse = (SendCursor + Bytes)
-    if InUse > SendSize then
-        --> Avoid resizing the buffer for every write
-        while InUse > SendSize do
-            SendSize *= 1.5
-        end
+	local InUse = (SendCursor + Bytes)
+	if InUse > SendSize then
+		--> Avoid resizing the buffer for every write
+		while InUse > SendSize do
+			SendSize *= 1.5
+		end
 
-        local Buffer = buffer.create(SendSize)
-        buffer.copy(Buffer, 0, SendBuffer, 0, SendCursor)
-        SendBuffer = Buffer
-    end
+		local Buffer = buffer.create(SendSize)
+		buffer.copy(Buffer, 0, SendBuffer, 0, SendCursor)
+		SendBuffer = Buffer
+	end
 
-    SendOffset = SendCursor
-    SendCursor += Bytes
-    
-    return SendOffset
+	SendOffset = SendCursor
+	SendCursor += Bytes
+
+	return SendOffset
 end
 
 local function CreateQueue(): Queue
-    return {
-        head = nil,
-        tail = nil
-    }
+	return {
+		head = nil,
+		tail = nil,
+	}
 end
 
 local function Pop(queue: Queue): any
-    local head = queue.head
-    if head == nil then
-        return
-    end
+	local head = queue.head
+	if head == nil then
+		return
+	end
 
-    queue.head = head.next
-    return head.value
+	queue.head = head.next
+	return head.value
 end
 
 local function Push(queue: Queue, value: any)
-    local entry: Entry = {
-        value = value,
-        next = nil
-    }
+	local entry: Entry = {
+		value = value,
+		next = nil,
+	}
 
-    if queue.tail ~= nil then
-        queue.tail.next = entry
-    end
+	if queue.tail ~= nil then
+		queue.tail.next = entry
+	end
 
-    queue.tail = entry
+	queue.tail = entry
 
-    if queue.head == nil then
-        queue.head = entry
-    end
+	if queue.head == nil then
+		queue.head = entry
+	end
 end
 
 local Calls = table.create(256)
 
 local Events: any = {
-    Reliable = table.create(256),
-    Unreliable = table.create(256)
+	Reliable = table.create(256),
+	Unreliable = table.create(256),
 }
 
 local Queue: any = {
-    Reliable = table.create(256),
-    Unreliable = table.create(256)
+	Reliable = table.create(256),
+	Unreliable = table.create(256),
 }
 
 local SerdesEvent = "?"
@@ -165,16 +167,29 @@ Queue.Reliable[9] = table.create(256)
 Queue.Reliable[10] = table.create(256)
 Queue.Reliable[11] = table.create(256)
 Queue.Reliable[12] = table.create(256)
-export type ClientWinMessageInfo = { playerName: string, endingName: string, time: number, boostsUsed: {[string]: string}, allJumps: boolean, color: Color3, fancyFont: boolean, global: boolean }
-local function ReadEVENT_RestartRequested(): (nil)
+export type ClientWinMessageInfo = {
+	playerName: string,
+	endingName: string,
+	time: number,
+	boostsUsed: { [string]: string },
+	allJumps: boolean,
+	color: Color3,
+	fancyFont: boolean,
+	global: boolean,
+}
+local function ReadEVENT_RestartRequested(): nil
 	return nil
 end
 
-local function ReadFUNCTION_DATA_RequestEverpresentCOs(): (nil)
+local function ReadFUNCTION_DATA_RequestEverpresentCOs(): nil
 	return nil
 end
 
-local function WriteFUNCTION_RETURN_RequestEverpresentCOs(Value1: boolean, Value2: Folder?, InvocationIdentifier: number): ()
+local function WriteFUNCTION_RETURN_RequestEverpresentCOs(
+	Value1: boolean,
+	Value2: Folder?,
+	InvocationIdentifier: number
+): ()
 	-- Allocate BLOCK: 4 bytes
 	local BLOCK_START = Allocate(4)
 	buffer.writeu8(SendBuffer, BLOCK_START + 0, 1)
@@ -237,7 +252,16 @@ local function WriteEVENT_GameAnnouncement(Value1: string, Value2: Color3, Value
 	end
 end
 
-local function WriteEVENT_GameWinAnnouncement(Value: { playerName: string, endingName: string, time: number, boostsUsed: {[string]: string}, allJumps: boolean, color: Color3, fancyFont: boolean, global: boolean }): ()
+local function WriteEVENT_GameWinAnnouncement(Value: {
+	playerName: string,
+	endingName: string,
+	time: number,
+	boostsUsed: { [string]: string },
+	allJumps: boolean,
+	color: Color3,
+	fancyFont: boolean,
+	global: boolean,
+}): ()
 	-- Allocate BLOCK: 17 bytes
 	local BLOCK_START = Allocate(17)
 	buffer.writeu8(SendBuffer, BLOCK_START + 0, 6)
@@ -281,18 +305,18 @@ local function WriteEVENT_PlayerDataUpdate(Value: any): ()
 	table.insert(SendInstances, if Value == nil then Null else Value)
 end
 
-local function ReadEVENT_SetAllJumpsMode(): (boolean)
+local function ReadEVENT_SetAllJumpsMode(): boolean
 	-- Read BLOCK: 1 bytes
 	local BLOCK_START = Read(1)
 	local Value = (buffer.readu8(RecieveBuffer, BLOCK_START + 0) == 1)
 	return Value
 end
 
-local function ReadEVENT_ExitTowerRequest(): (nil)
+local function ReadEVENT_ExitTowerRequest(): nil
 	return nil
 end
 
-local function ReadEVENT_UpdateSettings(): ({[string]: any})
+local function ReadEVENT_UpdateSettings(): { [string]: any }
 	-- Read BLOCK: 2 bytes
 	local BLOCK_START = Read(2)
 	local Value = {}
@@ -308,14 +332,14 @@ local function ReadEVENT_UpdateSettings(): ({[string]: any})
 	return Value
 end
 
-local function ReadEVENT_SetPracticeMode(): (boolean)
+local function ReadEVENT_SetPracticeMode(): boolean
 	-- Read BLOCK: 1 bytes
 	local BLOCK_START = Read(1)
 	local Value = (buffer.readu8(RecieveBuffer, BLOCK_START + 0) == 1)
 	return Value
 end
 
-local function ReadFUNCTION_DATA_GetPlayerData(): (number)
+local function ReadFUNCTION_DATA_GetPlayerData(): number
 	-- Read BLOCK: 4 bytes
 	local BLOCK_START = Read(4)
 	local Value = buffer.readu32(RecieveBuffer, BLOCK_START + 0)
@@ -334,128 +358,131 @@ end
 if not RunService:IsRunning() then
 	local NOOP = function() end
 	local Returns = table.freeze({
-	RestartRequested = {
-		On = NOOP
-	},
-	RequestEverpresentCOs = {
-		On = NOOP
-	},
-	UpdateTowerTimer = {
-		Fire = NOOP,
-		FireAll = NOOP,
-		FireList = NOOP,
-		FireExcept = NOOP
-	},
-	UpdateTowerRush = {
-		Fire = NOOP,
-		FireAll = NOOP,
-		FireList = NOOP,
-		FireExcept = NOOP
-	},
-	LoadTower = {
-		Fire = NOOP,
-		FireAll = NOOP,
-		FireList = NOOP,
-		FireExcept = NOOP
-	},
-	UnloadTower = {
-		Fire = NOOP,
-		FireAll = NOOP,
-		FireList = NOOP,
-		FireExcept = NOOP
-	},
-	GameAnnouncement = {
-		Fire = NOOP,
-		FireAll = NOOP,
-		FireList = NOOP,
-		FireExcept = NOOP
-	},
-	GameWinAnnouncement = {
-		Fire = NOOP,
-		FireAll = NOOP,
-		FireList = NOOP,
-		FireExcept = NOOP
-	},
-	PlayerDataUpdate = {
-		Fire = NOOP,
-		FireAll = NOOP,
-		FireList = NOOP,
-		FireExcept = NOOP
-	},
-	SetAllJumpsMode = {
-		On = NOOP
-	},
-	ExitTowerRequest = {
-		On = NOOP
-	},
-	UpdateSettings = {
-		On = NOOP
-	},
-	SetPracticeMode = {
-		On = NOOP
-	},
-	GetPlayerData = {
-		On = NOOP
-	},
+		RestartRequested = {
+			On = NOOP,
+		},
+		RequestEverpresentCOs = {
+			On = NOOP,
+		},
+		UpdateTowerTimer = {
+			Fire = NOOP,
+			FireAll = NOOP,
+			FireList = NOOP,
+			FireExcept = NOOP,
+		},
+		UpdateTowerRush = {
+			Fire = NOOP,
+			FireAll = NOOP,
+			FireList = NOOP,
+			FireExcept = NOOP,
+		},
+		LoadTower = {
+			Fire = NOOP,
+			FireAll = NOOP,
+			FireList = NOOP,
+			FireExcept = NOOP,
+		},
+		UnloadTower = {
+			Fire = NOOP,
+			FireAll = NOOP,
+			FireList = NOOP,
+			FireExcept = NOOP,
+		},
+		GameAnnouncement = {
+			Fire = NOOP,
+			FireAll = NOOP,
+			FireList = NOOP,
+			FireExcept = NOOP,
+		},
+		GameWinAnnouncement = {
+			Fire = NOOP,
+			FireAll = NOOP,
+			FireList = NOOP,
+			FireExcept = NOOP,
+		},
+		PlayerDataUpdate = {
+			Fire = NOOP,
+			FireAll = NOOP,
+			FireList = NOOP,
+			FireExcept = NOOP,
+		},
+		SetAllJumpsMode = {
+			On = NOOP,
+		},
+		ExitTowerRequest = {
+			On = NOOP,
+		},
+		UpdateSettings = {
+			On = NOOP,
+		},
+		SetPracticeMode = {
+			On = NOOP,
+		},
+		GetPlayerData = {
+			On = NOOP,
+		},
 	})
 	return Returns :: BLINK_EVENTS_SYMBOL
 end
 
 if not RunService:IsServer() then
-    error("Server network module can only be required from the server.")
+	error("Server network module can only be required from the server.")
 end
 
 local Reliable: RemoteEvent = ReplicatedStorage:FindFirstChild(BASE_EVENT_NAME .. "_RELIABLE_REMOTE") :: RemoteEvent
 if not Reliable then
-    local RemoteEvent = Instance.new("RemoteEvent")
-    RemoteEvent.Name = BASE_EVENT_NAME .. "_RELIABLE_REMOTE"
-    RemoteEvent.Parent = ReplicatedStorage
-    Reliable = RemoteEvent
+	local RemoteEvent = Instance.new("RemoteEvent")
+	RemoteEvent.Name = BASE_EVENT_NAME .. "_RELIABLE_REMOTE"
+	RemoteEvent.Parent = ReplicatedStorage
+	Reliable = RemoteEvent
 end
 
-local Unreliable: UnreliableRemoteEvent = ReplicatedStorage:FindFirstChild(BASE_EVENT_NAME .. "_UNRELIABLE_REMOTE") :: UnreliableRemoteEvent
+local Unreliable: UnreliableRemoteEvent =
+	ReplicatedStorage:FindFirstChild(BASE_EVENT_NAME .. "_UNRELIABLE_REMOTE") :: UnreliableRemoteEvent
 if not Unreliable then
-    local UnreliableRemoteEvent = Instance.new("UnreliableRemoteEvent")
-    UnreliableRemoteEvent.Name = BASE_EVENT_NAME .. "_UNRELIABLE_REMOTE"
-    UnreliableRemoteEvent.Parent = ReplicatedStorage
-    Unreliable = UnreliableRemoteEvent
+	local UnreliableRemoteEvent = Instance.new("UnreliableRemoteEvent")
+	UnreliableRemoteEvent.Name = BASE_EVENT_NAME .. "_UNRELIABLE_REMOTE"
+	UnreliableRemoteEvent.Parent = ReplicatedStorage
+	Unreliable = UnreliableRemoteEvent
 end
 
-local PlayersMap: {[Player]: BufferSave} = {}
+local PlayersMap: { [Player]: BufferSave } = {}
 
 Players.PlayerRemoving:Connect(function(Player)
-    PlayersMap[Player] = nil
+	PlayersMap[Player] = nil
 end)
 
 local function StepReplication()
-    for Player, Send in PlayersMap do
-        if Send.Cursor <= 0 then
-            continue
-        end
+	for Player, Send in PlayersMap do
+		if Send.Cursor <= 0 then
+			continue
+		end
 
-        local Buffer = buffer.create(Send.Cursor)
-        buffer.copy(Buffer, 0, Send.Buffer, 0, Send.Cursor)
-        Reliable:FireClient(Player, Buffer, Send.Instances)
+		local Buffer = buffer.create(Send.Cursor)
+		buffer.copy(Buffer, 0, Send.Buffer, 0, Send.Cursor)
+		Reliable:FireClient(Player, Buffer, Send.Instances)
 
-        Send.Size = 64
-        Send.Cursor = 0
-        Send.Buffer = buffer.create(64)
-        table.clear(Send.Instances)
-    end
+		Send.Size = 64
+		Send.Cursor = 0
+		Send.Buffer = buffer.create(64)
+		table.clear(Send.Instances)
+	end
 end
 RunService.Heartbeat:Connect(StepReplication)
-Reliable.OnServerEvent:Connect(function(Player: Player, Buffer: buffer, Instances: {Instance})
+Reliable.OnServerEvent:Connect(function(Player: Player, Buffer: buffer, Instances: { Instance })
 	RecieveCursor = 0
 	RecieveBuffer = Buffer
 	RecieveInstances = Instances
 	RecieveInstanceCursor = 0
 	local Size = buffer.len(RecieveBuffer)
 	if SerdesThread and coroutine.status(SerdesThread) == "suspended" then
-		warn(`[Blink]: Yielded in a Sync call. Event "{SerdesEvent}" uses a Sync call, consider using an Async call instead.`)
+		warn(
+			`[Blink]: Yielded in a Sync call. Event "{SerdesEvent}" uses a Sync call, consider using an Async call instead.`
+		)
 		coroutine.close(SerdesThread)
 	end
 	SerdesThread = coroutine.running()
-	while (RecieveCursor < Size) do
+	while RecieveCursor < Size do
 		-- Read BLOCK: 1 bytes
 		local BLOCK_START = Read(1)
 		local Index = buffer.readu8(RecieveBuffer, BLOCK_START + 0)
@@ -465,9 +492,11 @@ Reliable.OnServerEvent:Connect(function(Player: Player, Buffer: buffer, Instance
 				task.spawn(Events.Reliable[0], Player, Value)
 			else
 				if #Queue.Reliable[0] > 256 then
-					warn("[Blink]: Event queue of \"RestartRequested\" exceeded 256, did you forget to implement a listener?")
+					warn(
+						'[Blink]: Event queue of "RestartRequested" exceeded 256, did you forget to implement a listener?'
+					)
 				end
-				table.insert(Queue.Reliable[0], {Player, Value} :: {any})
+				table.insert(Queue.Reliable[0], { Player, Value } :: { any })
 			end
 		elseif Index == 1 then
 			-- Read BLOCK: 1 bytes
@@ -478,9 +507,11 @@ Reliable.OnServerEvent:Connect(function(Player: Player, Buffer: buffer, Instance
 				task.spawn(Events.Reliable[1], Player, Value, InvocationIdentifier)
 			else
 				if #Queue.Reliable[1] > 256 then
-					warn("[Blink]: Event queue of \"RequestEverpresentCOs\" exceeded 256, did you forget to implement a listener?")
+					warn(
+						'[Blink]: Event queue of "RequestEverpresentCOs" exceeded 256, did you forget to implement a listener?'
+					)
 				end
-				table.insert(Queue.Reliable[1], {Player, Value, InvocationIdentifier} :: {any})
+				table.insert(Queue.Reliable[1], { Player, Value, InvocationIdentifier } :: { any })
 			end
 		elseif Index == 8 then
 			local Value: boolean = ReadEVENT_SetAllJumpsMode()
@@ -488,9 +519,11 @@ Reliable.OnServerEvent:Connect(function(Player: Player, Buffer: buffer, Instance
 				task.spawn(Events.Reliable[8], Player, Value)
 			else
 				if #Queue.Reliable[8] > 256 then
-					warn("[Blink]: Event queue of \"SetAllJumpsMode\" exceeded 256, did you forget to implement a listener?")
+					warn(
+						'[Blink]: Event queue of "SetAllJumpsMode" exceeded 256, did you forget to implement a listener?'
+					)
 				end
-				table.insert(Queue.Reliable[8], {Player, Value} :: {any})
+				table.insert(Queue.Reliable[8], { Player, Value } :: { any })
 			end
 		elseif Index == 9 then
 			local Value: nil = ReadEVENT_ExitTowerRequest()
@@ -498,19 +531,23 @@ Reliable.OnServerEvent:Connect(function(Player: Player, Buffer: buffer, Instance
 				task.spawn(Events.Reliable[9], Player, Value)
 			else
 				if #Queue.Reliable[9] > 256 then
-					warn("[Blink]: Event queue of \"ExitTowerRequest\" exceeded 256, did you forget to implement a listener?")
+					warn(
+						'[Blink]: Event queue of "ExitTowerRequest" exceeded 256, did you forget to implement a listener?'
+					)
 				end
-				table.insert(Queue.Reliable[9], {Player, Value} :: {any})
+				table.insert(Queue.Reliable[9], { Player, Value } :: { any })
 			end
 		elseif Index == 10 then
-			local Value: {[string]: any} = ReadEVENT_UpdateSettings()
+			local Value: { [string]: any } = ReadEVENT_UpdateSettings()
 			if Events.Reliable[10] ~= nil then
 				task.spawn(Events.Reliable[10], Player, Value)
 			else
 				if #Queue.Reliable[10] > 256 then
-					warn("[Blink]: Event queue of \"UpdateSettings\" exceeded 256, did you forget to implement a listener?")
+					warn(
+						'[Blink]: Event queue of "UpdateSettings" exceeded 256, did you forget to implement a listener?'
+					)
 				end
-				table.insert(Queue.Reliable[10], {Player, Value} :: {any})
+				table.insert(Queue.Reliable[10], { Player, Value } :: { any })
 			end
 		elseif Index == 11 then
 			local Value: boolean = ReadEVENT_SetPracticeMode()
@@ -518,9 +555,11 @@ Reliable.OnServerEvent:Connect(function(Player: Player, Buffer: buffer, Instance
 				task.spawn(Events.Reliable[11], Player, Value)
 			else
 				if #Queue.Reliable[11] > 256 then
-					warn("[Blink]: Event queue of \"SetPracticeMode\" exceeded 256, did you forget to implement a listener?")
+					warn(
+						'[Blink]: Event queue of "SetPracticeMode" exceeded 256, did you forget to implement a listener?'
+					)
 				end
-				table.insert(Queue.Reliable[11], {Player, Value} :: {any})
+				table.insert(Queue.Reliable[11], { Player, Value } :: { any })
 			end
 		elseif Index == 12 then
 			-- Read BLOCK: 1 bytes
@@ -531,31 +570,34 @@ Reliable.OnServerEvent:Connect(function(Player: Player, Buffer: buffer, Instance
 				task.spawn(Events.Reliable[12], Player, Value, InvocationIdentifier)
 			else
 				if #Queue.Reliable[12] > 256 then
-					warn("[Blink]: Event queue of \"GetPlayerData\" exceeded 256, did you forget to implement a listener?")
+					warn(
+						'[Blink]: Event queue of "GetPlayerData" exceeded 256, did you forget to implement a listener?'
+					)
 				end
-				table.insert(Queue.Reliable[12], {Player, Value, InvocationIdentifier} :: {any})
+				table.insert(Queue.Reliable[12], { Player, Value, InvocationIdentifier } :: { any })
 			end
 		end
 	end
 end)
-Unreliable.OnServerEvent:Connect(function(Player: Player, Buffer: buffer, Instances: {Instance})
+Unreliable.OnServerEvent:Connect(function(Player: Player, Buffer: buffer, Instances: { Instance })
 	RecieveCursor = 0
 	RecieveBuffer = Buffer
 	RecieveInstances = Instances
 	RecieveInstanceCursor = 0
 	local Size = buffer.len(RecieveBuffer)
 	if SerdesThread and coroutine.status(SerdesThread) == "suspended" then
-		warn(`[Blink]: Yielded in a Sync call. Event "{SerdesEvent}" uses a Sync call, consider using an Async call instead.`)
+		warn(
+			`[Blink]: Yielded in a Sync call. Event "{SerdesEvent}" uses a Sync call, consider using an Async call instead.`
+		)
 		coroutine.close(SerdesThread)
 	end
 	SerdesThread = coroutine.running()
-	while (RecieveCursor < Size) do
+	while RecieveCursor < Size do
 		-- Read BLOCK: 1 bytes
 		local BLOCK_START = Read(1)
 		local Index = buffer.readu8(RecieveBuffer, BLOCK_START + 0)
 	end
 end)
-
 
 local Returns = table.freeze({
 	StepReplication = StepReplication,
@@ -567,18 +609,18 @@ local Returns = table.freeze({
 				task.spawn(Listener, table.unpack(Arguments))
 			end
 			Queue.Reliable[0] = {}
-			return function (): ()
+			return function(): ()
 				if Events.Reliable[0] == Listener then
 					Events.Reliable[0] = nil
 				end
 			end
-		end
+		end,
 	},
 	RequestEverpresentCOs = {
 		On = function(Listener: (Player, nil) -> (boolean, Folder?)): ()
 			Events.Reliable[1] = function(Player: Player, Value: nil, InvocationIdentifier: number): ()
-				local ReturnValue1: boolean, ReturnValue2: Folder?;
-				local Success, Error = pcall(function ()
+				local ReturnValue1: boolean, ReturnValue2: Folder?
+				local Success, Error = pcall(function()
 					ReturnValue1, ReturnValue2 = Listener(Player, Value)
 				end)
 				Load(PlayersMap[Player])
@@ -593,14 +635,14 @@ local Returns = table.freeze({
 				end
 				PlayersMap[Player] = Save()
 			end
-			task.spawn(function (): ()
+			task.spawn(function(): ()
 				local EventQueue = Queue.Reliable[1] or {}
 				Queue.Reliable[1] = nil
 				for Index, Arguments in EventQueue do
 					Events.Reliable[1](table.unpack(Arguments))
 				end
 			end)
-		end
+		end,
 	},
 	UpdateTowerTimer = {
 		Fire = function(Player: Player, Value: number): ()
@@ -617,7 +659,7 @@ local Returns = table.freeze({
 			buffer.copy(Buffer, 0, SendBuffer, 0, SendCursor)
 			Unreliable:FireAllClients(Buffer, SendInstances)
 		end,
-		FireList = function(List: {Player}, Value: number): ()
+		FireList = function(List: { Player }, Value: number): ()
 			Load()
 			WriteEVENT_UpdateTowerTimer(Value)
 			local Buffer = buffer.create(SendCursor)
@@ -657,7 +699,7 @@ local Returns = table.freeze({
 				PlayersMap[Player] = Save()
 			end
 		end,
-		FireList = function(List: {Player}, Value1: number, Value2: number): ()
+		FireList = function(List: { Player }, Value1: number, Value2: number): ()
 			Load()
 			WriteEVENT_UpdateTowerRush(Value1, Value2)
 			local Buffer, Size, Instances = SendBuffer, SendCursor, SendInstances
@@ -703,7 +745,7 @@ local Returns = table.freeze({
 				PlayersMap[Player] = Save()
 			end
 		end,
-		FireList = function(List: {Player}, Value1: string, Value2: boolean, Value3: boolean): ()
+		FireList = function(List: { Player }, Value1: string, Value2: boolean, Value3: boolean): ()
 			Load()
 			WriteEVENT_LoadTower(Value1, Value2, Value3)
 			local Buffer, Size, Instances = SendBuffer, SendCursor, SendInstances
@@ -749,7 +791,7 @@ local Returns = table.freeze({
 				PlayersMap[Player] = Save()
 			end
 		end,
-		FireList = function(List: {Player}, Value: nil): ()
+		FireList = function(List: { Player }, Value: nil): ()
 			Load()
 			WriteEVENT_UnloadTower(Value)
 			local Buffer, Size, Instances = SendBuffer, SendCursor, SendInstances
@@ -795,7 +837,7 @@ local Returns = table.freeze({
 				PlayersMap[Player] = Save()
 			end
 		end,
-		FireList = function(List: {Player}, Value1: string, Value2: Color3, Value3: boolean?): ()
+		FireList = function(List: { Player }, Value1: string, Value2: Color3, Value3: boolean?): ()
 			Load()
 			WriteEVENT_GameAnnouncement(Value1, Value2, Value3)
 			local Buffer, Size, Instances = SendBuffer, SendCursor, SendInstances
@@ -824,12 +866,33 @@ local Returns = table.freeze({
 		end,
 	},
 	GameWinAnnouncement = {
-		Fire = function(Player: Player, Value: { playerName: string, endingName: string, time: number, boostsUsed: {[string]: string}, allJumps: boolean, color: Color3, fancyFont: boolean, global: boolean }): ()
+		Fire = function(
+			Player: Player,
+			Value: {
+				playerName: string,
+				endingName: string,
+				time: number,
+				boostsUsed: { [string]: string },
+				allJumps: boolean,
+				color: Color3,
+				fancyFont: boolean,
+				global: boolean,
+			}
+		): ()
 			Load(PlayersMap[Player])
 			WriteEVENT_GameWinAnnouncement(Value)
 			PlayersMap[Player] = Save()
 		end,
-		FireAll = function(Value: { playerName: string, endingName: string, time: number, boostsUsed: {[string]: string}, allJumps: boolean, color: Color3, fancyFont: boolean, global: boolean }): ()
+		FireAll = function(Value: {
+			playerName: string,
+			endingName: string,
+			time: number,
+			boostsUsed: { [string]: string },
+			allJumps: boolean,
+			color: Color3,
+			fancyFont: boolean,
+			global: boolean,
+		}): ()
 			Load()
 			WriteEVENT_GameWinAnnouncement(Value)
 			local Buffer, Size, Instances = SendBuffer, SendCursor, SendInstances
@@ -841,7 +904,19 @@ local Returns = table.freeze({
 				PlayersMap[Player] = Save()
 			end
 		end,
-		FireList = function(List: {Player}, Value: { playerName: string, endingName: string, time: number, boostsUsed: {[string]: string}, allJumps: boolean, color: Color3, fancyFont: boolean, global: boolean }): ()
+		FireList = function(
+			List: { Player },
+			Value: {
+				playerName: string,
+				endingName: string,
+				time: number,
+				boostsUsed: { [string]: string },
+				allJumps: boolean,
+				color: Color3,
+				fancyFont: boolean,
+				global: boolean,
+			}
+		): ()
 			Load()
 			WriteEVENT_GameWinAnnouncement(Value)
 			local Buffer, Size, Instances = SendBuffer, SendCursor, SendInstances
@@ -853,7 +928,19 @@ local Returns = table.freeze({
 				PlayersMap[Player] = Save()
 			end
 		end,
-		FireExcept = function(Except: Player, Value: { playerName: string, endingName: string, time: number, boostsUsed: {[string]: string}, allJumps: boolean, color: Color3, fancyFont: boolean, global: boolean }): ()
+		FireExcept = function(
+			Except: Player,
+			Value: {
+				playerName: string,
+				endingName: string,
+				time: number,
+				boostsUsed: { [string]: string },
+				allJumps: boolean,
+				color: Color3,
+				fancyFont: boolean,
+				global: boolean,
+			}
+		): ()
 			Load()
 			WriteEVENT_GameWinAnnouncement(Value)
 			local Buffer, Size, Instances = SendBuffer, SendCursor, SendInstances
@@ -887,7 +974,7 @@ local Returns = table.freeze({
 				PlayersMap[Player] = Save()
 			end
 		end,
-		FireList = function(List: {Player}, Value: any): ()
+		FireList = function(List: { Player }, Value: any): ()
 			Load()
 			WriteEVENT_PlayerDataUpdate(Value)
 			local Buffer, Size, Instances = SendBuffer, SendCursor, SendInstances
@@ -922,12 +1009,12 @@ local Returns = table.freeze({
 				task.spawn(Listener, table.unpack(Arguments))
 			end
 			Queue.Reliable[8] = {}
-			return function (): ()
+			return function(): ()
 				if Events.Reliable[8] == Listener then
 					Events.Reliable[8] = nil
 				end
 			end
-		end
+		end,
 	},
 	ExitTowerRequest = {
 		On = function(Listener: (Player: Player, Value: nil) -> ()): () -> ()
@@ -936,26 +1023,26 @@ local Returns = table.freeze({
 				task.spawn(Listener, table.unpack(Arguments))
 			end
 			Queue.Reliable[9] = {}
-			return function (): ()
+			return function(): ()
 				if Events.Reliable[9] == Listener then
 					Events.Reliable[9] = nil
 				end
 			end
-		end
+		end,
 	},
 	UpdateSettings = {
-		On = function(Listener: (Player: Player, Value: {[string]: any}) -> ()): () -> ()
+		On = function(Listener: (Player: Player, Value: { [string]: any }) -> ()): () -> ()
 			Events.Reliable[10] = Listener
 			for Index, Arguments in Queue.Reliable[10] do
 				task.spawn(Listener, table.unpack(Arguments))
 			end
 			Queue.Reliable[10] = {}
-			return function (): ()
+			return function(): ()
 				if Events.Reliable[10] == Listener then
 					Events.Reliable[10] = nil
 				end
 			end
-		end
+		end,
 	},
 	SetPracticeMode = {
 		On = function(Listener: (Player: Player, Value: boolean) -> ()): () -> ()
@@ -964,18 +1051,18 @@ local Returns = table.freeze({
 				task.spawn(Listener, table.unpack(Arguments))
 			end
 			Queue.Reliable[11] = {}
-			return function (): ()
+			return function(): ()
 				if Events.Reliable[11] == Listener then
 					Events.Reliable[11] = nil
 				end
 			end
-		end
+		end,
 	},
 	GetPlayerData = {
-		On = function(Listener: (Player, number) -> (any)): ()
+		On = function(Listener: (Player, number) -> any): ()
 			Events.Reliable[12] = function(Player: Player, Value: number, InvocationIdentifier: number): ()
-				local ReturnValue: any;
-				local Success, Error = pcall(function ()
+				local ReturnValue: any
+				local Success, Error = pcall(function()
 					ReturnValue = Listener(Player, Value)
 				end)
 				Load(PlayersMap[Player])
@@ -990,14 +1077,14 @@ local Returns = table.freeze({
 				end
 				PlayersMap[Player] = Save()
 			end
-			task.spawn(function (): ()
+			task.spawn(function(): ()
 				local EventQueue = Queue.Reliable[12] or {}
 				Queue.Reliable[12] = nil
 				for Index, Arguments in EventQueue do
 					Events.Reliable[12](table.unpack(Arguments))
 				end
 			end)
-		end
+		end,
 	},
 })
 type BLINK_EVENTS_SYMBOL = typeof(Returns)

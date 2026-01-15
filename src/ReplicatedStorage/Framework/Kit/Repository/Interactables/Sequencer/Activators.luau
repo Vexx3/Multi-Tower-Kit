@@ -59,7 +59,7 @@ return function(register, utility: _T.Utility, cache: SequencerCache, scope: _T.
 			local success, returned: string? = pcall(activator, sequence, variables)
 			if (not success) and typeof(returned) == "string" then
 				scope:log({ `sequencer error: {returned}` })
-            elseif success and returned == "STOP_SEQUENCE" or returned == "BREAK_LOOP" then
+			elseif success and returned == "STOP_SEQUENCE" or returned == "BREAK_LOOP" then
 				return returned
 			end
 		end
@@ -156,8 +156,8 @@ return function(register, utility: _T.Utility, cache: SequencerCache, scope: _T.
 	}
 
 	local RANDOM = Random.new()
-    local STOP_CODE = "STOP_SEQUENCE"
-    local ALT_STOP_CODE = "BREAK_LOOP"
+	local STOP_CODE = "STOP_SEQUENCE"
+	local ALT_STOP_CODE = "BREAK_LOOP"
 	register(
 		"SequenceGroups",
 		{
@@ -253,22 +253,22 @@ return function(register, utility: _T.Utility, cache: SequencerCache, scope: _T.
 					--> Return Logic
 					if mode == "And" then
 						for _, result in results do
-                            if result == STOP_CODE or result == ALT_STOP_CODE then
-                                return result
+							if result == STOP_CODE or result == ALT_STOP_CODE then
+								return result
 							end
 						end
 					elseif mode == "Or" then
-                        local finalResult = false
-                        local stopCode = ""
+						local finalResult = false
+						local stopCode = ""
 						for _, result in results do
-                            if result ~= STOP_CODE and result ~= ALT_STOP_CODE then
-                                finalResult = true
-                            else
-                                stopCode = result
+							if result ~= STOP_CODE and result ~= ALT_STOP_CODE then
+								finalResult = true
+							else
+								stopCode = result
 							end
 						end
 
-                        return if finalResult then nil else stopCode
+						return if finalResult then nil else stopCode
 					end
 				end
 			end,

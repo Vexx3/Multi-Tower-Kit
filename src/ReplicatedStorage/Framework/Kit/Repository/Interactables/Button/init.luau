@@ -27,9 +27,9 @@ local Workspace = game:GetService("Workspace")
 
 local player = Players.LocalPlayer
 
+local SetupSequencerSupport = require(script.SequencerSupport)
 local _T = require(ReplicatedStorage.Framework.ClientTypes)
 local _TDefs = require(script.TypeDefs)
-local SetupSequencerSupport = require(script.SequencerSupport)
 
 local ACTIVE_KEY = "ButtonActive"
 local PLATFORM_TAG = "ButtonActivated"
@@ -130,7 +130,7 @@ local function handleButtonCache(rootScope: _T.Scope, utility: _T.Utility): Butt
 		local enabledTransparency = propertyUtil.assureAttribute(platform, "SetTransparency", 0)
 		local disabledTransparency = propertyUtil.assureAttribute(
 			platform,
-			"SetInactiveTransparency", 
+			"SetInactiveTransparency",
 			if platform:HasTag("FullHide") then 1 else 0.6
 		)
 		return if isActivated then enabledTransparency else disabledTransparency

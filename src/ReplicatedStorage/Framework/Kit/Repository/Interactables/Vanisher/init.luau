@@ -21,8 +21,8 @@ Thank you
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local Workspace = game:GetService("Workspace")
 local RunService = game:GetService("RunService")
+local Workspace = game:GetService("Workspace")
 
 local _T = require(ReplicatedStorage.Framework.ClientTypes)
 

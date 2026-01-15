@@ -22,8 +22,8 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Framework = ReplicatedStorage.Framework
 local Log = require(Framework.Log)
-local Type = require(script.Type)
 local ScopeUtil = require(script.Parent.InternalScopeUtil)
+local Type = require(script.Type)
 
 local DEFAULT_TOUCH_CONFIGURATION = table.freeze({
 	player = true,

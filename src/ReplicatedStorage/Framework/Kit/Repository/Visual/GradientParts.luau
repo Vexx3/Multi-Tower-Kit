@@ -101,7 +101,7 @@ local function evaluateNumberSequence(sequence: NumberSequence, time: number)
 			return thisKeypoint.Value + (nextKeypoint.Value - thisKeypoint.Value) * alpha
 		end
 	end
-	
+
 	return 0
 end
 
@@ -212,7 +212,7 @@ function GradientParts.Run(scope: _T.Scope, utility: _T.Utility)
 			local color = evaluateColorSequence(gradient.Color, alpha)
 			local transparency = evaluateNumberSequence(gradient.Transparency, alpha)
 			local colorSequence = ColorSequence.new(color)
-			
+
 			local throttle = configuration.Throttle
 			for i, partTable in gradientParts do
 				if i % throttle == 0 then

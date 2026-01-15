@@ -3,7 +3,7 @@
 
 local tool = script.Parent
 
-local keys: {[string]: Enum.KeyCode} = {
+local keys: { [string]: Enum.KeyCode } = {
 	UpButton = Enum.KeyCode.Space,
 	DownButton = Enum.KeyCode.LeftControl,
 	SpeedUpButton = Enum.KeyCode.E,
@@ -11,9 +11,9 @@ local keys: {[string]: Enum.KeyCode} = {
 	SpeedResetButton = Enum.KeyCode.R,
 }
 
+local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
-local Players = game:GetService("Players")
 
 local player = Players.LocalPlayer
 local playerScripts = player:WaitForChild("PlayerScripts")
@@ -31,7 +31,7 @@ UserInputService.InputBegan:Connect(function(key, typing)
 	if not equipped or typing then
 		return
 	end
-	
+
 	for name, keyCode in keys do
 		if key.KeyCode == keyCode then
 			speed = name == "SpeedUpButton" and speed + 1
@@ -42,21 +42,22 @@ UserInputService.InputBegan:Connect(function(key, typing)
 	end
 end)
 
-tool.ToolTip = `Move Upwards: {keys.UpButton.Name} | Move Downwards: {keys.DownButton.Name} | Speed Up: {keys.SpeedUpButton.Name} | Slow Down: {keys.SpeedDownButton.Name} | Reset Speed: {keys.SpeedResetButton.Name}`
+tool.ToolTip =
+	`Move Upwards: {keys.UpButton.Name} | Move Downwards: {keys.DownButton.Name} | Speed Up: {keys.SpeedUpButton.Name} | Slow Down: {keys.SpeedDownButton.Name} | Reset Speed: {keys.SpeedResetButton.Name}`
 
 tool.Equipped:Connect(function()
 	equipped = true
-	
+
 	connection = RunService.Heartbeat:Connect(function(step: number)
 		local character = player.Character
 		local humanoid = character and character:FindFirstChild("Humanoid")
 		local humanoidRootPart = character and character:FindFirstChild("HumanoidRootPart")
 		local camera = workspace.CurrentCamera
-		
+
 		if humanoid then
 			humanoid.PlatformStand = true
 		end
-		
+
 		if humanoidRootPart and camera then
 			hrpPivot = humanoidRootPart:GetPivot()
 			humanoidRootPart.Anchored = true
@@ -77,31 +78,34 @@ tool.Equipped:Connect(function()
 			moveAmount = moveAmount.Magnitude > 1 and moveAmount.Unit or moveAmount
 			moveAmount *= step * defaultSpeed * 1.25 ^ speed
 
-			humanoidRootPart.CFrame = CFrame.new(humanoidRootPart.Position, humanoidRootPart.Position + camera.CFrame.LookVector) * CFrame.new(moveAmount)
+			humanoidRootPart.CFrame = CFrame.new(
+				humanoidRootPart.Position,
+				humanoidRootPart.Position + camera.CFrame.LookVector
+			) * CFrame.new(moveAmount)
 		end
 	end)
 end)
 
 tool.Unequipped:Connect(function()
 	equipped = false
-	
+
 	local character = player.Character
 	local humanoid = character and character:FindFirstChild("Humanoid")
 	local humanoidRootPart = character and character:FindFirstChild("HumanoidRootPart")
-	
+
 	if humanoid then
 		humanoid.PlatformStand = false
 	end
 
 	if humanoidRootPart then
 		humanoidRootPart.Anchored = false
-		
+
 		if hrpPivot then
 			local _, RY, RZ = hrpPivot:ToOrientation()
 			humanoidRootPart.CFrame = CFrame.new(hrpPivot.Position) * CFrame.fromOrientation(0, RY, RZ)
 		end
 	end
-	
+
 	if connection then
 		connection:Disconnect()
 		connection = nil

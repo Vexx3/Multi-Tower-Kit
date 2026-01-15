@@ -41,9 +41,9 @@ local Framework = ReplicatedStorage.Framework
 local _TDefs = require(script.TypeDefs)
 
 local Kit = Framework.Kit
-local Log = require(Framework.Log)
 local CharacterManager_Types = require(Kit.Managers.CharacterManager.TypeDefs)
 local KitSettings = require(ReplicatedStorage.KitSettings)
+local Log = require(Framework.Log)
 
 --[[
 ---------------------------------------------------------------------------
@@ -202,12 +202,12 @@ end
 
 function GuiManager:__updateKeyDisplay()
 	debug.profilebegin("GuiManager > Key Display")
-	
+
 	if not self.Gui then
 		debug.profileend()
 		return
 	end
-	
+
 	local keyFrame = self.Gui:FindFirstChild("Keys")
 	if not keyFrame then
 		debug.profileend()

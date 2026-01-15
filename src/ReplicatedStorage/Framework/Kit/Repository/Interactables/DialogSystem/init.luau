@@ -89,7 +89,7 @@ function DialogSystem.Run(scope: _T.Scope, utility: _T.Utility)
 			end
 		end
 	end
-	
+
 	local function activateButtonFromTag(tag: string)
 		for _, button in buttonCache.Buttons do
 			if button:HasTag(tag) then
@@ -201,7 +201,7 @@ function DialogSystem.Run(scope: _T.Scope, utility: _T.Utility)
 					if typeof(attributes.ActivateButtonBeforeDialog) == "Color3" then
 						activateButtonFromColor(roundColor(attributes.ActivateButtonBeforeDialog))
 					end
-					
+
 					if typeof(attributes.ActivateButtonTagBeforeDialog) == "string" then
 						activateButtonFromTag(attributes.ActivateButtonTagBeforeDialog)
 					end
@@ -217,7 +217,7 @@ function DialogSystem.Run(scope: _T.Scope, utility: _T.Utility)
 					if typeof(attributes.ActivateButton) == "Color3" then
 						activateButtonFromColor(roundColor(attributes.ActivateButton))
 					end
-					
+
 					if typeof(attributes.ActivateButtonTag) == "string" then
 						activateButtonFromTag(attributes.ActivateButtonTag)
 					end

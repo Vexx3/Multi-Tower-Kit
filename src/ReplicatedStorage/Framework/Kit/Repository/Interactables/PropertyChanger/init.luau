@@ -24,9 +24,9 @@ local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Workspace = game:GetService("Workspace")
 
+local SequencerSupport = require(script.SequencerSupport)
 local _T = require(ReplicatedStorage.Framework.ClientTypes)
 local _TDefs = require(script.TypeDefs)
-local SequencerSupport = require(script.SequencerSupport)
 
 type ChangerData = _TDefs.ChangerData
 
@@ -76,7 +76,7 @@ local function printWarn(scope: _T.Scope, data: any)
 	if warningsSilenced then
 		return
 	end
-	
+
 	scope:log(data)
 end
 
@@ -525,7 +525,7 @@ function PropertyChanger.Run(scope: _T.Scope, utility: _T.Utility)
 		})
 		return
 	end
-	
+
 	local propertyPointer = utility.Instance.getPointer(changerConfig:FindFirstChild("Properties"))
 	if not propertyPointer or not propertyPointer:IsA("ModuleScript") then
 		scope:log({
@@ -550,7 +550,7 @@ function PropertyChanger.Run(scope: _T.Scope, utility: _T.Utility)
 	--> Get Changer Configurations
 	local changerConfiguration = Config.GetConfig(scope, changerConfig, CHANGER_CONFIG_TEMPLATE):ObserveChanges()
 	local tagCache = utility.Scope.getCached(scope, scope.scriptPath, handleCache)
-	
+
 	if changerConfiguration.SilenceWarnings then
 		warningsSilenced = true
 	end
@@ -869,7 +869,7 @@ function PropertyChanger.Run(scope: _T.Scope, utility: _T.Utility)
 	--> Activation
 	local touchConfiguration =
 		Config.GetConfig(scope, changerConfig:FindFirstChild("TouchConfiguration"), Config.TOUCH_CONFIG)
-		:ObserveChanges()
+			:ObserveChanges()
 
 	scope:attach(changer)
 	scope:add(changer.Touched:Connect(function(toucher)
