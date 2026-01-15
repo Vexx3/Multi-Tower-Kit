@@ -3,7 +3,7 @@ local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local TextChatService = game:GetService("TextChatService")
 
-local ChatTags = require(ReplicatedStorage.TowerGame.GameData.ChatTags)
+local ChatTags = require(ReplicatedStorage.TowerGame.Shared.Data.ChatTags)
 
 local playerTags: { [number]: { Text: string, Color: string } } = {}
 
@@ -40,9 +40,7 @@ local function updatePlayerTag(player: Player)
 	end
 end
 
-local ChatTagsModule = {}
-
-function ChatTagsModule.init()
+local function init()
 	local function onAdded(player)
 		task.spawn(updatePlayerTag, player)
 	end
@@ -59,11 +57,13 @@ function ChatTagsModule.init()
 		local tag = player and playerTags[player.UserId]
 
 		if tag then
-			props.PrefixText = `<font color='{tag.Color}'>{tag.Text}</font> {message.PrefixText}`
+			props.PrefixText = `<font color="{tag.Color}">{tag.Text}</font> {message.PrefixText}`
 		end
 
 		return props
 	end
 end
 
-return ChatTagsModule
+return {
+	init = init,
+}

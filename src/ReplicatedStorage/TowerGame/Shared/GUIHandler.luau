@@ -1,20 +1,18 @@
+-- Provides reusable animations and state transitions for UI components.
+
 local TweenService = game:GetService("TweenService")
+
+local originalSizes: { [GuiObject]: UDim2 } = {}
 
 local GUIHandler = {}
 
--- Cache for storing original sizes
-local originalSizes: { [GuiObject]: UDim2 } = {}
-
--- ToggleUI fades a CanvasGroup in/out using GroupTransparency
--- show: true to show (0), false to hide (1), nil to auto-toggle based on current state
--- duration: optional tween duration (default 0.5)
--- callback: optional function called when tween completes
+-- Fades a CanvasGroup in or out using the GroupTransparency property.
 function GUIHandler.toggleUI(
 	canvasGroup: CanvasGroup,
 	show: boolean?,
 	duration: number?,
 	callback: ((opening: boolean) -> ())?
-)
+): ()
 	local tweenDuration = duration or 0.5
 	local isVisible = canvasGroup.GroupTransparency < 1
 	local shouldShow = if show ~= nil then show else not isVisible
@@ -35,23 +33,20 @@ function GUIHandler.toggleUI(
 		if not shouldShow then
 			canvasGroup.Visible = false
 		end
+
 		if callback then
 			callback(shouldShow)
 		end
 	end)
 end
 
--- ShrinkAnimation toggles UI visibility using a scale animation (shrink to hide, grow to show)
--- guiObject: the UI element to animate (Button, Frame, ImageLabel, etc.)
--- show: true to show, false to hide, nil to auto-toggle based on current visibility
--- duration: optional animation duration (default 0.3)
--- callback: optional function called when animation completes
+-- Toggles UI visibility using a back-easing scale animation.
 function GUIHandler.shrinkAnimation(
 	guiObject: GuiObject,
 	show: boolean?,
 	duration: number?,
 	callback: ((opening: boolean) -> ())?
-)
+): ()
 	local tweenDuration = duration or 0.3
 	local isVisible = guiObject.Visible and guiObject.Size.X.Scale > 0.01
 	local shouldShow = if show ~= nil then show else not isVisible
@@ -85,6 +80,7 @@ function GUIHandler.shrinkAnimation(
 		if not shouldShow then
 			guiObject.Visible = false
 		end
+
 		if callback then
 			callback(shouldShow)
 		end

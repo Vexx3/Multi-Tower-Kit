@@ -2,16 +2,16 @@ option ClientOutput = "src/ReplicatedStorage/TowerGame/Network/BlinkClient.luau"
 option ServerOutput = "src/ServerScriptService/Server/Network/BlinkServer.luau"
 
 struct ClientWinMessageInfo {
-    PlayerName: string,
-    EndingName: string,
-    Time: f32,
-    BoostsUsed: map { [string]: string },
-    AllJumps: boolean,
+    playerName: string,
+    endingName: string,
+    time: f32,
+    boostsUsed: map { [string]: string },
+    allJumps: boolean,
 
-    Color: Color3,
-    FancyFont: boolean,
+    color: Color3,
+    fancyFont: boolean,
 
-    Global: boolean
+    global: boolean
 }
 
 event RestartRequested {
@@ -69,7 +69,7 @@ event GameWinAnnouncement {
 event PlayerDataUpdate {
     From: Server,
     Type: Reliable,
-    Call: SingleAsync,
+    Call: ManyAsync,
     Data: unknown
 }
 
@@ -84,6 +84,13 @@ event ExitTowerRequest {
     From: Client,
     Type: Reliable,
     Call: SingleAsync
+}
+
+event UpdateSettings {
+    From: Client,
+    Type: Reliable,
+    Call: SingleAsync,
+    Data: map { [string]: unknown }
 }
 
 event SetPracticeMode {

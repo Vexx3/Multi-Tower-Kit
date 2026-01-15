@@ -1,68 +1,69 @@
---[=[
-	Handles per-tower player statistics stored in the profile datastore.
-
-	@class TowerData
-	@server
-]=]
+-- Handles per-tower player statistics stored in the profile datastore.
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Shared = ReplicatedStorage.TowerGame.Shared
-local Config = require(ReplicatedStorage.TowerGame.GameData.Config)
 
 local PlayerData = require("../PlayerData")
 local Types = require(Shared.Types)
 local Util = require(Shared.Util)
 
 type TowerStat = Types.TowerStat
+type PlayerData = PlayerData.PlayerData
 
 local DEFAULT_DIFFICULTY_STAT: TowerStat = {
-	Attempts = 0,
-	Wins = 0,
-	AllJumpsWins = 0,
-	TotalTimeSpentSeconds = 0,
-	TotalTimeSpentFormatted = "0m 0s",
-	BestWinTimeSeconds = 0,
-	BestWinTimeFormatted = "N/A",
-	BestAJWinTimeSeconds = 0,
-	BestAJWinTimeFormatted = "N/A",
+	attempts = 0,
+	wins = 0,
+	allJumpsWins = 0,
+	totalTimeSpent = {
+		seconds = 0,
+		formatted = "0m 0s",
+	},
+	bestWinTime = {
+		seconds = 0,
+		formatted = "N/A",
+	},
+	bestAjWinTime = {
+		seconds = 0,
+		formatted = "N/A",
+	},
 }
 
-local TowerData = {}
-
-local function _applyDefaults(stat: TowerStat)
-	local statAny = stat :: any
-	for key, value in DEFAULT_DIFFICULTY_STAT do
+local function applyDefaults(stat: TowerStat)
+	local statAny: { [string]: unknown } = stat :: any
+	for key: string, value: unknown in DEFAULT_DIFFICULTY_STAT :: any do
 		if statAny[key] == nil then
 			statAny[key] = value
 		end
 	end
 end
 
-local function _applyTime(stat: TowerStat, timeDelta: number)
+local function applyTime(stat: TowerStat, timeDelta: number)
 	if timeDelta <= 0 then
 		return
 	end
 
-	stat.TotalTimeSpentSeconds += timeDelta
-	stat.TotalTimeSpentFormatted = Util.formatDuration(stat.TotalTimeSpentSeconds)
+	stat.totalTimeSpent.seconds += timeDelta
+	stat.totalTimeSpent.formatted = Util.formatDuration(stat.totalTimeSpent.seconds)
 end
 
-local function _ensureStat(data: Config.PlayerData, towerName: string): TowerStat
-	local towerStats = if data.TowerStats then table.clone(data.TowerStats) else {}
-	data.TowerStats = towerStats
+local TowerData = {}
 
-	local stat = towerStats[towerName]
+local function ensureStat(data: PlayerData, towerName: string): TowerStat
+	local towerStats: { [string]: TowerStat } = if data.towerStats then table.clone(data.towerStats) else {}
+	data.towerStats = towerStats
+
+	local stat: TowerStat? = towerStats[towerName]
 	if stat then
-		stat = table.clone(stat)
+		stat = table.clone(stat :: TowerStat)
 	else
 		stat = table.clone(DEFAULT_DIFFICULTY_STAT)
 	end
-	towerStats[towerName] = stat
+	towerStats[towerName] = stat :: TowerStat
 
-	_applyDefaults(stat)
+	applyDefaults(stat :: TowerStat)
 
-	return stat
+	return stat :: TowerStat
 end
 
 function TowerData.getTowerStat(player: Player, towerName: string): TowerStat?
@@ -71,14 +72,14 @@ function TowerData.getTowerStat(player: Player, towerName: string): TowerStat?
 		return nil
 	end
 
-	local stats = data.TowerStats
+	local stats: { [string]: TowerStat }? = data.towerStats
 	return stats and stats[towerName]
 end
 
 function TowerData.incrementTowerAttempt(player: Player, towerName: string)
-	PlayerData.updateAsync(player, function(data)
-		local stat = _ensureStat(data, towerName)
-		stat.Attempts += 1
+	PlayerData.updateAsync(player, function(data: PlayerData)
+		local stat: TowerStat = ensureStat(data, towerName)
+		stat.attempts += 1
 		return true
 	end)
 end
@@ -89,9 +90,9 @@ function TowerData.addTowerTimeSpent(player: Player, towerName: string, timeDelt
 		return
 	end
 
-	PlayerData.updateAsync(player, function(data)
-		local stat = _ensureStat(data, towerName)
-		_applyTime(stat, delta)
+	PlayerData.updateAsync(player, function(data: PlayerData)
+		local stat: TowerStat = ensureStat(data, towerName)
+		applyTime(stat, delta)
 		return true
 	end)
 end
@@ -106,29 +107,30 @@ function TowerData.recordTowerWin(
 	local cleanRunTime = math.round(math.max(runTimeSeconds, 0) * 100) / 100
 	local awardAllJumps = isAllJumps == true
 
-	PlayerData.updateAsync(player, function(data)
-		local stat = _ensureStat(data, towerName)
+	PlayerData.updateAsync(player, function(data: PlayerData)
+		local stat = ensureStat(data, towerName)
 
 		if awardAllJumps then
-			stat.AllJumpsWins += 1
+			stat.allJumpsWins += 1
 
 			if not isBoostUsed and cleanRunTime > 0 then
-				local best = stat.BestAJWinTimeSeconds
+				local best = stat.bestAjWinTime.seconds
 				if best == 0 or cleanRunTime < best then
-					stat.BestAJWinTimeSeconds = cleanRunTime
-					stat.BestAJWinTimeFormatted = Util.formatTimer(cleanRunTime)
+					stat.bestAjWinTime.seconds = cleanRunTime
+					stat.bestAjWinTime.formatted = Util.formatTimer(cleanRunTime)
 				end
 			end
 		else
-			stat.Wins += 1
+			stat.wins += 1
 		end
-		_applyTime(stat, cleanRunTime)
+
+		applyTime(stat, cleanRunTime)
 
 		if not awardAllJumps and not isBoostUsed and cleanRunTime > 0 then
-			local best = stat.BestWinTimeSeconds
+			local best = stat.bestWinTime.seconds
 			if best == 0 or cleanRunTime < best then
-				stat.BestWinTimeSeconds = cleanRunTime
-				stat.BestWinTimeFormatted = Util.formatTimer(cleanRunTime)
+				stat.bestWinTime.seconds = cleanRunTime
+				stat.bestWinTime.formatted = Util.formatTimer(cleanRunTime)
 			end
 		end
 

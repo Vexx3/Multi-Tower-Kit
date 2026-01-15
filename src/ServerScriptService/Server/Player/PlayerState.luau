@@ -1,9 +1,4 @@
---[=[
-	Handles per-player state transitions such as resetting run data, updating
-	attributes, and sending players to the winroom after a win.
-
-	@class PlayerState
-]=]
+-- Handles per-player state transitions such as resetting run data and winroom teleports.
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Teams = game:GetService("Teams")
@@ -20,79 +15,61 @@ local MARKERS = workspace.Markers
 
 local PlayerState = {}
 
---[=[
-	Pushes the latest tower/rush/timer data into player attributes for client
-	consumption.
+-- Pushes the latest tower/rush/timer data into player attributes for client consumption.
+function PlayerState.updatePlayerInfoStats(player: PlayerInfo): ()
+	local boostList: string = Util.formatBoosts(player.boostItemNames)
 
-	@within PlayerState
-	@server
-]=]
-function PlayerState.updatePlayerInfoStats(player: PlayerInfo)
-	local boostList = Util.formatBoosts(player.BoostItemNames)
-
-	player.Player:SetAttribute("CurrentTower", player.CurrentTower)
-	player.Player:SetAttribute("AllJumpsMode", player.AllJumpsMode)
-	player.Player:SetAttribute("PracticeMode", player.PracticeMode)
-	player.Player:SetAttribute("CurrentTowerRush", player.CurrentTowerRush)
-	player.Player:SetAttribute("CurrentTowerRushIndex", player.CurrentTowerRushIndex)
-	player.Player:SetAttribute("TowerTimer", Util.formatTimer(player.TowerTimer))
-	player.Player:SetAttribute("BoostItemUsed", player.BoostItemUsed)
-	player.Player:SetAttribute("BoostItemNames", boostList)
+	player.player:SetAttribute("CurrentTower", player.currentTower)
+	player.player:SetAttribute("AllJumpsMode", player.mode == "AllJumps")
+	player.player:SetAttribute("PracticeMode", player.mode == "Practice")
+	player.player:SetAttribute("CurrentTowerRush", player.currentTowerRush)
+	player.player:SetAttribute("CurrentTowerRushIndex", player.currentTowerRushIndex)
+	player.player:SetAttribute("TowerTimer", Util.formatTimer(player.towerTimer))
+	player.player:SetAttribute("BoostItemUsed", player.boostItemUsed)
+	player.player:SetAttribute("BoostItemNames", boostList)
 end
 
---[=[
-	Resets in-memory player state for a new run and re-syncs attributes.
-
-	@within PlayerState
-]=]
-function PlayerState.resetPlayerInfo(player: PlayerInfo)
-	player.TowerTimer = 0
-	player.CurrentTower = ""
-	player.CurrentTowerCheckpoint = 0
-	player.CurrentTowerRush = ""
-	player.CurrentTowerRushIndex = 0
-	player.CurrentTowerRushSplitTime = 0
-	player.BoostItemNames = {}
-	player.BoostItemUsed = false
-	player.DebugItemUsed = false
-
-	--------------------------------------------
+-- Resets in-memory player state for a new run and re-syncs attributes.
+function PlayerState.resetPlayerInfo(player: PlayerInfo): ()
+	player.towerTimer = 0
+	player.currentTower = ""
+	player.currentCheckpoint = 0
+	player.currentTowerRush = ""
+	player.currentTowerRushIndex = 0
+	player.currentTowerRushSplitTime = 0
+	player.boostItemNames = {}
+	player.boostItemUsed = false
+	player.debugItemUsed = false
 
 	PlayerState.updatePlayerInfoStats(player)
 end
 
---[=[
-	Teleports a player to the winroom, unloads their current tower, and clears
-	their run state.
-
-	@within PlayerState
-	@param winroomMarker string -- Optional marker name; defaults to WinroomSpawn
-]=]
-function PlayerState.teleportToWinroom(player: PlayerInfo, winroomMarker: string?)
-	winroomMarker = winroomMarker or ""
-	player.TouchEventBusy = true
+-- Teleports a player to the winroom, unloads their current tower, and clears their run state.
+function PlayerState.teleportToWinroom(player: PlayerInfo, winroomMarker: string?): ()
+	local actualMarker: string = winroomMarker or ""
+	player.touchEventBusy = true
 
 	-- Send player to the winner team and unload the current tower
-	player.Player.Team = Teams.Winners
-	BlinkServer.UnloadTower.Fire(player.Player)
+	player.player.Team = Teams.Winners
+	BlinkServer.UnloadTower.Fire(player.player)
 
 	-- Clean up the player info
 	PlayerState.resetPlayerInfo(player)
 
 	-- Find the winroom
-	local winroomPart
-	if winroomMarker ~= "" then
-		winroomPart = MARKERS:FindFirstChild(winroomMarker, true)
+	local winroomPart: BasePart?
+	if actualMarker ~= "" then
+		winroomPart = MARKERS:FindFirstChild(actualMarker, true) :: BasePart?
 	else
-		winroomPart = MARKERS:FindFirstChild("WinroomSpawn", true)
+		winroomPart = MARKERS:FindFirstChild("WinroomSpawn", true) :: BasePart?
 	end
 
 	-- Teleport to the winroom
 	if winroomPart and winroomPart:IsA("BasePart") then
-		Util.respawnAndTeleport(player.Player, winroomPart)
+		Util.respawnAndTeleport(player.player, winroomPart)
 	end
 
-	player.TouchEventBusy = false
+	player.touchEventBusy = false
 end
 
 return PlayerState

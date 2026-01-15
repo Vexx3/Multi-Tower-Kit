@@ -1,119 +1,179 @@
--- More information about these types is available in the documentation:
--- https://vexx3.github.io/MTK-Dev/api/Types
+-- Defines common types used across the MTK codebase.
 
 -- Convenience
 export type List<T> = { [number]: T }
 export type Dictionary<T> = { [string]: T }
 
+type BasicTowerInfo = {
+	name: string,
+	difficulty: string,
+	badgeId: number,
+}
+
+type Seconds = number
+
+type TimeStat = {
+	seconds: Seconds,
+	formatted: string,
+}
+
+type PlayerRunTime = {
+	player: Player,
+	gameTimer: Seconds,
+	lastRestart: Seconds,
+}
+
+type PlayerTowerState = {
+	currentTower: string,
+	currentCheckpoint: number,
+	towerTimer: Seconds,
+	mode: PlayerMode,
+}
+
+type PlayerRushState = {
+	currentTowerRush: string,
+	currentTowerRushIndex: number,
+	currentTowerRushSplitTime: Seconds,
+}
+
+type PlayerFlags = {
+	touchEventBusy: boolean,
+	isLoadingTower: boolean,
+	hasEverpresentCOs: boolean,
+	debugItemUsed: boolean,
+	boostItemUsed: boolean,
+	boostItemNames: Dictionary<string>,
+}
+
 -- This type represents a tower
--- It uses the Instance type for the folders to allow flexebility between Folders and Models
+-- It uses the Instance type for the folders to allow flexibility between Folders and Models
 -- but it mostly is used just to make working with Luau types less annoying lol
-export type TowerInfo = {
+export type TowerInfo = BasicTowerInfo & {
 	-- Basic information
-	Name: string,
-	Difficulty: string,
-	BadgeID: number,
-	TowerPoints: number,
-	AllJumpsPoints: number?,
-	AJBadgeID: number?,
-	NoBoosts: boolean?,
+	towerPoints: number,
+	allJumpsPoints: number?,
+	ajBadgeId: number?,
+	noBoosts: boolean?,
 
 	-- Important instances
-	Folder: Instance,
-	SpawnLocation: BasePart,
-	ClientObjects: Instance?,
+	folder: Instance,
+	spawnLocation: BasePart,
+	clientObjects: Instance?,
 
 	-- Endings
-	Endings: Dictionary<EndingInfo>,
+	endings: Dictionary<EndingInfo>,
 
 	-- Anticheat stuff
-	MinimumTime: number,
-	Checkpoints: List<BasePart>,
-	CheckpointCount: number,
+	minimumTime: Seconds,
+	checkpoints: List<BasePart>,
+	checkpointCount: number,
 }
 
 export type TowerStat = {
-	Attempts: number,
-	Wins: number,
-	AllJumpsWins: number,
-	TotalTimeSpentSeconds: number,
-	TotalTimeSpentFormatted: string,
-	BestWinTimeSeconds: number,
-	BestWinTimeFormatted: string,
-	BestAJWinTimeSeconds: number,
-	BestAJWinTimeFormatted: string,
+	attempts: number,
+	wins: number,
+	allJumpsWins: number,
+
+	totalTimeSpent: TimeStat,
+	bestWinTime: TimeStat,
+	bestAjWinTime: TimeStat,
 }
 
--- The Ending type represents an ending for a tower, this type was created to account for "secret endings" some towers have
--- Every ending has it's own difficulty, seperate from the tower's
-
--- Every tower is implictly given an ending called "default", it inherits the
--- name and difficulty from it's parent tower, and if a winpad is not
+-- Every tower is implicitly given an ending called "default", it inherits the
+-- name and difficulty from its parent tower, and if a winpad is not
 -- configured to trigger a special ending, the "default" ending will be triggered
-export type EndingInfo = {
-	-- Basic info
-	Name: string,
-	Difficulty: string,
-
-	-- Badges
-	BadgeID: number,
-	PreventTowerBadge: boolean,
+export type EndingInfo = BasicTowerInfo & {
+	preventTowerBadge: boolean,
 
 	-- Relations
-	ParentTower: string,
-	WinroomMarker: string,
+	parentTower: string,
+	winroomMarker: string,
 }
 
 -- Represents a tower rush
 export type TowerRush = {
-	WinroomMarker: string,
-	Towers: List<string>,
-	NoBoosts: boolean,
+	winroomMarker: string,
+	towers: List<string>,
+	noBoosts: boolean,
+}
+
+export type PlayerMode = "Normal" | "AllJumps" | "Practice"
+
+-- Player Settings
+export type Settings = {
+	quickResetDelay: number,
+	resetOnDeath: boolean,
+	highFPSPhysicsFix: boolean,
+	utility: "Off" | "Emote" | "Alignment",
+	lowDetailMode: "Off" | "On" | "Ultra",
+	fpsDisplay: boolean,
+	hideTimer: boolean,
+	invisiblePlayers: "Off" | "Not Friended" | "Everyone Else" | "Near",
+	keyDisplayLimit: number,
+	hideBubbleChat: boolean,
+	musicVolume: number,
+	keybinds: {
+		quickRestart: string,
+		cornerFlip: string,
+		createCheckpoint: string,
+		teleportCheckpoint: string,
+		removeCheckpoint: string,
+		playAnimation: string
+	},
+	extendedCompletions: boolean,
+}
+
+export type PlayerData = {
+	towers: number,
+	allJumps: number,
+	completedTowers: { string },
+	completedAjTowers: { string },
+	towerStats: { [string]: TowerStat },
+	completedTowerRushes: { string },
+	towerRushStats: { [string]: TowerStat },
+	settings: Settings,
 }
 
 -- Represents a player, also containing information specific to them
-export type PlayerInfo = {
-	-- Game information
-	Player: Player,
-	GameTimer: number,
-	LastRestart: number,
-
-	-- Tower information
-	CurrentTower: string,
-	CurrentTowerCheckpoint: number,
-	BoostItemNames: Dictionary<string>,
-	BoostItemUsed: boolean,
-	TowerTimer: number,
-	AllJumpsMode: boolean,
-	PracticeMode: boolean,
-
-	-- Tower rush information
-	CurrentTowerRush: string,
-	CurrentTowerRushIndex: number,
-	CurrentTowerRushSplitTime: number,
-
-	-- Technical flags
-	TouchEventBusy: boolean,
-	IsLoadingTower: boolean,
-	HasEverpresentCOs: boolean,
-	DebugItemUsed: boolean,
-}
+export type PlayerInfo = PlayerRunTime & PlayerTowerState & PlayerRushState & PlayerFlags
 
 -- Representing a difficulty, storing both cosmetic and pragmatic information about it
 export type DifficultyInfo = {
-	Title: string,
-	Rating: number,
+	read title: string,
+	read rating: number,
 
-	FancyFont: boolean,
-	Color: Color3,
-	GlobalAnnouncement: boolean,
-	GlobalAJAnnouncement: boolean?,
+	read fancyFont: boolean,
+	read color: Color3,
+	read globalAnnouncement: boolean,
+	read globalAjAnnouncement: boolean?,
 
 	-- realm related
-	DifficultyImage: string?,
+	read difficultyImage: string?,
 
 	-- webhook emojis
-	DifficultyEmoji: string?,
+	read difficultyEmoji: string?,
 }
+
+export type RealmTowerInfo = {
+	read name: string,
+	read badgeId: number,
+	read rating: number,
+	read numDifficulty: number,
+	read rush: boolean?,
+}
+
+export type RealmArea = {
+	read title: string,
+	read emblem: string,
+	read placeId: number,
+	read towers: Dictionary<RealmTowerInfo>,
+	read requirements: {
+		read points: number,
+		read difficultyLocks: List<{ read rating: number, read count: number }>,
+	}?,
+}
+
+export type RealmWorld = Dictionary<RealmArea>
+export type Realms = Dictionary<RealmWorld>
 
 return nil

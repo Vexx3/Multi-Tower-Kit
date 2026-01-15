@@ -2,28 +2,25 @@
 
 return {
 	-- What does the win announcement look like?
-	WinMessage = "{PlayerName} has beaten {EndingName} in {Time}",
+	winMessage = "{PlayerName} has beaten {EndingName} in {Time}",
 
 	-- What does the all-jump win announcement look like?
-	WinMessageAJ = "{PlayerName} has all-jumped {EndingName} in {Time}",
+	winMessageAj = "{PlayerName} has all-jumped {EndingName} in {Time}",
 
 	-- How will it display what boosts the player used?
 	-- Setting this to an empty string effectively disables showing boosts used
-	WinMessageBoostsUsed = "\nUsed: {BoostList}",
+	winMessageBoostsUsed = "\nUsed: {BoostList}",
 
-	--== MODERN CHAT SYSTEM CONFIG==--
-
-	-- The XML tag to wrap the win message in for the modern chat system
-	ChatFont = "<font color='{FontColor}' size='{FontSize}' face='{FontFace}'>{Message}</font>",
+	--== CHAT SYSTEM CONFIG==--
 
 	-- The chat channel to use for system messages
-	ChatChannel = "RBXSystem",
+	chatChannel = "RBXSystem",
 
 	-- The font to use for normal system messages
-	ChatFontFace = "SourceSansBold",
-	ChatFontSize = 18,
+	chatFontFace = "SourceSansBold",
+	chatFontSize = 18,
 
 	-- The font to use for fancy system messages
-	ChatFancyFontFace = "Fantasy",
-	ChatFancyFontSize = 22,
+	chatFancyFontFace = "Fantasy",
+	chatFancyFontSize = 22,
 }

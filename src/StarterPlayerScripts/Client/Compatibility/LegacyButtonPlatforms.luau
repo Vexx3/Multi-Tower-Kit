@@ -16,19 +16,19 @@ local function setupSync(platform: BasePart): ()
 	end)
 end
 
-local function isBAP(part: BasePart): boolean
+local function isBap(part: BasePart): boolean
 	return part.Name == "ButtonActivatedPlatform" or part:FindFirstChild("ButtonActivated") ~= nil
 end
 
 local function monitorFolder(folder: Instance): ()
 	for _, desc in folder:GetDescendants() do
-		if desc:IsA("BasePart") and isBAP(desc) then
+		if desc:IsA("BasePart") and isBap(desc) then
 			setupSync(desc)
 		end
 	end
 
 	folder.DescendantAdded:Connect(function(desc)
-		if desc:IsA("BasePart") and isBAP(desc) then
+		if desc:IsA("BasePart") and isBap(desc) then
 			task.defer(setupSync, desc)
 		end
 	end)
@@ -42,20 +42,20 @@ local function monitorFolder(folder: Instance): ()
 	end)
 end
 
-local LegacyButtonPlatforms = {}
-
-function LegacyButtonPlatforms.init(): ()
+local function init(): ()
 	workspace.ChildAdded:Connect(function(child)
-		if child:IsA("Folder") then
+		if child:IsA("Folder") and child:GetAttribute("KitVersion") == nil then
 			monitorFolder(child)
 		end
 	end)
 
 	for _, child in workspace:GetChildren() do
-		if child:IsA("Folder") then
+		if child:IsA("Folder") and child:GetAttribute("KitVersion") == nil then
 			monitorFolder(child)
 		end
 	end
 end
 
-return LegacyButtonPlatforms
+return {
+	init = init,
+}

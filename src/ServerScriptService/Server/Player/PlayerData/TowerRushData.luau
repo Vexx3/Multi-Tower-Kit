@@ -1,38 +1,37 @@
---[=[
-	Handles per-towerrush player statistics stored in the profile datastore.
-
-	@class TowerRushData
-	@server
-]=]
+-- Handles per-towerrush player statistics stored in the profile datastore.
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Shared = ReplicatedStorage.TowerGame.Shared
-local Config = require(ReplicatedStorage.TowerGame.GameData.Config)
 
 local PlayerData = require("../PlayerData")
 local Types = require(Shared.Types)
 local Util = require(Shared.Util)
 
 type TowerStat = Types.TowerStat
+type PlayerData = PlayerData.PlayerData
 
 local DEFAULT_RUSH_STAT: TowerStat = {
-	Attempts = 0,
-	Wins = 0,
-	AllJumpsWins = 0,
-	TotalTimeSpentSeconds = 0,
-	TotalTimeSpentFormatted = "0m 0s",
-	BestWinTimeSeconds = 0,
-	BestWinTimeFormatted = "N/A",
-	BestAJWinTimeSeconds = 0,
-	BestAJWinTimeFormatted = "N/A",
+	attempts = 0,
+	wins = 0,
+	allJumpsWins = 0,
+	totalTimeSpent = {
+		seconds = 0,
+		formatted = "0m 0s",
+	},
+	bestWinTime = {
+		seconds = 0,
+		formatted = "N/A",
+	},
+	bestAjWinTime = {
+		seconds = 0,
+		formatted = "N/A",
+	},
 }
-
-local TowerRushData = {}
 
 local function applyDefaults(stat: TowerStat)
 	local statAny = stat :: any
-	for key, value in DEFAULT_RUSH_STAT do
+	for key, value in DEFAULT_RUSH_STAT :: any do
 		if statAny[key] == nil then
 			statAny[key] = value
 		end
@@ -44,13 +43,15 @@ local function applyTime(stat: TowerStat, deltaSeconds: number)
 		return
 	end
 
-	stat.TotalTimeSpentSeconds += deltaSeconds
-	stat.TotalTimeSpentFormatted = Util.formatDuration(stat.TotalTimeSpentSeconds)
+	stat.totalTimeSpent.seconds += deltaSeconds
+	stat.totalTimeSpent.formatted = Util.formatDuration(stat.totalTimeSpent.seconds)
 end
 
-local function ensureStat(data: Config.PlayerData, rushName: string): TowerStat
-	local rushStats = if data.TowerRushStats then table.clone(data.TowerRushStats) else {}
-	data.TowerRushStats = rushStats
+local TowerRushData = {}
+
+local function ensureStat(data: PlayerData, rushName: string): TowerStat
+	local rushStats = if data.towerRushStats then table.clone(data.towerRushStats) else {}
+	data.towerRushStats = rushStats
 
 	local stat = rushStats[rushName]
 	if stat then
@@ -71,14 +72,14 @@ function TowerRushData.getRushStat(player: Player, rushName: string): TowerStat?
 		return nil
 	end
 
-	local stats = data.TowerRushStats
+	local stats = data.towerRushStats
 	return stats and stats[rushName]
 end
 
 function TowerRushData.incrementRushAttempt(player: Player, rushName: string)
 	PlayerData.updateAsync(player, function(data)
 		local stat = ensureStat(data, rushName)
-		stat.Attempts += 1
+		stat.attempts += 1
 		return true
 	end)
 end
@@ -110,34 +111,34 @@ function TowerRushData.recordRushWin(
 		local stat = ensureStat(data, rushName)
 
 		if awardAllJumps then
-			stat.AllJumpsWins += 1
+			stat.allJumpsWins += 1
 
 			if not boostItemUsed and cleanRunTime > 0 then
-				local best = stat.BestAJWinTimeSeconds
+				local best = stat.bestAjWinTime.seconds
 				if best == 0 or cleanRunTime < best then
-					stat.BestAJWinTimeSeconds = cleanRunTime
-					stat.BestAJWinTimeFormatted = Util.formatTimer(cleanRunTime)
+					stat.bestAjWinTime.seconds = cleanRunTime
+					stat.bestAjWinTime.formatted = Util.formatTimer(cleanRunTime)
 				end
 			end
 		else
-			stat.Wins += 1
+			stat.wins += 1
 		end
 
 		applyTime(stat, cleanRunTime)
 
 		if not awardAllJumps and not boostItemUsed and cleanRunTime > 0 then
-			local best = stat.BestWinTimeSeconds
+			local best = stat.bestWinTime.seconds
 			if best == 0 or cleanRunTime < best then
-				stat.BestWinTimeSeconds = cleanRunTime
-				stat.BestWinTimeFormatted = Util.formatTimer(cleanRunTime)
+				stat.bestWinTime.seconds = cleanRunTime
+				stat.bestWinTime.formatted = Util.formatTimer(cleanRunTime)
 			end
 		end
 
-		local completed = data.CompletedTowerRushes or {}
+		local completed = data.completedTowerRushes or {}
 		if not table.find(completed, rushName) then
 			completed = table.clone(completed)
 			table.insert(completed, rushName)
-			data.CompletedTowerRushes = completed
+			data.completedTowerRushes = completed
 		end
 
 		return true

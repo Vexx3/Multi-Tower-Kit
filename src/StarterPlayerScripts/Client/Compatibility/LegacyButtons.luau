@@ -15,7 +15,7 @@ export type ButtonInstance = Model & {
 }
 
 type ButtonMetatable = {
-	__newindex: (self: ButtonTable, key: any, value: any) -> (),
+	__newindex: (self: ButtonTable, key: unknown, value: unknown) -> (),
 	__index: (self: ButtonTable, color: Color3 | string) -> { ButtonInstance },
 	__call: (self: ButtonTable, mode: string, value: boolean?, color: Color3?) -> { ButtonInstance }?,
 }
@@ -54,20 +54,20 @@ local function getAllButtons(color: Color3?): { ButtonInstance }
 	return buttonTable
 end
 
-local ButtonMT: ButtonMetatable = {} :: ButtonMetatable
+local buttonMt: ButtonMetatable = {} :: ButtonMetatable
 
-function ButtonMT:__newindex(_key: any, _value: any): ()
+function buttonMt:__newindex(_key: unknown, _value: unknown): ()
 	-- Prevent modifications to the table
 end
 
-function ButtonMT:__index(color: Color3 | string): { ButtonInstance }
+function buttonMt:__index(color: Color3 | string): { ButtonInstance }
 	if color == "All" then
 		return getAllButtons()
 	end
 	return getAllButtons(color :: Color3)
 end
 
-function ButtonMT:__call(mode: string, value: boolean?, color: Color3?): { ButtonInstance }?
+function buttonMt:__call(mode: string, value: boolean?, color: Color3?): { ButtonInstance }?
 	if mode == "Get" then
 		return getAllButtons()
 	elseif mode == "SetAll" then
@@ -78,10 +78,10 @@ function ButtonMT:__call(mode: string, value: boolean?, color: Color3?): { Butto
 	return nil
 end
 
-local LegacyButtons = {}
-
-function LegacyButtons.init(): ()
-	_G.Buttons = setmetatable({}, ButtonMT)
+local function init(): ()
+	_G.Buttons = setmetatable({}, buttonMt)
 end
 
-return LegacyButtons
+return {
+	init = init,
+}

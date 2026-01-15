@@ -5,24 +5,24 @@
 	@client
 ]=]
 
-local Players = game:GetService("Players")
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local players = game:GetService("Players")
+local replicatedStorage = game:GetService("ReplicatedStorage")
 
-local Framework = ReplicatedStorage.Framework
-local Kit = Framework.Kit
+local framework = replicatedStorage.Framework
+local kit = framework.Kit
 
-local LightingManager = require(Kit.Managers.LightingManager)
+local lightingManager = require(kit.Managers.LightingManager)
 
-export type LegacyLightingConfig = { [string]: any } | "Default"
+export type LegacyLightingConfig = { [string]: unknown } | "Default"
 
-local LocalPlayer = Players.LocalPlayer
+local localPlayer = players.LocalPlayer
 
 --[=[
 	Changes lighting using the v6 LightingManager.
 	Wraps v5 flat config with Type = "Lighting".
 ]=]
 local function setLighting(config: LegacyLightingConfig): ()
-	LightingManager:ChangeLighting({
+	lightingManager:ChangeLighting({
 		Type = "Lighting",
 		Configuration = config,
 	} :: any)
@@ -63,22 +63,22 @@ local function onCharacterAdded(character: Model)
 	humanoid.Touched:Connect(onHumanoidTouched)
 end
 
-local LegacyLighting = {}
-
-function LegacyLighting.init(): ()
-	if LocalPlayer.Character then
-		task.spawn(onCharacterAdded, LocalPlayer.Character)
+local function init(): ()
+	if localPlayer.Character then
+		task.spawn(onCharacterAdded, localPlayer.Character)
 	end
-	LocalPlayer.CharacterAdded:Connect(onCharacterAdded)
+	localPlayer.CharacterAdded:Connect(onCharacterAdded)
 
 	_G.setLighting = setLighting
 
-	local changeLighting = ReplicatedStorage:FindFirstChild("ChangeLighting")
+	local changeLighting = replicatedStorage:FindFirstChild("ChangeLighting")
 	if changeLighting and changeLighting:IsA("BindableEvent") then
-		changeLighting.Event:Connect(function(config: any)
-			LightingManager:ChangeLighting(config)
+		changeLighting.Event:Connect(function(config: unknown)
+			lightingManager:ChangeLighting(config :: any)
 		end)
 	end
 end
 
-return LegacyLighting
+return {
+	init = init,
+}

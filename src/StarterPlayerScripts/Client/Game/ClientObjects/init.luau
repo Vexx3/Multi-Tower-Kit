@@ -1,16 +1,12 @@
---[=[
-	Loads, wires, and unloads client objects for towers, including everpresent
-	objects and custom repository support.
-
-	@class ClientObjects
-]=]
+-- Loads, wires, and unloads client objects for towers, including everpresent
+-- objects and custom repository support.
 
 type COScriptContext = ModuleScript | StringValue
 
-local HttpService = game:GetService("HttpService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local clientObjects: Instance?
+local objectScope: unknown
 
 local EverpresentClientObjectThreads = script.Parent.EverpresentClientObjectThreads
 local ClientObjectThreads: Folder = script.Parent.ClientObjectThreads
@@ -18,27 +14,19 @@ local ClientObjectThread = script.ClientObjectThread
 local ScriptRepo = script.Parent.ScriptRepo
 
 local Framework = ReplicatedStorage.Framework
+local Log = require(Framework.Log)
 local Kit = Framework.Kit
+local Utility = require(Kit.Utility)
 
 local customRepository = ReplicatedStorage:FindFirstChild("ExternalRepositories")
 
 local ClientObjectManager = require(Kit.Managers.ClientObjectManager)
 
-local objectScope
-
-local ClientObjects = {}
-
---[=[
-	Spawns a client object thread for a script or repo entry.
-
-	@within ClientObjects
-	@param context ModuleScript | StringValue -- either ClientObjectScript or RunRepoScript
-	@param orphaned boolean -- true for everpresent objects that persist across towers
-]=]
-function ClientObjects.loadClientObjectScript(context: COScriptContext, orphaned: boolean)
+-- Spawns a client object thread for a script or repo entry.
+local function loadClientObjectScript(context: COScriptContext, orphaned: boolean): ()
 	-- Clone the thread template and set it up
 	local thread = ClientObjectThread:Clone()
-	thread.Name = HttpService:GenerateGUID(false)
+	thread.Name = Utility.Functions.generateUID()
 
 	local threadContext = thread:WaitForChild("Context")
 	threadContext.Value = context -- The thread script will automatically figure out if this is a RunRepoScript or a ClientObjectScript
@@ -47,22 +35,34 @@ function ClientObjects.loadClientObjectScript(context: COScriptContext, orphaned
 	thread.Enabled = true
 end
 
---[=[
-	Loads a folder of client objects into workspace or the everpresent scope,
-	attaches client scripts, applies collision overrides, and sets up kit v6
-	client parts when present.
+-- Cleans up all loaded client objects and running threads.
+local function unloadClientObjects(): ()
+	-- v6
+	if objectScope then
+		(objectScope :: any):cleanup(false, true)
+		objectScope = nil
+	end
 
-	@within ClientObjects
-	@param coFolder Instance -- root folder of client objects
-	@param orphaned boolean -- true to load into everpresent scope without touching current tower objects
-	@param acronym string -- tower acronym for repository lookup
-]=]
-function ClientObjects.loadClientObjects(coFolder: Instance, orphaned: boolean, acronym: string)
+	-- ClientObjects may not exist as it is nilable and this function is called when there likely isn't any COs loaded at all
+	-- So we check if its not nil for good measure
+	if clientObjects then
+		clientObjects:Destroy()
+		clientObjects = nil
+	end
+
+	-- Kill all threads
+	ClientObjectThreads:ClearAllChildren()
+end
+
+-- Loads a folder of client objects into workspace or the everpresent scope,
+-- attaches client scripts, applies collision overrides, and sets up kit v6
+-- client parts when present.
+local function loadClientObjects(coFolder: Instance, orphaned: boolean, acronym: string): ()
 	-- If "orphaned" do not do anything to the ClientObjects variable
 	-- Usually used for loading everpresent COs without touching tower COs
 	if not orphaned then
 		-- If there are already client objects present, delete them
-		ClientObjects.unloadClientObjects()
+		unloadClientObjects()
 	end
 
 	local isKitV6 = coFolder:GetAttribute("KitVersion")
@@ -76,7 +76,10 @@ function ClientObjects.loadClientObjects(coFolder: Instance, orphaned: boolean, 
 			for _, child in parent:GetChildren() do
 				if child.Name == "ClientObject" then
 					if seen then
-						warn(`⚠️ Found a double client object value in: {parent.Name}`)
+						Log({
+							type = "warn",
+							[1] = `Found a double client object value in: {parent.Name}`,
+						})
 						child:Destroy()
 					else
 						seen = true
@@ -84,10 +87,10 @@ function ClientObjects.loadClientObjects(coFolder: Instance, orphaned: boolean, 
 				end
 			end
 		elseif
-			(name == "ClientObjectScript" and v:IsA("ModuleScript"))
-			or (name == "RunRepoScript" and v:IsA("StringValue"))
+			(name == "ClientObjectScript" and (v:IsA("ModuleScript") or Utility.Instance.isPointer(v)))
+			or (name == "RunRepoScript" and (v:IsA("StringValue") or Utility.Instance.isPointer(v)))
 		then
-			ClientObjects.loadClientObjectScript(v, orphaned)
+			loadClientObjectScript(v :: any, orphaned)
 		elseif name == "SetCollisionGroup" and v:IsA("StringValue") and parent and parent:IsA("BasePart") then
 			parent.CollisionGroup = v.Value
 		elseif v:IsA("BasePart") and (name == "LightingChanger" or v:FindFirstChild("Invisible")) then
@@ -133,30 +136,10 @@ function ClientObjects.loadClientObjects(coFolder: Instance, orphaned: boolean, 
 	end
 end
 
---[=[
-    Cleans up all loaded client objects and running threads.
+(ClientObjectThread:WaitForChild("Repository") :: ObjectValue).Value = ScriptRepo
 
-    @within ClientObjects
-]=]
-function ClientObjects.unloadClientObjects()
-	-- v6
-	if objectScope then
-		objectScope:cleanup(false, true)
-		objectScope = nil
-	end
-
-	-- ClientObjects may not exist as it is nilable and this function is called when there likely isn't any COs loaded at all
-	-- So we check if its not nil for good measure
-	if clientObjects then
-		clientObjects:Destroy()
-	end
-
-	-- Kill all threads
-	ClientObjectThreads:ClearAllChildren()
-end
-
-do
-	(ClientObjectThread:WaitForChild("Repository") :: ObjectValue).Value = ScriptRepo
-end
-
-return ClientObjects
+return {
+	loadClientObjectScript = loadClientObjectScript,
+	loadClientObjects = loadClientObjects,
+	unloadClientObjects = unloadClientObjects,
+}

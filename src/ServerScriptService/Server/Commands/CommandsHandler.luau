@@ -1,18 +1,18 @@
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
-local GameData = ReplicatedStorage.TowerGame.GameData
-local Packages = ReplicatedStorage.Packages
 local Shared = ReplicatedStorage.TowerGame.Shared
+local Data = Shared.Data
+local Packages = ReplicatedStorage.Packages
 
-local Config = require(GameData.Config)
+local Config = require(Data.Config)
 local conch = require(Packages.conch)
 
 local Commands = script.Parent
 
 local function onPlayerAdded(player: Player)
 	local user = conch.get_user(player)
-	local roles = Config.USER_ROLES[player.UserId]
+	local roles = Config.userRoles[player.UserId]
 	if roles then
 		conch.give_roles(user, table.unpack(roles))
 	end
@@ -25,7 +25,7 @@ function CommandsHandler.init()
 
 	conch.initiate_default_lifecycle()
 
-	for roleName: string, permissions: { string } in Config.ROLES do
+	for roleName: string, permissions: { string } in Config.roles do
 		conch.set_role_permissions(roleName, table.unpack(permissions))
 	end
 

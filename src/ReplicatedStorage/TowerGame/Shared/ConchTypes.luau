@@ -1,16 +1,17 @@
-local Badges = require("../GameData/Badges")
-local DifficultiesModule = require("../GameData/Difficulties")
-local Difficulties = DifficultiesModule.Data
+-- Defines custom types for the Conch command system.
+
+local DifficultiesModule = require("./Data/Difficulties")
 local conch = require("@game/ReplicatedStorage/Packages/conch")
 
-local Markers = workspace.Markers
-local Towers = workspace.Towers
+local markers = workspace:WaitForChild("Markers")
+local towers = workspace:WaitForChild("Towers")
 
-local markerMap = {}
-local towerArray = {}
-local difficultyArray = {}
+local difficulties = DifficultiesModule.data
+local markerMap: { [string]: BasePart } = {}
+local towerArray: { string } = {}
+local difficultyArray: { string } = {}
 
-for _, child in Markers:GetChildren() do
+for _, child in ipairs(markers:GetChildren()) do
 	if child:IsA("BasePart") then
 		if child.Name == "LobbyTP" then
 			continue
@@ -19,7 +20,7 @@ for _, child in Markers:GetChildren() do
 	end
 end
 
-for _, tower in Towers:GetChildren() do
+for _, tower in ipairs(towers:GetChildren()) do
 	if tower:IsA("Folder") then
 		if tower.Name == "EverpresentCOs" then
 			continue
@@ -28,21 +29,18 @@ for _, tower in Towers:GetChildren() do
 	end
 end
 
-for name, _ in Difficulties do
+for name, _ in pairs(difficulties) do
 	table.insert(difficultyArray, name)
 end
 
-local badge_name = conch.register_type("badge_name", conch.args.enum_map(Badges))
+local difficultyName = conch.register_type("difficulty_name", conch.args.enum_new(difficultyArray))
+local markerName = conch.register_type("marker_name", conch.args.enum_map(markerMap))
+local towerName = conch.register_type("tower_name", conch.args.enum_new(towerArray))
 
-local difficulty_name = conch.register_type("difficulty_name", conch.args.enum_new(difficultyArray))
+local ConchTypes = {}
 
-local marker_name = conch.register_type("marker_name", conch.args.enum_map(markerMap))
+ConchTypes.difficultyName = difficultyName
+ConchTypes.markerName = markerName
+ConchTypes.towerName = towerName
 
-local tower_name = conch.register_type("tower_name", conch.args.enum_new(towerArray))
-
-return {
-	badge_name = badge_name,
-	marker_name = marker_name,
-	tower_name = tower_name,
-	difficulty_name = difficulty_name,
-}
+return ConchTypes

@@ -12,7 +12,7 @@ return function()
 		permissions = { "teleport-player" },
 		arguments = function()
 			return conch.args.player("player", "The player to teleport"),
-				args.marker_name("marker", "Marker to teleport to")
+				args.markerName("marker", "Marker to teleport to")
 		end,
 
 		callback = function(who: Player, marker: BasePart)

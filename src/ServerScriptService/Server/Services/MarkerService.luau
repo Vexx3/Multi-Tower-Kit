@@ -1,0 +1,45 @@
+-- Handles initialization of world markers (Teleports, LobbyTP, etc.)
+
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Teams = game:GetService("Teams")
+
+local TowerGame = ReplicatedStorage.TowerGame
+local Shared = TowerGame.Shared
+
+local PlayerService = require("./PlayerService")
+local Types = require(Shared.Types)
+local Util = require(Shared.Util)
+
+local MARKERS = workspace:FindFirstChild("Markers") :: Folder
+
+local MarkerService = {}
+
+local function initMarker(marker: BasePart)
+	if marker.Name == "LobbyTP" then
+		local spawnLocation = MARKERS:WaitForChild("SpawnLocation")
+		assert(
+			spawnLocation and spawnLocation:IsA("BasePart"),
+			"Could not initialize LobbyTP because a SpawnLocation couldn't be found"
+		)
+
+		Util.registerTouch(marker, function(playerName)
+			local player: Types.PlayerInfo = PlayerService.getSession(playerName)
+			player.player.Team = Teams.Start
+			Util.teleportPlayerToPart(player.player, spawnLocation)
+		end)
+	end
+end
+
+function MarkerService.init()
+	if not MARKERS then
+		return
+	end
+
+	for _, child in MARKERS:GetChildren() do
+		if child:IsA("BasePart") then
+			initMarker(child)
+		end
+	end
+end
+
+return MarkerService

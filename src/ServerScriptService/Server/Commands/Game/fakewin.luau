@@ -14,7 +14,7 @@ return function()
 		arguments = function()
 			return conch.args.player("player", "Player to display as winner"),
 				conch.args.string("ending", "Ending/Tower name to display"),
-				conch.args.optional(args.difficulty_name("difficulty", "Difficulty name")),
+				conch.args.optional(args.difficultyName("difficulty", "Difficulty name")),
 				conch.args.optional(conch.args.number("time", "Run time in seconds")),
 				conch.args.optional(conch.args.boolean("global", "Send as global message"))
 		end,
@@ -26,14 +26,14 @@ return function()
 
 			local diffInfo = Util.getDifficulty(difficultyName)
 			local clientMsgInfo = {
-				PlayerName = player.Name,
-				EndingName = endingName,
-				Time = runTime,
-				BoostsUsed = {},
-				AllJumps = false,
-				Color = diffInfo.Color,
-				FancyFont = diffInfo.FancyFont,
-				Global = globalFlag,
+				playerName = player.Name,
+				endingName = endingName,
+				time = runTime,
+				boostsUsed = {},
+				allJumps = false,
+				color = diffInfo.color,
+				fancyFont = diffInfo.fancyFont,
+				global = globalFlag,
 			}
 
 			BlinkServer.GameWinAnnouncement.FireAll(clientMsgInfo)

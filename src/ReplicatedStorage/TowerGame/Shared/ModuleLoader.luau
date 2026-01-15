@@ -1,35 +1,21 @@
---[=[
-	Simple module loader for initializing modules.
-	Loads all ModuleScripts with an Init function and calls them.
-
-	@class ModuleLoader
-]=]
-
-local ModuleLoader = {}
+-- Manages the discovery and initialization of ModuleScripts across the project.
 
 export type InitModule = {
-	init: () -> (),
+	init: (InitModule) -> (),
 }
 
---[=[
-	Loads all ModuleScripts that are descendants of the given parent.
-	Returns a list of modules that have an init function.
-
-	@param parent Instance -- The parent to search for ModuleScripts
-	@param ignore {Instance}? -- Optional list of instances to ignore
-	@return {InitModule}
-]=]
-function ModuleLoader.loadModules(parent: Instance, ignore: { Instance }?): { InitModule }
+-- Scans the parent instance for ModuleScripts that expose an init function.
+local function loadModules(parent: Instance, ignore: { Instance }?): { InitModule }
 	local modules: { InitModule } = {}
 	local ignoreSet: { [Instance]: boolean } = {}
 
 	if ignore then
-		for _, instance in ignore do
+		for _, instance in ipairs(ignore) do
 			ignoreSet[instance] = true
 		end
 	end
 
-	for _, descendant in parent:GetDescendants() do
+	for _, descendant in ipairs(parent:GetDescendants()) do
 		if not descendant:IsA("ModuleScript") then
 			continue
 		end
@@ -55,20 +41,16 @@ function ModuleLoader.loadModules(parent: Instance, ignore: { Instance }?): { In
 		end
 
 		if type(result) == "table" and type(result.init) == "function" then
-			table.insert(modules, result)
+			table.insert(modules, result :: InitModule)
 		end
 	end
 
 	return modules
 end
 
---[=[
-	Initializes all modules by calling their init function.
-
-	@param modules {InitModule} -- List of modules to initialize
-]=]
-function ModuleLoader.initAll(modules: { InitModule }): ()
-	for _, module in modules do
+-- Executes the init function on a list of provided modules in separate threads.
+local function initAll(modules: { InitModule }): ()
+	for _, module in ipairs(modules) do
 		task.spawn(function()
 			local success, err = pcall(module.init, module)
 			if not success then
@@ -78,15 +60,16 @@ function ModuleLoader.initAll(modules: { InitModule }): ()
 	end
 end
 
---[=[
-	Loads and initializes all modules in one call.
-
-	@param parent Instance -- The parent to search for ModuleScripts
-	@param ignore {Instance}? -- Optional list of instances to ignore
-]=]
-function ModuleLoader.loadAndInit(parent: Instance, ignore: { Instance }?): ()
-	local modules = ModuleLoader.loadModules(parent, ignore)
-	ModuleLoader.initAll(modules)
+-- Combines the loading and initialization steps into a single call.
+local function loadAndInit(parent: Instance, ignore: { Instance }?): ()
+	local modules = loadModules(parent, ignore)
+	initAll(modules)
 end
+
+local ModuleLoader = {}
+
+ModuleLoader.loadModules = loadModules
+ModuleLoader.initAll = initAll
+ModuleLoader.loadAndInit = loadAndInit
 
 return ModuleLoader
