@@ -2,9 +2,7 @@
 
 local Types = require("../Types")
 
-type TowerStat = Types.TowerStat
-
-local Config = {
+local Config: Types.GlobalConfig = {
 	-- GAME BEHAVIOR
 
 	-- The client and server both track tower time, but only the

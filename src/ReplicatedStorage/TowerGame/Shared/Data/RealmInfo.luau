@@ -1,6 +1,8 @@
 -- Configuration for realms, areas, and towers.
 
-return {
+local Types = require("../Types")
+
+local RealmInfo: Types.Realms = {
 	World1 = {
 		["Ring 1"] = {
 			title = "Limbo",
@@ -29,3 +31,5 @@ return {
 		},
 	},
 }
+
+return RealmInfo

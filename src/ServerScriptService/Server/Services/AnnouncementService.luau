@@ -8,7 +8,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Shared = ReplicatedStorage.TowerGame.Shared
 local Data = Shared.Data
 
-local BlinkServer = require(script.Parent.Parent.Network.BlinkServer)
+local BlinkServer = require("../Network/BlinkServer")
 local Config = require(Data.Config)
 local KickMessages = require(Data.KickMessages)
 local Types = require(Shared.Types)

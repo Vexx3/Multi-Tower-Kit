@@ -1,4 +1,6 @@
-return {
+local Types = require("../Types")
+
+local ChatTags: Types.ChatTagsConfig = {
 	-- Tag definitions: name -> { Text, Color }
 	TAGS = {
 		Owner = { Text = "[Owner]", Color = Color3.fromRGB(255, 215, 0) },
@@ -35,3 +37,5 @@ return {
 		-- },
 	},
 }
+
+return ChatTags

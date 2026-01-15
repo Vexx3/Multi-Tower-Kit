@@ -1,6 +1,10 @@
 --== Multi-Tower Kit Client Config ==--
 
-return {
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local Types = require(ReplicatedStorage.TowerGame.Shared.Types)
+
+local Config: Types.ClientConfig = {
 	-- What does the win announcement look like?
 	winMessage = "{PlayerName} has beaten {EndingName} in {Time}",
 
@@ -24,3 +28,5 @@ return {
 	chatFancyFontFace = "Fantasy",
 	chatFancyFontSize = 22,
 }
+
+return Config

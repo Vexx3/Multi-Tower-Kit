@@ -12,8 +12,9 @@ local Shared = TowerGame.Shared
 local GUIHandler = require(TowerGame.Shared.GUIHandler)
 local Icon = require(ReplicatedStorage.Packages.topbarplus)
 local Types = require(Shared.Types)
-local TowerRushes: Types.Dictionary<Types.TowerRush> = require(TowerGame.Shared.Data.TowerRushes) :: any
 local Util = require(Shared.Util)
+
+local TowerRushes: Types.Dictionary<Types.TowerRush> = require(TowerGame.Shared.Data.TowerRushes) :: any
 
 local Player = Players.LocalPlayer :: Player
 local PlayerGui = Player:WaitForChild("PlayerGui")

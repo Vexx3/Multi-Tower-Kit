@@ -2,9 +2,10 @@
 
 local Types = require("../Types")
 
+type Dictionary<T> = Types.Dictionary<T>
 type DifficultyInfo = Types.DifficultyInfo
 
-local difficulties: { [string]: DifficultyInfo } = {
+local difficulties: Dictionary<DifficultyInfo> = {
 	Easy = {
 		title = "Easy",
 		rating = 1,

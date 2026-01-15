@@ -41,7 +41,7 @@ local function updatePlayerTag(player: Player)
 end
 
 local function init()
-	local function onAdded(player)
+	local function onAdded(player: Player)
 		task.spawn(updatePlayerTag, player)
 	end
 

@@ -123,14 +123,71 @@ export type Settings = {
 	extendedCompletions: boolean,
 }
 
+export type ClientConfig = {
+	winMessage: string,
+	winMessageAj: string,
+	winMessageBoostsUsed: string,
+
+	chatChannel: string,
+	chatFontFace: string,
+	chatFontSize: number,
+	chatFancyFontFace: string,
+	chatFancyFontSize: number,
+}
+
+export type ChatTagDefinition = {
+	read Text: string,
+	read Color: Color3,
+}
+
+export type ChatGroupTag = {
+	read GroupId: number,
+	read Roles: List<string>,
+}
+
+export type ChatTagsConfig = {
+	read TAGS: Dictionary<ChatTagDefinition>,
+	read USER_TAGS: List<string>,
+	read GAMEPASS_TAGS: List<string>,
+	read GROUP_TAGS: List<ChatGroupTag>,
+}
+
+export type GlobalConfig = {
+	timerSyncInterval: number,
+	checkpointInterval: number,
+	restartCooldown: number,
+	restartResetsTowerRush: boolean,
+
+	winpadInterval: number,
+	winpadsChangeColor: boolean,
+	winpadsChangeMaterial: boolean,
+	useDisplayName: boolean,
+
+	checkpointsMissingWarning: boolean,
+	noMinimumTimeWarning: boolean,
+	r15Warning: boolean,
+
+	dataStoreKey: string,
+	dataStoreKeyStudio: string,
+
+	webhooksEnabled: boolean,
+	webhookNormalMessage: string,
+	webhookAjMessage: string,
+	webhookBoostsUsed: string,
+
+	roles: Dictionary<List<string>>,
+	userRoles: { [number]: List<string> },
+	adminHotkey: Enum.KeyCode,
+}
+
 export type PlayerData = {
 	towers: number,
 	allJumps: number,
-	completedTowers: { string },
-	completedAjTowers: { string },
-	towerStats: { [string]: TowerStat },
-	completedTowerRushes: { string },
-	towerRushStats: { [string]: TowerStat },
+	completedTowers: List<string>,
+	completedAjTowers: List<string>,
+	towerStats: Dictionary<TowerStat>,
+	completedTowerRushes: List<string>,
+	towerRushStats: Dictionary<TowerStat>,
 	settings: Settings,
 }
 

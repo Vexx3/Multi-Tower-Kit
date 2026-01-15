@@ -202,7 +202,7 @@ local function init(): ()
 	ModuleLoader.loadAndInit(script, { script.Game, script.UI })
 
 	-- Request everpresent client objects
-	local success, ecoFolder: Folder? = BlinkClient.RequestEverpresentCOs.Invoke()
+	local success, ecoFolder = BlinkClient.RequestEverpresentCOs.Invoke()
 	if success and ecoFolder then
 		ClientObjects.loadClientObjects(ecoFolder, true, "EverpresentCOs")
 	end
