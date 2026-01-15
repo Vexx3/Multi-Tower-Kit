@@ -70,9 +70,9 @@ end
     Shorthand for `utility.assureValueType(instance:GetAttribute(configName), default)`
 ]=]
 function Property.assureAttribute<defaultType>(instance: Instance?, configName: string, default: defaultType): defaultType
-	if not instance then
-		return default
-	end
+    if not instance then
+        return default
+    end
 	return Property.assureValueType(instance:GetAttribute(configName), default)
 end
 

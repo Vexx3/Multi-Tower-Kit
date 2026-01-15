@@ -18,8 +18,8 @@ Thank you
 --------------------------------------------------------------------------------
 ]]
 
-local HttpService = game:GetService("HttpService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local HttpService = game:GetService("HttpService")
 
 local _TDefs = require(script.TypeDefs)
 local Framework = ReplicatedStorage.Framework
@@ -317,10 +317,10 @@ function cleanupItem(item: any)
 	if type == "function" then
 		task.spawn(item)
 	elseif type == "thread" then
-		cleanupSuccess, cleanupError = pcall(task.cancel, item)
-		if typeof(cleanupError) == "string" then
-			cleanupError ..= ` (status: {coroutine.status(item)})`
-		end
+        cleanupSuccess, cleanupError = pcall(task.cancel, item)
+        if typeof(cleanupError) == "string" then
+            cleanupError ..= ` (status: {coroutine.status(item)})`
+        end
 	elseif type == "Instance" then
 		-- this would only error if the instance has already been destroyed so
 		-- there's no need to report errors here

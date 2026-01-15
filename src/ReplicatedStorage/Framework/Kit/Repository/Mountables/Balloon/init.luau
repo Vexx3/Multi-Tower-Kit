@@ -226,7 +226,7 @@ function Balloon.Run(scope: _T.Scope, utility: _T.Utility)
 			if isPlayer and humanoid then
 				utility.Character.carryPart(false, ropeBar, not configuration.HandleAnimation)
 				humanoid.PlatformStand = false
-
+				
 				if configuration.JumpOnDismount then
 					humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
 				end

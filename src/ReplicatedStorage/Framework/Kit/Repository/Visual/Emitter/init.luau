@@ -22,8 +22,8 @@ Thank you
 local Debris = game:GetService("Debris")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
-local SequencerSupport = require(script.SequencerSupport)
 local _T = require(ReplicatedStorage.Framework.ClientTypes)
+local SequencerSupport = require(script.SequencerSupport)
 
 local function handleCache(rootScope: _T.Scope, utility: _T.Utility)
 	local cache = {} :: { [BasePart]: () -> () }
@@ -105,7 +105,7 @@ function Emitter.Run(scope: _T.Scope, utility: _T.Utility)
 		})
 		return
 	end
-
+	
 	local globalSounds = Instance.new("Folder")
 	globalSounds.Name = "GlobalSounds"
 	globalSounds.Parent = emitter
@@ -131,12 +131,13 @@ function Emitter.Run(scope: _T.Scope, utility: _T.Utility)
 					object:Emit(emitCount)
 				elseif object:IsA("Sound") then
 					local sound = object:Clone()
-
+					
 					local pitchRange = emmissionConfig.PitchRange
 					if pitchRange then
-						sound.PlaybackSpeed = random:NextInteger(pitchRange.Min * 100, pitchRange.Max * 100) / 100
+						sound.PlaybackSpeed = 
+							random:NextInteger(pitchRange.Min * 100, pitchRange.Max * 100) / 100
 					end
-
+					
 					sound.Parent = if configuration.GlobalSound then globalSounds else emitter
 					sound:Play()
 					Debris:AddItem(sound, sound.TimeLength / sound.PlaybackSpeed)

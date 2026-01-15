@@ -2,44 +2,10 @@
   "className": "ParticleEmitter",
   "properties": {
     "LightEmission": 1.0,
-    "Size": {
-      "NumberSequence": {
-        "keypoints": [
-          {
-            "time": 0.0,
-            "value": 2.0,
-            "envelope": 0.0
-          },
-          {
-            "time": 1.0,
-            "value": 2.0,
-            "envelope": 0.0
-          }
-        ]
-      }
-    },
     "Speed": {
       "NumberRange": [
         20.0,
         20.0
-      ]
-    },
-    "LightInfluence": 1.0,
-    "Enabled": false,
-    "SpreadAngle": [
-      360.0,
-      360.0
-    ],
-    "Lifetime": {
-      "NumberRange": [
-        0.3,
-        0.3
-      ]
-    },
-    "Rotation": {
-      "NumberRange": [
-        -360.0,
-        360.0
       ]
     },
     "Transparency": {
@@ -57,6 +23,40 @@
           }
         ]
       }
-    }
+    },
+    "Enabled": false,
+    "Size": {
+      "NumberSequence": {
+        "keypoints": [
+          {
+            "time": 0.0,
+            "value": 2.0,
+            "envelope": 0.0
+          },
+          {
+            "time": 1.0,
+            "value": 2.0,
+            "envelope": 0.0
+          }
+        ]
+      }
+    },
+    "Rotation": {
+      "NumberRange": [
+        -360.0,
+        360.0
+      ]
+    },
+    "Lifetime": {
+      "NumberRange": [
+        0.3,
+        0.3
+      ]
+    },
+    "LightInfluence": 1.0,
+    "SpreadAngle": [
+      360.0,
+      360.0
+    ]
   }
 }

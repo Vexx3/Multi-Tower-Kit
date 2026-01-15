@@ -28,9 +28,9 @@ local ClientObjects = {}
 local Framework = ReplicatedStorage.Framework
 local Managers = Framework.Kit.Managers
 
-local Character = require(script.Parent.Character)
 local Config = require(script.Parent.Config)
 local Functions = require(script.Parent.Functions)
+local Character = require(script.Parent.Character)
 local Table = require(script.Parent.Table)
 local localPlayer = Players.LocalPlayer
 
@@ -336,7 +336,7 @@ function ClientObjects.setInstanceActive(scope: Scope, instance: Instance, key: 
 	end
 end
 
-local VERSION_LIST: { string } = {
+local VERSION_LIST: {string} = {
 	"v6.0.0",
 	"v6.0.1",
 	"v6.0.2",
@@ -358,7 +358,7 @@ function ClientObjects.getCOVersion(config: Instance): string
 			return tag
 		end
 	end
-
+	
 	return VERSION_LIST[#VERSION_LIST]
 end
 
@@ -371,11 +371,11 @@ end
 function ClientObjects.isVersionOrHigher(currentVersion: string, targetVersion: string): boolean
 	local currentNum = table.find(VERSION_LIST, currentVersion)
 	local targetNum = table.find(VERSION_LIST, targetVersion)
-
+	
 	if not currentNum or not targetNum then
 		return false
 	end
-
+	
 	return currentNum >= targetNum
 end
 

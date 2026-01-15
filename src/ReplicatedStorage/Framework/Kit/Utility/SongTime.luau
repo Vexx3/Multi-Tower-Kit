@@ -18,8 +18,8 @@ Thank you
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local SongTime = {}
 
-local Log = require(ReplicatedStorage.Framework.Log)
 local TableUtil = require(script.Parent.Table)
+local Log = require(ReplicatedStorage.Framework.Log)
 
 export type BPMChange = { beat: number, bpm: number }
 export type Stop = { beat: number, seconds: number }

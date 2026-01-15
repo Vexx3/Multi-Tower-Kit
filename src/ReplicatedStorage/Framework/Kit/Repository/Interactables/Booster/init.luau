@@ -24,9 +24,9 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 local Workspace = game:GetService("Workspace")
 
+local _T = require(ReplicatedStorage.Framework.ClientTypes)
 local CharacterManager_Types = require(ReplicatedStorage.Framework.Kit.Managers.CharacterManager.TypeDefs)
 local SequencerSupport = require(script.SequencerSupport)
-local _T = require(ReplicatedStorage.Framework.ClientTypes)
 
 type Booster = {
 	hitbox: BasePart,
@@ -187,8 +187,7 @@ function Booster.Run(scope: _T.Scope, utility: _T.Utility)
 				if activeBooster and not boostTypesFound[boostType] then
 					cache.activeBoosters[boostType] = nil
 
-					local activeBoost =
-						CharacterUtil.getActiveBoost(boostType, activeBooster.configuration.Mode == "Pad")
+					local activeBoost = CharacterUtil.getActiveBoost(boostType, activeBooster.configuration.Mode == "Pad")
 					if activeBoost then
 						CharacterUtil.removeBoost(activeBoost)
 					end

@@ -242,7 +242,7 @@ function Sequencer.Run(scope: _T.Scope, utility: _T.Utility)
 		-- Parent folder elsewhere
 		-- note that property changers in the sequence may not work if they are
 		-- trying to find objects that are inside the sequencer
-
+		
 		scope:add(sequenceFolder)
 		sequenceFolder.Parent = scope.shared.TempContainer
 
@@ -443,7 +443,7 @@ function Sequencer.Run(scope: _T.Scope, utility: _T.Utility)
 
 				sequencePart.hasPassed = true
 				passed += 1
-
+				
 				if sequencePart.canAwait then
 					isPaused = true
 				end

@@ -39,8 +39,8 @@ local UserInputService = game:GetService("UserInputService")
 local Workspace = game:GetService("Workspace")
 
 local Framework = ReplicatedStorage.Framework
-local PropertyUtil = require(Framework.Kit.Utility.Property)
 local _TDefs = require(script.TypeDefs)
+local PropertyUtil = require(Framework.Kit.Utility.Property)
 
 --[[
 ---------------------------------------------------------------------------
@@ -209,17 +209,17 @@ function FlipManager:Init()
 		then
 			return
 		end
-
+		
 		FlipManager:TryFlip()
 	end)
-
+	
 	-- TODO: make a better icon rather than just having "flip" on a button
 	if UserInputService.TouchEnabled and not UserInputService.KeyboardEnabled then
 		local function characterAdded()
 			if localPlayer.PlayerGui:FindFirstChild("MobileFlip") then
 				return
 			end
-
+			
 			local mobileGui = script.MobileFlip:Clone()
 			mobileGui.Parent = localPlayer.PlayerGui
 
@@ -227,11 +227,11 @@ function FlipManager:Init()
 				FlipManager:TryFlip()
 			end)
 		end
-
+		
 		localPlayer.CharacterAdded:Connect(characterAdded)
 		characterAdded()
 	end
-
+	
 	--[[
 	UserInputService.TouchTapInWorld:Connect(function(position, processedByUI)
 		if processedByUI then

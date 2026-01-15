@@ -32,9 +32,9 @@ Services, modules and other objects
 ---------------------------------------------------------------------------
 ]]
 
-local Lighting = game:GetService("Lighting")
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Lighting = game:GetService("Lighting")
 local TweenService = game:GetService("TweenService")
 
 local Framework = ReplicatedStorage.Framework
