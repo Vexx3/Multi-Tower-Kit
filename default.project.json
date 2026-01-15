@@ -3,9 +3,6 @@
   "tree": {
     "$className": "DataModel",
     "ReplicatedStorage": {
-      "$attributes": {
-        "Emitter2D_Version": 1.26
-      },
       "$ignoreUnknownInstances": true,
       "$path": "src/ReplicatedStorage",
 
