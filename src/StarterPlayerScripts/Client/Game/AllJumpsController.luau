@@ -12,7 +12,7 @@ local TowerGame = ReplicatedStorage.TowerGame
 
 local BlinkClient = require(TowerGame.Network.BlinkClient)
 
-local localPlayer = Players.LocalPlayer :: Player
+local LocalPlayer = Players.LocalPlayer :: Player
 local currentCamera = workspace.CurrentCamera
 
 export type CheckpointState = {
@@ -42,7 +42,7 @@ local VISUAL_SETTINGS = {
 local activeStates: { [number]: CheckpointState } = {}
 local isAllJumpsActive = false
 local currentTowerAcronym = ""
-local currentCharacter: Model?
+local character = LocalPlayer.Character
 
 local checkpointFolder = workspace:FindFirstChild("AllJumpsHandler") :: Folder
 if not checkpointFolder then
@@ -53,12 +53,12 @@ end
 
 --- Retrieves the current player's physical and state data.
 local function captureCurrentState(): (BasePart?, Humanoid?, CheckpointState?)
-	if not currentCharacter then
+	if not character then
 		return nil, nil, nil
 	end
 
-	local rootPart = currentCharacter:FindFirstChild("HumanoidRootPart") :: BasePart?
-	local humanoid = currentCharacter:FindFirstChildOfClass("Humanoid")
+	local rootPart = character:FindFirstChild("HumanoidRootPart") :: BasePart?
+	local humanoid = character:FindFirstChildOfClass("Humanoid")
 	if not rootPart or not humanoid or not currentCamera then
 		return nil, nil, nil
 	end
@@ -162,15 +162,13 @@ local AllJumpsController = {}
 
 --- Initialize listeners for All Jumps Mode.
 function AllJumpsController.Start(): ()
-	localPlayer.CharacterAdded:Connect(function(char)
-		currentCharacter = char
+	LocalPlayer.CharacterAdded:Connect(function(char)
+		character = char
 		if isAllJumpsActive and currentTowerAcronym ~= "" then
-			task.wait(0.3)
+			task.wait(0.25)
 			teleportToCheckpoint()
 		end
 	end)
-
-	currentCharacter = localPlayer.Character
 
 	BlinkClient.AllJumpsRestoreState.On(function(state: CheckpointState)
 		if isAllJumpsActive and currentTowerAcronym ~= "" and currentCamera then
@@ -189,14 +187,14 @@ function AllJumpsController.Start(): ()
 		currentTowerAcronym = ""
 	end)
 
-	localPlayer:GetAttributeChangedSignal("AllJumpsMode"):Connect(function()
-		isAllJumpsActive = localPlayer:GetAttribute("AllJumpsMode") == true
+	LocalPlayer:GetAttributeChangedSignal("AllJumpsMode"):Connect(function()
+		isAllJumpsActive = LocalPlayer:GetAttribute("AllJumpsMode") == true
 		if not isAllJumpsActive then
 			clearAllCheckpoints()
 		end
 	end)
 
-	isAllJumpsActive = localPlayer:GetAttribute("AllJumpsMode") == true
+	isAllJumpsActive = LocalPlayer:GetAttribute("AllJumpsMode") == true
 
 	UserInputService.InputBegan:Connect(function(input, processed)
 		if processed or not isAllJumpsActive or currentTowerAcronym == "" then
