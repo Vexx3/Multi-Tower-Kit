@@ -1,18 +1,19 @@
--- Main server entry point for Multi-Tower Kit.
--- Boots the MTK server framework by discovering and initializing all services.
+--[[
+	Main server entry point for Multi-Tower Kit.
+]]
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local ServerStorage = game:GetService("ServerStorage")
 
-local TowerGame = ReplicatedStorage.TowerGame
-local Shared = TowerGame.Shared
+local Packages = ReplicatedStorage.Packages
 local Framework = ReplicatedStorage.Framework
 
+local Loader = require(Packages.Loader)
 local Log = require(Framework.Log)
-local ModuleLoader = require(Shared.ModuleLoader)
-local TowerService = require(script.Services.TowerService)
+local TowerService = require("@self/Services/TowerService")
 
-local function init()
+do
+	local startTime = os.clock()
 	Log({ "Initializing MTK Server Framework..." })
 
 	-- Ensure EverpresentCOs are moved to ServerStorage before loading services
@@ -21,12 +22,14 @@ local function init()
 	ecos.Parent = ServerStorage
 
 	-- Initialize core services that others depend on first
-	TowerService.init()
+	TowerService.Start()
 
-	-- Discover and initialize all modules in the Server directory
-	ModuleLoader.loadAndInit(script, { script.Network, script.Services.TowerService })
+	-- Discover and initialize all service modules with Start method
+	local services = Loader.LoadDescendants(script.Services, Loader.MatchesName("Service$"))
+	local playerModules = Loader.LoadDescendants(script.Player)
+	Loader.SpawnAll(services, "Start")
+	Loader.SpawnAll(playerModules, "Start")
 
-	Log({ "Server Framework started successfully." })
+	local elapsed = os.clock() - startTime
+	Log({ `Server Framework started successfully in {string.format("%.2f", elapsed * 1000)}ms` })
 end
-
-init()

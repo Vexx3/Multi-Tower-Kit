@@ -1,4 +1,11 @@
--- Handles per-tower player statistics stored in the profile datastore.
+--[=[
+	Handles per-tower player statistics stored in the profile datastore.
+
+	Tracks attempts, wins, best times, and total time spent on individual towers.
+
+	@class TowerData
+	@server
+]=]
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
@@ -30,10 +37,9 @@ local DEFAULT_TOWER_STAT: TowerStat = {
 }
 
 local function applyDefaults(stat: TowerStat)
-	local statAny: { [string]: unknown } = stat :: any
-	for key: string, value: unknown in DEFAULT_TOWER_STAT :: any do
-		if statAny[key] == nil then
-			statAny[key] = value
+	for key, value in pairs(DEFAULT_TOWER_STAT) do
+		if (stat :: { [string]: unknown })[key] == nil then
+			(stat :: { [string]: unknown })[key] = value
 		end
 	end
 end
@@ -66,6 +72,10 @@ end
 
 local TowerData = {}
 
+--- Gets the tower statistics for a specific tower.
+--- @param player Player -- The player to get stats for
+--- @param towerName string -- The tower acronym
+--- @return TowerStat? -- The tower stats, or nil if not found
 function TowerData.getTowerStat(player: Player, towerName: string): TowerStat?
 	local data = PlayerData.getData(player)
 	if not data then
@@ -76,6 +86,9 @@ function TowerData.getTowerStat(player: Player, towerName: string): TowerStat?
 	return stats and stats[towerName]
 end
 
+--- Increments the attempt count for a tower.
+--- @param player Player -- The player who attempted the tower
+--- @param towerName string -- The tower acronym
 function TowerData.incrementTowerAttempt(player: Player, towerName: string)
 	PlayerData.updateAsync(player, function(data: PlayerData)
 		local stat: TowerStat = ensureStat(data, towerName)
@@ -84,6 +97,10 @@ function TowerData.incrementTowerAttempt(player: Player, towerName: string)
 	end)
 end
 
+--- Adds time spent in a tower to the player's statistics.
+--- @param player Player -- The player
+--- @param towerName string -- The tower acronym
+--- @param timeDelta number -- Time spent in seconds
 function TowerData.addTowerTimeSpent(player: Player, towerName: string, timeDelta: number)
 	local delta = math.max(timeDelta, 0)
 	if delta <= 0 then
@@ -97,6 +114,12 @@ function TowerData.addTowerTimeSpent(player: Player, towerName: string, timeDelt
 	end)
 end
 
+--- Records a tower win and updates best times.
+--- @param player Player -- The player who won
+--- @param towerName string -- The tower acronym
+--- @param runTimeSeconds number -- The completion time in seconds
+--- @param isBoostUsed boolean -- Whether a boost item was used
+--- @param isAllJumps boolean? -- Whether this was an all-jumps completion
 function TowerData.recordTowerWin(
 	player: Player,
 	towerName: string,

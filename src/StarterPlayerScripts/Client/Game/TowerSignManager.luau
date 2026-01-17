@@ -1,5 +1,6 @@
--- Handles updating PortalSign and ChartLine ObjectValues in tower folders
--- to green when a player has beaten the tower. Changes persist locally.
+--[[
+	Handles updating tower sign colors based on player completion status.
+]]
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
@@ -14,11 +15,6 @@ local AJ_COMPLETED_COLOR = Color3.fromRGB(245, 205, 48)
 local currentCompleted: { string } = {}
 local currentCompletedAj: { string } = {}
 
-local TowerSignManager = {}
-
-TowerSignManager.COMPLETED_COLOR = COMPLETED_COLOR
-TowerSignManager.AJ_COMPLETED_COLOR = AJ_COMPLETED_COLOR
-
 local function setPartColor(instance: Instance?, color: Color3)
 	if not instance or not instance:IsA("ObjectValue") then
 		return
@@ -30,7 +26,11 @@ local function setPartColor(instance: Instance?, color: Color3)
 	end
 end
 
--- Updates the color of PortalSign and ChartLine ObjectValues to indicate completion.
+local TowerSignManager = {}
+
+--- Updates the color of PortalSign and ChartLine ObjectValues to indicate completion.
+--- @param towerName string -- The tower name to mark as completed
+--- @param color Color3? -- Optional override color (defaults to green)
 function TowerSignManager.markTowerCompleted(towerName: string, color: Color3?)
 	local towerFolder = TOWERS:FindFirstChild(towerName)
 	if not towerFolder then
@@ -43,8 +43,8 @@ function TowerSignManager.markTowerCompleted(towerName: string, color: Color3?)
 	setPartColor(towerFolder:FindFirstChild("ChartLine", true), finalColor)
 end
 
--- Updates tower signs for all towers the player has completed.
--- Expected data format: { completedTowers: {string}, completedAjTowers: {string} }
+--- Updates tower signs for all towers the player has completed.
+--- @param data any -- Data containing completedTowers and completedAjTowers arrays
 function TowerSignManager.updateCompletedTowers(data: any)
 	if not data then
 		return
@@ -80,9 +80,9 @@ function TowerSignManager.updateCompletedTowers(data: any)
 	end
 end
 
--- Initializes the TowerSignManager on the client.
+--- Initializes the TowerSignManager and sets up event listeners.
 function TowerSignManager.init()
-	BlinkClient.PlayerDataUpdate.On(function(changes)
+	BlinkClient.PlayerDataUpdate.On(function(changes: { completedTowers: { string }?, completedAjTowers: { string }? })
 		TowerSignManager.updateCompletedTowers(changes)
 	end)
 end

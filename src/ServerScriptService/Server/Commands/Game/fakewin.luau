@@ -1,5 +1,7 @@
--- Command: /fakewin <player> <ending> [difficulty] [time] [global]
--- Broadcasts a fake win message (no stats/badges awarded).
+--[[
+	Command: /fakewin <player> <ending> [difficulty] [time] [global]
+	Broadcasts a fake win message (no stats/badges awarded).
+]]
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 

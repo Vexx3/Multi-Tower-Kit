@@ -1,5 +1,7 @@
--- Command: /unloadtower <target>
--- Unloads the currently playing tower for a player.
+--[[
+	Command: /unloadtower <target>
+	Unloads the currently playing tower for a player.
+]]
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 

@@ -1,4 +1,6 @@
--- Provides reusable animations and state transitions for UI components.
+--[[
+	Provides reusable animations and state transitions for UI components.
+]]
 
 local TweenService = game:GetService("TweenService")
 
@@ -9,6 +11,11 @@ local originalSizes: { [GuiObject]: UDim2 } = {}
 
 local GUIHandler = {}
 
+--- Toggles a CanvasGroup's visibility with a fade animation.
+--- @param canvasGroup CanvasGroup -- The canvas group to toggle
+--- @param show boolean? -- Force show/hide, or toggle if nil
+--- @param duration number? -- Animation duration in seconds
+--- @param callback ((opening: boolean) -> ())? -- Called when animation completes
 function GUIHandler.toggleUI(
 	canvasGroup: CanvasGroup,
 	show: boolean?,
@@ -42,6 +49,11 @@ function GUIHandler.toggleUI(
 	end)
 end
 
+--- Toggles a GuiObject's visibility with a shrink/grow animation.
+--- @param guiObject GuiObject -- The GUI object to toggle
+--- @param show boolean? -- Force show/hide, or toggle if nil
+--- @param duration number? -- Animation duration in seconds
+--- @param callback ((opening: boolean) -> ())? -- Called when animation completes
 function GUIHandler.shrinkAnimation(
 	guiObject: GuiObject,
 	show: boolean?,

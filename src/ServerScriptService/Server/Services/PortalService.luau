@@ -1,4 +1,6 @@
--- Initializes lobby teleporters and tower portals based on workspace setup.
+--[[
+	Initializes lobby teleporters and tower portals.
+]]
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
@@ -18,8 +20,6 @@ type TowerInfo = Types.TowerInfo
 
 local MARKERS = workspace.Markers
 local PORTALS = workspace.Portals
-
-local PortalService = {}
 
 local function canEnter(playerName: string, targetTower: string?): boolean
 	local player = PlayerService.getSession(playerName)
@@ -102,7 +102,10 @@ local function setupPortal(portalPart: BasePart)
 	end
 end
 
-function PortalService.init()
+local PortalService = {}
+
+--- Initializes all portals found in workspace.Portals.
+function PortalService.Start()
 	for _, child in PORTALS:GetChildren() do
 		if child:IsA("BasePart") then
 			setupPortal(child)

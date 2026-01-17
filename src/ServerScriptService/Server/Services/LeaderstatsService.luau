@@ -1,4 +1,6 @@
--- Creates and updates Roblox leaderstats for players based on their tower completions.
+--[[
+	Creates and updates Roblox leaderstats for players.
+]]
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
@@ -19,7 +21,8 @@ local players: { [string]: LeaderstatsInfo } = {}
 
 local LeaderstatsService = {}
 
--- Initializes leaderstats for a player upon joining.
+--- Initializes leaderstats for a player upon joining.
+--- @param player Player -- The player to create leaderstats for
 function LeaderstatsService.initPlayer(player: Player)
 	local data = PlayerData.getData(player)
 	if not data then
@@ -50,7 +53,10 @@ function LeaderstatsService.initPlayer(player: Player)
 	players[player.Name] = info
 end
 
--- Awards tower completion, increments the Towers stat, and records the completed tower.
+--- Awards tower completion, increments the Towers stat, and records the completed tower.
+--- @param player Player -- The player who completed the tower
+--- @param towerInfo TowerInfo -- The tower that was completed
+--- @param stat number -- The number of points to award
 function LeaderstatsService.setTowerStat(player: Player, towerInfo: Types.TowerInfo, stat: number)
 	local info: LeaderstatsInfo? = players[player.Name]
 	if not info then
@@ -77,7 +83,10 @@ function LeaderstatsService.setTowerStat(player: Player, towerInfo: Types.TowerI
 	ToolService.giveTowerTools(player, acronym)
 end
 
--- Awards all-jumps completion for a tower. Updates the All-jumps leaderstat.
+--- Awards all-jumps completion for a tower and updates the All-jumps leaderstat.
+--- @param player Player -- The player who completed the tower in all-jumps mode
+--- @param towerInfo TowerInfo -- The tower that was completed
+--- @param stat number -- The number of points to award
 function LeaderstatsService.setAllJumpsStat(player: Player, towerInfo: Types.TowerInfo, stat: number)
 	local info: LeaderstatsInfo? = players[player.Name]
 	if not info then

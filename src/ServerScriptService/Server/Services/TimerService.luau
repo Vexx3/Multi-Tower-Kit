@@ -1,4 +1,6 @@
--- Handles game timers, syncs, and checkpoint detection.
+--[[
+	Handles game timers, syncs, and checkpoint detection.
+]]
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
@@ -14,8 +16,6 @@ local PlayerState = require("../Player/PlayerState")
 local TowerService = require("./TowerService")
 local Types = require(Shared.Types)
 local Util = require(Shared.Util)
-
-local TimerService = {}
 
 local function onStepped(_time: number, deltaTime: number)
 	for _, v in PlayerService.getAllSessions() do
@@ -66,7 +66,10 @@ local function onStepped(_time: number, deltaTime: number)
 	end
 end
 
-function TimerService.init()
+local TimerService = {}
+
+--- Initializes the timer service and starts the stepped loop.
+function TimerService.Start()
 	RunService.Stepped:Connect(onStepped)
 end
 

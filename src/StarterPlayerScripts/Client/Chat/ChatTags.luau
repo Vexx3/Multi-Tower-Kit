@@ -1,4 +1,6 @@
--- Handles chat tag prefixes based on user IDs, gamepasses, and group roles.
+--[[
+	Handles chat tag prefixes based on user IDs, gamepasses, and group roles.
+]]
 
 local MarketplaceService = game:GetService("MarketplaceService")
 local Players = game:GetService("Players")
@@ -58,7 +60,7 @@ local function onPlayerAdded(player: Player): ()
 	task.spawn(updatePlayerTag, player)
 end
 
--- Initializes the chat tags system.
+--- Initializes the chat tags system and sets up player tracking.
 function ChatTagsClient.init(): ()
 	for _, player in Players:GetPlayers() do
 		onPlayerAdded(player)

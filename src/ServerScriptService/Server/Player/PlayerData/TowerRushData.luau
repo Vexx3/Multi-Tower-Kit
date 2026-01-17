@@ -1,4 +1,11 @@
--- Handles per-tower-rush player statistics stored in the profile datastore.
+--[=[
+	Handles per-tower-rush player statistics stored in the profile datastore.
+
+	Tracks attempts, wins, best times, and total time spent on tower rushes.
+
+	@class TowerRushData
+	@server
+]=]
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
@@ -30,10 +37,9 @@ local DEFAULT_RUSH_STAT: TowerStat = {
 }
 
 local function applyDefaults(stat: TowerStat)
-	local statAny = stat :: any
-	for key, value in DEFAULT_RUSH_STAT :: any do
-		if statAny[key] == nil then
-			statAny[key] = value
+	for key, value in pairs(DEFAULT_RUSH_STAT) do
+		if (stat :: { [string]: unknown })[key] == nil then
+			(stat :: { [string]: unknown })[key] = value
 		end
 	end
 end
@@ -66,6 +72,10 @@ end
 
 local TowerRushData = {}
 
+--- Gets the rush statistics for a specific tower rush.
+--- @param player Player -- The player to get stats for
+--- @param rushName string -- The rush name
+--- @return TowerStat? -- The rush stats, or nil if not found
 function TowerRushData.getRushStat(player: Player, rushName: string): TowerStat?
 	local data = PlayerData.getData(player)
 	if not data then
@@ -76,6 +86,9 @@ function TowerRushData.getRushStat(player: Player, rushName: string): TowerStat?
 	return stats and stats[rushName]
 end
 
+--- Increments the attempt count for a tower rush.
+--- @param player Player -- The player who attempted the rush
+--- @param rushName string -- The rush name
 function TowerRushData.incrementRushAttempt(player: Player, rushName: string)
 	PlayerData.updateAsync(player, function(data)
 		local stat = ensureStat(data, rushName)
@@ -84,6 +97,10 @@ function TowerRushData.incrementRushAttempt(player: Player, rushName: string)
 	end)
 end
 
+--- Adds time spent in a tower rush to the player's statistics.
+--- @param player Player -- The player
+--- @param rushName string -- The rush name
+--- @param deltaSeconds number -- Time spent in seconds
 function TowerRushData.addRushTimeSpent(player: Player, rushName: string, deltaSeconds: number)
 	local delta = math.max(deltaSeconds, 0)
 	if delta <= 0 then
@@ -97,6 +114,12 @@ function TowerRushData.addRushTimeSpent(player: Player, rushName: string, deltaS
 	end)
 end
 
+--- Records a tower rush win and updates best times.
+--- @param player Player -- The player who won
+--- @param rushName string -- The rush name
+--- @param runTimeSeconds number -- The completion time in seconds
+--- @param boostItemUsed boolean -- Whether a boost item was used
+--- @param isAllJumps boolean? -- Whether this was an all-jumps completion
 function TowerRushData.recordRushWin(
 	player: Player,
 	rushName: string,

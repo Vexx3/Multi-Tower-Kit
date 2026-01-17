@@ -1,5 +1,7 @@
--- Command: /teleport <targets> [destinationPlayer] [destinationPosition]
--- Teleports players to another player or a Vector3 position.
+--[[
+	Command: /teleport <targets> [destinationPlayer] [destinationPosition]
+	Teleports players to another player or position.
+]]
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 

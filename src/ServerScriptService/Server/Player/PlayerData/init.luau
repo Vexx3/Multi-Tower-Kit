@@ -1,5 +1,12 @@
--- Player data backed by Lyra. Provides a thin wrapper to load/update player
--- sessions while keeping the API surface used across the project.
+--[=[
+	Player data backed by Lyra.
+
+	Provides a thin wrapper to load, update, and persist player
+	sessions while keeping the API surface consistent across the project.
+
+	@class PlayerData
+	@server
+]=]
 
 local DataStoreService = game:GetService("DataStoreService")
 local Players = game:GetService("Players")
@@ -130,6 +137,17 @@ local function syncWithClient(key: string, newData: PlayerData, oldData: PlayerD
 		hasChanges = true
 	end
 
+	-- Sync ticket changes
+	if newData.tickets ~= oldData.tickets then
+		changes.tickets = newData.tickets
+		hasChanges = true
+	end
+
+	if newData.ticketCooldowns ~= oldData.ticketCooldowns then
+		changes.ticketCooldowns = newData.ticketCooldowns
+		hasChanges = true
+	end
+
 	if hasChanges then
 		BlinkServer.PlayerDataUpdate.Fire(player, changes)
 	end
@@ -144,6 +162,9 @@ local tSchema = t.strictInterface({
 	towerStats = t.table,
 	completedTowerRushes = t.array(t.string),
 	towerRushStats = t.table,
+	-- Ticket system
+	tickets = t.optional(t.number),
+	ticketCooldowns = t.optional(t.map(t.string, t.number)),
 	settings = t.strictInterface({
 		quickResetDelay = t.number,
 		resetOnDeath = t.boolean,
@@ -252,8 +273,10 @@ local store = Lyra.createPlayerStore({
 
 local PlayerData = {}
 
--- Return the current data snapshot for a player.
--- Returns nil immediately if data is not loaded.
+--- Returns the current data snapshot for a player.
+--- Returns nil immediately if data is not loaded.
+--- @param player Player -- The player to get data for
+--- @return PlayerData? -- The player's data, or nil if not loaded
 function PlayerData.getData(player: Player): PlayerData?
 	if not Loaded[player] then
 		return nil
@@ -261,8 +284,9 @@ function PlayerData.getData(player: Player): PlayerData?
 	return store:getAsync(player)
 end
 
--- Yields the current thread until the player's data is loaded.
--- Returns the data if successful, or nil if the player left.
+--- Yields the current thread until the player's data is loaded.
+--- @param player Player -- The player to wait for
+--- @return PlayerData? -- The player's data, or nil if the player left
 function PlayerData.waitForData(player: Player)
 	while not Loaded[player] and player.Parent do
 		player:GetAttributeChangedSignal("DataLoaded"):Wait()
@@ -270,29 +294,35 @@ function PlayerData.waitForData(player: Player)
 	return PlayerData.getData(player)
 end
 
--- Apply a mutation to the player's data using Lyra's updateAsync.
+--- Applies a mutation to the player's data using Lyra's updateAsync.
+--- @param player Player -- The player whose data to update
+--- @param fn (data: PlayerData) -> boolean -- Mutation function, return true if changed
 function PlayerData.updateAsync(player: Player, fn: (data: PlayerData) -> boolean)
 	return store:updateAsync(player, fn)
 end
 
-function PlayerData.init()
+--- Initializes the player data system and connects lifecycle events.
+function PlayerData.Start()
 	BlinkServer.GetPlayerData.On(function(_, userId: number): any?
 		return store:peekAsync(userId)
 	end)
 
-	BlinkServer.UpdateSettings.On(function(player: Player, updates: { [string]: any })
+	BlinkServer.UpdateSettings.On(function(player: Player, updates: { [string]: unknown })
 		PlayerData.updateAsync(player, function(data: PlayerData)
 			local changed = false
-			for key, value in updates do
+			for key: string, value: unknown in pairs(updates) do
 				if key == "keybinds" and typeof(value) == "table" then
-					for bindKey, bindValue in value do
-						if (data.settings.keybinds :: any)[bindKey] ~= bindValue then
-							(data.settings.keybinds :: any)[bindKey] = bindValue
+					for bindKey, bindValue in value :: { [string]: unknown } do
+						if (data.settings.keybinds :: { [string]: unknown })[bindKey] ~= bindValue then
+							(data.settings.keybinds :: { [string]: unknown })[bindKey] = bindValue
 							changed = true
 						end
 					end
-				elseif (data.settings :: any)[key] ~= nil and (data.settings :: any)[key] ~= value then
-					(data.settings :: any)[key] = value
+				elseif
+					(data.settings :: { [string]: unknown })[key] ~= nil
+					and (data.settings :: { [string]: unknown })[key] ~= value
+				then
+					(data.settings :: { [string]: unknown })[key] = value
 					changed = true
 				end
 			end
@@ -322,7 +352,7 @@ function PlayerData.init()
 		task.spawn(onPlayerAdded, player)
 	end
 
-	Players.PlayerRemoving:Connect(function(player)
+	Players.PlayerRemoving:Connect(function(player: Player)
 		Loaded[player] = nil
 		store:unloadAsync(player)
 	end)

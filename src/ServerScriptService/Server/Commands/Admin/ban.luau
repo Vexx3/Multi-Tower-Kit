@@ -1,5 +1,7 @@
--- Command: /ban <user> <reason> <privateReason> [duration]
--- Bans a player from the game by UserId or username.
+--[[
+	Command: /ban <user> <reason> <privateReason> [duration]
+	Bans a player from the game.
+]]
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")

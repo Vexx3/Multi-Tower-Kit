@@ -1,4 +1,6 @@
--- Legacy lighting compatibility layer for old v5 tower scripts.
+--[[
+	Legacy lighting compatibility for old v5 tower scripts.
+]]
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -53,7 +55,8 @@ local function onCharacterAdded(character: Model)
 	humanoid.Touched:Connect(onHumanoidTouched)
 end
 
--- Initializes the legacy lighting compatibility layer.
+--- Initializes the legacy lighting compatibility layer.
+--- Sets up _G.setLighting and handles ChangeLighting BindableEvent.
 function LegacyLighting.init(): ()
 	if LocalPlayer.Character then
 		task.spawn(onCharacterAdded, LocalPlayer.Character)

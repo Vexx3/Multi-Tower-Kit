@@ -1,5 +1,6 @@
--- Defines custom types for the Conch command system.
--- Registers tower names, marker names, and difficulty names as command arguments.
+--[[
+	Defines custom types for the Conch command system.
+]]
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 

@@ -1,3 +1,7 @@
+--[[
+	Default player data template used for new players.
+]]
+
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Types = require(ReplicatedStorage.TowerGame.Shared.Types)
 
@@ -13,6 +17,9 @@ local PlayerDataTemplate: PlayerData = {
 	towerStats = {},
 	completedTowerRushes = {},
 	towerRushStats = {},
+	-- Ticket system
+	tickets = 0,
+	ticketCooldowns = {},
 	settings = {
 		-- Gameplay
 		quickResetDelay = 1, -- seconds

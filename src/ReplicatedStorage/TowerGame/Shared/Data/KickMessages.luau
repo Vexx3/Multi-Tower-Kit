@@ -1,6 +1,5 @@
 --[[
-	Anti-cheat kick messages displayed when a player is removed.
-	{Player} is replaced with the player's name.
+	Anti-cheat kick messages. Use {Player} for player name.
 ]]
 
 local KICK_MESSAGES: { string } = {

@@ -1,11 +1,32 @@
--- Defines common types used across the MTK codebase.
--- All game-wide type definitions should live here.
+--[=[
+	Defines common types used across the MTK codebase.
+	All game-wide type definitions should live here.
 
+	@class Types
+]=]
+
+--[=[
+	@type List<T> { [number]: T }
+	@within Types
+	A sequential array of values.
+]=]
 export type List<T> = { [number]: T }
+
+--[=[
+	@type Dictionary<T> { [string]: T }
+	@within Types
+	A string-keyed map of values.
+]=]
 export type Dictionary<T> = { [string]: T }
 
 type Seconds = number
 
+--[=[
+	@interface TimeStat
+	@within Types
+	.seconds number -- Time in seconds
+	.formatted string -- Human-readable formatted time string
+]=]
 export type TimeStat = {
 	seconds: Seconds,
 	formatted: string,
@@ -17,6 +38,24 @@ type BasicTowerInfo = {
 	badgeId: number,
 }
 
+--[=[
+	@interface TowerInfo
+	@within Types
+	.name string -- Display name of the tower
+	.difficulty string -- Difficulty tier (e.g., "Easy", "Medium", "Extreme")
+	.badgeId number -- Roblox badge ID for normal completion
+	.towerPoints number -- Points awarded for completion
+	.allJumpsPoints number? -- Points for all-jumps completion
+	.ajBadgeId number? -- Badge ID for all-jumps completion
+	.noBoosts boolean? -- Whether boosts are disabled
+	.folder Instance -- Workspace folder containing the tower
+	.spawnLocation BasePart -- Spawn point for the tower
+	.clientObjects Instance? -- Client-side visual objects
+	.endings Dictionary<EndingInfo> -- Available endings/winpads
+	.minimumTime number -- Minimum time required to complete
+	.checkpoints List<BasePart> -- Ordered checkpoint parts
+	.checkpointCount number -- Total number of checkpoints
+]=]
 export type TowerInfo = BasicTowerInfo & {
 	towerPoints: number,
 	allJumpsPoints: number?,
@@ -34,18 +73,45 @@ export type TowerInfo = BasicTowerInfo & {
 	checkpointCount: number,
 }
 
+--[=[
+	@interface EndingInfo
+	@within Types
+	.name string -- Display name of the ending
+	.difficulty string -- Difficulty tier of this ending
+	.badgeId number -- Badge ID for this specific ending
+	.preventTowerBadge boolean -- If true, don't award the tower's main badge
+	.parentTower string -- Acronym of the tower this ending belongs to
+	.winroomMarker string -- Marker name for teleport destination
+]=]
 export type EndingInfo = BasicTowerInfo & {
 	preventTowerBadge: boolean,
 	parentTower: string,
 	winroomMarker: string,
 }
 
+--[=[
+	@interface TowerRush
+	@within Types
+	.winroomMarker string -- Marker name for rush completion teleport
+	.towers List<string> -- Ordered list of tower acronyms
+	.noBoosts boolean -- Whether boosts are disabled for this rush
+]=]
 export type TowerRush = {
 	winroomMarker: string,
 	towers: List<string>,
 	noBoosts: boolean,
 }
 
+--[=[
+	@interface TowerStat
+	@within Types
+	.attempts number -- Total attempts on this tower
+	.wins number -- Total normal completions
+	.allJumpsWins number -- Total all-jumps completions
+	.totalTimeSpent TimeStat -- Cumulative time spent
+	.bestWinTime TimeStat -- Best normal completion time
+	.bestAjWinTime TimeStat -- Best all-jumps completion time
+]=]
 export type TowerStat = {
 	attempts: number,
 	wins: number,
@@ -55,6 +121,11 @@ export type TowerStat = {
 	bestAjWinTime: TimeStat,
 }
 
+--[=[
+	@type PlayerMode "Normal" | "AllJumps" | "Practice"
+	@within Types
+	The current game mode for a player.
+]=]
 export type PlayerMode = "Normal" | "AllJumps" | "Practice"
 
 type PlayerRunTime = {
@@ -85,6 +156,26 @@ type PlayerFlags = {
 	boostItemNames: Dictionary<string>,
 }
 
+--[=[
+	@interface PlayerInfo
+	@within Types
+	.player Player -- The Roblox Player instance
+	.gameTimer number -- Total time in server
+	.lastRestart number -- Timestamp of last restart
+	.currentTower string -- Current tower acronym (empty if none)
+	.currentCheckpoint number -- Current checkpoint index
+	.towerTimer number -- Time spent in current tower attempt
+	.mode PlayerMode -- Current game mode
+	.currentTowerRush string -- Current rush name (empty if none)
+	.currentTowerRushIndex number -- Current tower index in rush
+	.currentTowerRushSplitTime number -- Time at last tower split
+	.touchEventBusy boolean -- Prevents double-touch processing
+	.isLoadingTower boolean -- Tower load in progress
+	.hasEverpresentCOs boolean -- Has received everpresent client objects
+	.debugItemUsed boolean -- Used a debug item this attempt
+	.boostItemUsed boolean -- Used a boost item this attempt
+	.boostItemNames Dictionary<string> -- Names of boosts used
+]=]
 export type PlayerInfo = PlayerRunTime & PlayerTowerState & PlayerRushState & PlayerFlags
 
 export type Settings = {
@@ -119,6 +210,9 @@ export type PlayerData = {
 	completedTowerRushes: List<string>,
 	towerRushStats: Dictionary<TowerStat>,
 	settings: Settings,
+	-- Ticket system
+	tickets: number,
+	ticketCooldowns: Dictionary<number>, -- tower acronym -> timestamp when cooldown expires
 }
 
 export type ClientConfig = {

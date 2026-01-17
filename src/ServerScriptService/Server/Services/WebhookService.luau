@@ -1,5 +1,6 @@
--- Sends Discord webhook notifications for tower clears.
--- Includes boost information and formatted time.
+--[[
+	Sends Discord webhook notifications for tower clears.
+]]
 
 local HttpService = game:GetService("HttpService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -37,7 +38,11 @@ end
 
 local WebhookService = {}
 
--- Posts a webhook message for a tower completion if webhooks are enabled.
+--- Posts a webhook message for a tower completion if webhooks are enabled.
+--- @param player PlayerInfo -- The player who completed the tower
+--- @param endingName string -- The name of the ending/tower completed
+--- @param difficultyName string -- The difficulty tier of the completion
+--- @param finalTime number? -- Optional override for the completion time
 function WebhookService.sendMessage(
 	player: Types.PlayerInfo,
 	endingName: string,

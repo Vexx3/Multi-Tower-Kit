@@ -14,6 +14,15 @@ struct ClientWinMessageInfo {
     global: boolean
 }
 
+-- Full checkpoint state for All Jumps Mode
+struct AllJumpsCheckpointState {
+    CharacterCFrame: CFrame,
+    CameraCFrame: CFrame,
+    LinearVelocity: vector,
+    AngularVelocity: vector,
+    HumanoidState: string
+}
+
 event RestartRequested {
     From: Client,
     Type: Reliable,
@@ -42,14 +51,14 @@ event UpdateTowerRush {
 event LoadTower {
     From: Server,
     Type: Reliable,
-    Call: SingleAsync,
+    Call: ManyAsync,
     Data: (string, boolean, boolean)
 }
 
 event UnloadTower {
     From: Server,
     Type: Reliable,
-    Call: SingleAsync
+    Call: ManyAsync
 }
 
 event GameAnnouncement {
@@ -98,6 +107,31 @@ event SetPracticeMode {
     Type: Reliable,
     Call: SingleAsync,
     Data: boolean
+}
+
+-- All Jumps Mode checkpoint teleport request from client
+-- Sends position as vector - use (0, 0, 0) for tower spawn
+-- Client sends full checkpoint state to server for storage
+event AllJumpsSetCheckpoint {
+    From: Client,
+    Type: Reliable,
+    Call: SingleAsync,
+    Data: AllJumpsCheckpointState
+}
+
+-- Client requests to remove last checkpoint
+event AllJumpsRemoveCheckpoint {
+    From: Client,
+    Type: Reliable,
+    Call: SingleAsync
+}
+
+-- Server tells client to restore checkpoint state (after damage teleport)
+event AllJumpsRestoreState {
+    From: Server,
+    Type: Reliable,
+    Call: SingleAsync,
+    Data: AllJumpsCheckpointState
 }
 
 function GetPlayerData {

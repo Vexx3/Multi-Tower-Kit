@@ -1,6 +1,13 @@
--- Core server manager for individual tower lifecycle.
--- Registers tower metadata, loads client objects, teleports players, and
--- exposes simple APIs for other systems to load towers.
+--[=[
+	Core server manager for individual tower lifecycle.
+
+	Registers tower metadata from workspace folders, loads client objects,
+	teleports players to tower spawn points, and exposes APIs for other
+	services to trigger tower loads.
+
+	@class TowerService
+	@server
+]=]
 
 local HttpService = game:GetService("HttpService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -40,6 +47,10 @@ end
 
 local TowerService = {}
 
+--- Loads a tower for a player, initializing their state and teleporting them.
+--- @param player PlayerInfo -- The player to load the tower for
+--- @param towerName string -- The acronym of the tower to load
+--- @param resetTimer boolean -- Whether to reset the player's tower timer
 function TowerService.loadTower(player: PlayerInfo, towerName: string, resetTimer: boolean)
 	-- Get the player and tower info objects being referenced
 	local tower: TowerInfo? = towers[towerName]
@@ -150,7 +161,7 @@ local function initTower(towerFolder: Instance): TowerInfo?
 				return nil
 			end
 
-			table.insert(checkpointsList, (checkpoint :: any) :: BasePart)
+			table.insert(checkpointsList, checkpoint)
 			checkpointCount += 1
 		end
 	end
@@ -250,18 +261,29 @@ local function initTower(towerFolder: Instance): TowerInfo?
 	return tower
 end
 
--- Register all towers found in `workspace.Towers`, building the runtime
--- metadata used elsewhere by MTK.
-function TowerService.init()
+local hasStarted = false
+
+--- Registers all towers found in `workspace.Towers`, building the runtime metadata.
+function TowerService.Start()
+	if hasStarted then
+		return
+	end
+	hasStarted = true
+
 	for _, v in TOWERS:GetChildren() do
 		initTower(v)
 	end
 end
 
+--- Gets a tower by its acronym.
+--- @param acronym string -- The tower's acronym (folder name)
+--- @return TowerInfo? -- The tower info, or nil if not found
 function TowerService.getTower(acronym: string): TowerInfo?
 	return towers[acronym]
 end
 
+--- Gets all registered towers.
+--- @return {[string]: TowerInfo} -- Map of tower acronyms to their info
 function TowerService.getAllTowers(): { [string]: TowerInfo }
 	return towers
 end

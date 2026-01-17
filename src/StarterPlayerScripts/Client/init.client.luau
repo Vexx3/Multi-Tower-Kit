@@ -1,5 +1,6 @@
--- Main client entry point for Multi-Tower Kit.
--- Handles tower loading/unloading, HUD updates, client objects, and input.
+--[[
+	Main client entry point for Multi-Tower Kit.
+]]
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -13,15 +14,16 @@ local Packages = ReplicatedStorage.Packages
 local Framework = ReplicatedStorage.Framework
 local Kit = Framework.Kit
 
-local Announcements = require(script.Game.Announcements)
+local AllJumpsController = require("@self/Game/AllJumpsController")
+local Announcements = require("@self/Game/Announcements")
 local BlinkClient = require(TowerGame.Network.BlinkClient)
 local Character = require(Kit.Utility).Character
-local ClientObjects = require(script.Game.ClientObjects)
+local ClientObjects = require("@self/Game/ClientObjects")
 local GameConfig = require(Shared.Data.Config)
+local HUD = require("@self/UI/HUD")
+local Loader = require(Packages.Loader)
 local Log = require(Framework.Log)
-local ModuleLoader = require(Shared.ModuleLoader)
-local TowerGUI = require(script.UI.TowerGUI)
-local TowerSignManager = require(script.Game.TowerSignManager)
+local TowerSignManager = require("@self/Game/TowerSignManager")
 local conch = require(Packages.conch)
 local conchui = require(Packages["conch-ui"])
 
@@ -36,14 +38,15 @@ local ResetEffectGui = ReplicatedStorage:WaitForChild("ResetEffectGui") :: Binda
 local LocalPlayer = Players.LocalPlayer :: Player
 
 local TIMER_UPDATE_THRESHOLD = 0.01
-local RESTART_TIME_MAX = 1
 
 local towerTimer = 0
 local restartTime = 0
+local restartTimeMax = 1 -- Updated from player settings
 local restartDebounce = false
 local currentTower = ""
 local lastDisplayedTimer = -1
 local lastRestartProgress = -1
+local isRestartKeyHeld = false
 
 local function loadTower(acronym: string, purist: boolean, resetTimer: boolean): ()
 	if currentTower ~= "" then
@@ -54,15 +57,15 @@ local function loadTower(acronym: string, purist: boolean, resetTimer: boolean):
 
 	if resetTimer then
 		towerTimer = 0
-		TowerGUI.setBoostsUsed(false)
+		HUD.setBoostsUsed(false)
 	end
 
-	TowerGUI.setTowerAcronym(acronym)
+	HUD.setTowerAcronym(acronym)
 	ResetEffectGui:Fire()
 
 	restartTime = 0
 
-	if restartTime >= RESTART_TIME_MAX then
+	if restartTime >= restartTimeMax then
 		restartDebounce = true
 	end
 
@@ -91,11 +94,11 @@ local function unloadTower(): ()
 	ResetEffectGui:Fire()
 	ClientObjects.unloadClientObjects()
 
-	TowerGUI.setTowerAcronym("")
-	TowerGUI.setTowerTimer(0)
-	TowerGUI.setTowerRush(0, 0)
-	TowerGUI.setBoostsUsed(false)
-	TowerGUI.setRestartLabel(0)
+	HUD.setTowerAcronym("")
+	HUD.setTowerTimer(0)
+	HUD.setTowerRush(0, 0)
+	HUD.setBoostsUsed(false)
+	HUD.setRestartLabel(0)
 end
 
 local function correctTimer(time: number): ()
@@ -103,7 +106,7 @@ local function correctTimer(time: number): ()
 end
 
 local function updateTowerRush(index: number, end_: number): ()
-	TowerGUI.setTowerRush(index, end_)
+	HUD.setTowerRush(index, end_)
 end
 
 local function onCharacterAdded(character: Model): ()
@@ -116,7 +119,7 @@ local function onCharacterAdded(character: Model): ()
 		if ins:IsA("Tool") then
 			local boostName = ins:GetAttribute("BoostName") :: string?
 			if boostName and boostName ~= "" and currentTower then
-				TowerGUI.setBoostsUsed(true)
+				HUD.setBoostsUsed(true)
 			end
 		end
 	end)
@@ -127,7 +130,7 @@ local function onStep(deltaTime: number): ()
 	if currentTower == "" then
 		if towerTimer ~= 0 then
 			towerTimer = 0
-			TowerGUI.setTowerTimer(0)
+			HUD.setTowerTimer(0)
 			lastDisplayedTimer = 0
 		end
 		restartTime = 0
@@ -135,10 +138,10 @@ local function onStep(deltaTime: number): ()
 		towerTimer += deltaTime
 
 		-- Handle restart key hold
-		if UserInputService:IsKeyDown(Enum.KeyCode.R) then
+		if isRestartKeyHeld then
 			if not restartDebounce then
-				restartTime = math.min(restartTime + deltaTime, RESTART_TIME_MAX)
-				if restartTime >= RESTART_TIME_MAX then
+				restartTime = math.min(restartTime + deltaTime, restartTimeMax)
+				if restartTime >= restartTimeMax then
 					restartDebounce = true
 					BlinkClient.RestartRequested.Fire()
 				end
@@ -150,25 +153,41 @@ local function onStep(deltaTime: number): ()
 
 		-- Only update timer display when it visually changes
 		if math.abs(towerTimer - lastDisplayedTimer) >= TIMER_UPDATE_THRESHOLD then
-			TowerGUI.setTowerTimer(towerTimer)
+			HUD.setTowerTimer(towerTimer)
 			lastDisplayedTimer = towerTimer
 		end
 	end
 
 	-- Only update restart label when progress changes
-	local restartProgress = restartTime / RESTART_TIME_MAX
+	local restartProgress = if restartTimeMax > 0 then restartTime / restartTimeMax else 0
 	if restartProgress ~= lastRestartProgress then
-		TowerGUI.setRestartLabel(restartProgress)
+		HUD.setRestartLabel(restartProgress)
 		lastRestartProgress = restartProgress
 	end
 end
 
-local function init(): ()
+local function onInputBegan(input: InputObject, gameProcessed: boolean): ()
+	if gameProcessed then
+		return
+	end
+	if input.KeyCode == Enum.KeyCode.R then
+		isRestartKeyHeld = true
+	end
+end
+
+local function onInputEnded(input: InputObject): ()
+	if input.KeyCode == Enum.KeyCode.R then
+		isRestartKeyHeld = false
+	end
+end
+
+do
+	local startTime = os.clock()
 	Log({ "Initializing Client Framework..." })
 
 	StarterGui:SetCoreGuiEnabled(Enum.CoreGuiType.EmotesMenu, false)
 
-	TowerGUI.showLoadingScreen("Loading data...", false)
+	HUD.showLoadingScreen("Loading data...", false)
 
 	-- Initialize v6 managers
 	CharacterManager:Init()
@@ -186,8 +205,9 @@ local function init(): ()
 
 	Announcements.init()
 	TowerSignManager.init()
+	AllJumpsController.Start()
 
-	ModuleLoader.loadAndInit(script, { script.Game, script.UI })
+	Loader.SpawnAll(Loader.LoadDescendants(script.UI), "Start")
 
 	-- Request everpresent client objects
 	local success, ecoFolder = BlinkClient.RequestEverpresentCOs.Invoke()
@@ -202,26 +222,37 @@ local function init(): ()
 	BlinkClient.LoadTower.On(loadTower)
 	BlinkClient.UnloadTower.On(unloadTower)
 	RunService.RenderStepped:Connect(onStep)
+	UserInputService.InputBegan:Connect(onInputBegan)
+	UserInputService.InputEnded:Connect(onInputEnded)
 
 	-- Initialize UI state
-	TowerGUI.setTowerTimer(0)
-	TowerGUI.setTowerAcronym("")
-	TowerGUI.setTowerRush(0, 0)
+	HUD.setTowerTimer(0)
+	HUD.setTowerAcronym("")
+	HUD.setTowerRush(0, 0)
 
 	-- Handle data loading state
+	local function applyPlayerSettings(data: any)
+		local settings = data and data.settings
+		if settings then
+			restartTimeMax = settings.quickResetDelay
+		end
+	end
+
 	local dataLoaded = LocalPlayer:GetAttribute("DataLoaded")
 	if dataLoaded then
-		TowerGUI.hideLoadingScreen()
+		HUD.hideLoadingScreen()
 	else
 		LocalPlayer:GetAttributeChangedSignal("DataLoaded"):Connect(function()
 			local loaded = LocalPlayer:GetAttribute("DataLoaded")
 			if loaded == true then
-				TowerGUI.hideLoadingScreen()
+				HUD.hideLoadingScreen()
 			end
 		end)
 	end
 
-	Log({ "Client Framework Initialization Complete." })
-end
+	-- Listen for data updates (also fires on initial load)
+	BlinkClient.PlayerDataUpdate.On(applyPlayerSettings)
 
-init()
+	local elapsed = os.clock() - startTime
+	Log({ `Client Framework Initialization Complete in {string.format("%.2f", elapsed * 1000)}ms` })
+end

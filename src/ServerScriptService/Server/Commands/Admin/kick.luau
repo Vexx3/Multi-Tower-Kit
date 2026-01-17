@@ -1,5 +1,7 @@
--- Command: /kick <player> [reason]
--- Kicks a player from the server.
+--[[
+	Command: /kick <player> [reason]
+	Kicks a player from the server.
+]]
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 

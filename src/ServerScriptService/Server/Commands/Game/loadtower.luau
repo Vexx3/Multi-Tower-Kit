@@ -1,5 +1,7 @@
--- Command: /loadtower <target> <tower>
--- Loads a tower for a player.
+--[[
+	Command: /loadtower <target> <tower>
+	Loads a tower for a player.
+]]
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 

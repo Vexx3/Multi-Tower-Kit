@@ -1,5 +1,6 @@
--- Client-side configuration for Multi-Tower Kit.
--- Controls chat announcements, fonts, and display settings.
+--[[
+	Client-side configuration for Multi-Tower Kit.
+]]
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 

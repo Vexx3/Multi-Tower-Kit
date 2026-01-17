@@ -1,5 +1,6 @@
--- Legacy ButtonActivatedPlatform compatibility for v5 towers.
--- Syncs CanCollide → Activated attribute for CharacterManager.
+--[[
+	Legacy ButtonActivatedPlatform compatibility for v5 towers.
+]]
 
 type ConnectionMap = { [Instance]: RBXScriptConnection }
 
@@ -32,13 +33,13 @@ local function monitorFolder(folder: Instance): ()
 		end
 	end
 
-	folder.DescendantAdded:Connect(function(desc)
+	folder.DescendantAdded:Connect(function(desc: Instance)
 		if desc:IsA("BasePart") and isBap(desc) then
 			task.defer(setupSync, desc)
 		end
 	end)
 
-	folder.DescendantRemoving:Connect(function(desc)
+	folder.DescendantRemoving:Connect(function(desc: Instance)
 		local conn = connections[desc]
 		if conn then
 			conn:Disconnect()
@@ -47,9 +48,9 @@ local function monitorFolder(folder: Instance): ()
 	end)
 end
 
--- Initializes monitoring for legacy ButtonActivatedPlatforms.
+--- Initializes monitoring for legacy ButtonActivatedPlatforms in workspace.
 function LegacyButtonPlatforms.init(): ()
-	workspace.ChildAdded:Connect(function(child)
+	workspace.ChildAdded:Connect(function(child: Instance)
 		if child:IsA("Folder") and child:GetAttribute("KitVersion") == nil then
 			monitorFolder(child)
 		end

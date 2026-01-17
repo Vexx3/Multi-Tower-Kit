@@ -8,9 +8,7 @@
 
 _G._BLINK = _G._BLINK or {}
 if _G._BLINK["BLINK"] then
-	error(
-		'[Blink]: An instance of blink is already running with the remote scope "BLINK". Change the remote scope of either instance to avoid conflicts.'
-	)
+	error("[Blink]: An instance of blink is already running with the remote scope \"BLINK\". Change the remote scope of either instance to avoid conflicts.")
 end
 _G._BLINK["BLINK"] = true
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -34,127 +32,127 @@ local RecieveInstanceCursor = 0
 local Null = newproxy()
 
 type Entry = {
-	value: any,
-	next: Entry?,
+    value: any,
+    next: Entry?
 }
 
 type Queue = {
-	head: Entry?,
-	tail: Entry?,
+    head: Entry?,
+    tail: Entry?
 }
 
 type BufferSave = {
-	Size: number,
-	Cursor: number,
-	Buffer: buffer,
-	Instances: { Instance },
+    Size: number, 
+    Cursor: number, 
+    Buffer: buffer, 
+    Instances: {Instance}
 }
 
 local function Read(Bytes: number)
-	local Offset = RecieveCursor
-	RecieveCursor += Bytes
-	return Offset
+    local Offset = RecieveCursor
+    RecieveCursor += Bytes
+    return Offset
 end
 
 local function Save(): BufferSave
-	return {
-		Size = SendSize,
-		Cursor = SendCursor,
-		Buffer = SendBuffer,
-		Instances = SendInstances,
-	}
+    return {
+        Size = SendSize,
+        Cursor = SendCursor,
+        Buffer = SendBuffer,
+        Instances = SendInstances
+    }
 end
 
 local function Load(Save: BufferSave?)
-	if Save then
-		SendSize = Save.Size
-		SendCursor = Save.Cursor
-		SendOffset = Save.Cursor
-		SendBuffer = Save.Buffer
-		SendInstances = Save.Instances
-		return
-	end
+    if Save then
+        SendSize = Save.Size
+        SendCursor = Save.Cursor
+        SendOffset = Save.Cursor
+        SendBuffer = Save.Buffer
+        SendInstances = Save.Instances
+        return
+    end
 
-	SendSize = 64
-	SendCursor = 0
-	SendOffset = 0
-	SendBuffer = buffer.create(64)
-	SendInstances = {}
+    SendSize = 64
+    SendCursor = 0
+    SendOffset = 0
+    SendBuffer = buffer.create(64)
+    SendInstances = {}
 end
 
 local function Invoke()
-	if Invocations == 255 then
-		Invocations = 0
-	end
+    if Invocations == 255 then
+        Invocations = 0
+    end
 
-	local Invocation = Invocations
-	Invocations += 1
-	return Invocation
+    local Invocation = Invocations
+    Invocations += 1
+    return Invocation
 end
 
 local function Allocate(Bytes: number)
-	local InUse = (SendCursor + Bytes)
-	if InUse > SendSize then
-		--> Avoid resizing the buffer for every write
-		while InUse > SendSize do
-			SendSize *= 1.5
-		end
+    local InUse = (SendCursor + Bytes)
+    if InUse > SendSize then
+        --> Avoid resizing the buffer for every write
+        while InUse > SendSize do
+            SendSize *= 1.5
+        end
 
-		local Buffer = buffer.create(SendSize)
-		buffer.copy(Buffer, 0, SendBuffer, 0, SendCursor)
-		SendBuffer = Buffer
-	end
+        local Buffer = buffer.create(SendSize)
+        buffer.copy(Buffer, 0, SendBuffer, 0, SendCursor)
+        SendBuffer = Buffer
+    end
 
-	SendOffset = SendCursor
-	SendCursor += Bytes
-
-	return SendOffset
+    SendOffset = SendCursor
+    SendCursor += Bytes
+    
+    return SendOffset
 end
 
 local function CreateQueue(): Queue
-	return {
-		head = nil,
-		tail = nil,
-	}
+    return {
+        head = nil,
+        tail = nil
+    }
 end
 
 local function Pop(queue: Queue): any
-	local head = queue.head
-	if head == nil then
-		return
-	end
+    local head = queue.head
+    if head == nil then
+        return
+    end
 
-	queue.head = head.next
-	return head.value
+    queue.head = head.next
+    return head.value
 end
 
 local function Push(queue: Queue, value: any)
-	local entry: Entry = {
-		value = value,
-		next = nil,
-	}
+    local entry: Entry = {
+        value = value,
+        next = nil
+    }
 
-	if queue.tail ~= nil then
-		queue.tail.next = entry
-	end
+    if queue.tail ~= nil then
+        queue.tail.next = entry
+    end
 
-	queue.tail = entry
+    queue.tail = entry
 
-	if queue.head == nil then
-		queue.head = entry
-	end
+    if queue.head == nil then
+        queue.head = entry
+    end
 end
 
 local Calls = table.create(256)
 
 local Events: any = {
-	Reliable = table.create(256),
-	Unreliable = table.create(256),
+    Reliable = table.create(256),
+    Unreliable = table.create(256)
 }
 
 local Queue: any = {
-	Reliable = table.create(256),
-	Unreliable = table.create(256),
+    Reliable = table.create(256),
+    Unreliable = table.create(256)
 }
 
 local SerdesEvent = "?"
@@ -162,23 +160,18 @@ local SerdesThread: thread?
 Queue.Reliable[1] = table.create(256)
 Queue.Unreliable[0] = table.create(256)
 Queue.Reliable[2] = table.create(256)
+Events.Reliable[3] = {}
 Queue.Reliable[3] = table.create(256)
+Events.Reliable[4] = {}
 Queue.Reliable[4] = table.create(256)
 Queue.Reliable[5] = table.create(256)
 Queue.Reliable[6] = table.create(256)
 Events.Reliable[7] = {}
 Queue.Reliable[7] = table.create(256)
-Queue.Reliable[12] = table.create(256)
-export type ClientWinMessageInfo = {
-	playerName: string,
-	endingName: string,
-	time: number,
-	boostsUsed: { [string]: string },
-	allJumps: boolean,
-	color: Color3,
-	fancyFont: boolean,
-	global: boolean,
-}
+Queue.Reliable[14] = table.create(256)
+Queue.Reliable[15] = table.create(256)
+export type ClientWinMessageInfo = { playerName: string, endingName: string, time: number, boostsUsed: {[string]: string}, allJumps: boolean, color: Color3, fancyFont: boolean, global: boolean }
+export type AllJumpsCheckpointState = { CharacterCFrame: CFrame, CameraCFrame: CFrame, LinearVelocity: Vector3, AngularVelocity: Vector3, HumanoidState: string }
 local function WriteEVENT_RestartRequested(Value: nil): ()
 	-- Allocate BLOCK: 1 bytes
 	local BLOCK_START = Allocate(1)
@@ -206,17 +199,13 @@ local function ReadFUNCTION_RETURN_RequestEverpresentCOs(): (boolean, Folder?)
 		RecieveInstanceCursor -= 1
 		RecieveInstanceCursor += 1
 		Value2 = RecieveInstances[RecieveInstanceCursor]
-		if typeof(Value2) ~= "Instance" then
-			error(`Expected an Instance, got {typeof(Value2)} instead.`)
-		end
-		if not Value2:IsA("Folder") then
-			error(`Expected an Instance of type "Folder", got "{Value2.ClassName}" instead.`)
-		end
+		if typeof(Value2) ~= "Instance" then error(`Expected an Instance, got {typeof(Value2)} instead.`) end
+		if not Value2:IsA("Folder") then error(`Expected an Instance of type "Folder", got "{Value2.ClassName}" instead.`) end
 	end
 	return Value1, Value2
 end
 
-local function ReadEVENT_UpdateTowerTimer(): number
+local function ReadEVENT_UpdateTowerTimer(): (number)
 	-- Read BLOCK: 4 bytes
 	local BLOCK_START = Read(4)
 	local Value = buffer.readf32(RecieveBuffer, BLOCK_START + 0)
@@ -241,7 +230,7 @@ local function ReadEVENT_LoadTower(): (string, boolean, boolean)
 	return Value1, Value2, Value3
 end
 
-local function ReadEVENT_UnloadTower(): nil
+local function ReadEVENT_UnloadTower(): (nil)
 	return nil
 end
 
@@ -250,11 +239,7 @@ local function ReadEVENT_GameAnnouncement(): (string, Color3, boolean?)
 	local BLOCK_START = Read(6)
 	local Length = buffer.readu16(RecieveBuffer, BLOCK_START + 0)
 	local Value1 = buffer.readstring(RecieveBuffer, Read(Length), Length)
-	local Value2 = Color3.fromRGB(
-		buffer.readu8(RecieveBuffer, BLOCK_START + 2),
-		buffer.readu8(RecieveBuffer, BLOCK_START + 3),
-		buffer.readu8(RecieveBuffer, BLOCK_START + 4)
-	)
+	local Value2 = Color3.fromRGB(buffer.readu8(RecieveBuffer, BLOCK_START + 2), buffer.readu8(RecieveBuffer, BLOCK_START + 3), buffer.readu8(RecieveBuffer, BLOCK_START + 4))
 	local Value3
 	if buffer.readu8(RecieveBuffer, BLOCK_START + 5) == 1 then
 		-- Read BLOCK: 1 bytes
@@ -264,16 +249,7 @@ local function ReadEVENT_GameAnnouncement(): (string, Color3, boolean?)
 	return Value1, Value2, Value3
 end
 
-local function ReadEVENT_GameWinAnnouncement(): {
-	playerName: string,
-	endingName: string,
-	time: number,
-	boostsUsed: { [string]: string },
-	allJumps: boolean,
-	color: Color3,
-	fancyFont: boolean,
-	global: boolean,
-}
+local function ReadEVENT_GameWinAnnouncement(): ({ playerName: string, endingName: string, time: number, boostsUsed: {[string]: string}, allJumps: boolean, color: Color3, fancyFont: boolean, global: boolean })
 	-- Read BLOCK: 16 bytes
 	local BLOCK_START = Read(16)
 	local Value = {} :: any
@@ -294,17 +270,13 @@ local function ReadEVENT_GameWinAnnouncement(): {
 		Value.boostsUsed[Key_1] = Element_1
 	end
 	Value.allJumps = (buffer.readu8(RecieveBuffer, BLOCK_START + 10) == 1)
-	Value.color = Color3.fromRGB(
-		buffer.readu8(RecieveBuffer, BLOCK_START + 11),
-		buffer.readu8(RecieveBuffer, BLOCK_START + 12),
-		buffer.readu8(RecieveBuffer, BLOCK_START + 13)
-	)
+	Value.color = Color3.fromRGB(buffer.readu8(RecieveBuffer, BLOCK_START + 11), buffer.readu8(RecieveBuffer, BLOCK_START + 12), buffer.readu8(RecieveBuffer, BLOCK_START + 13))
 	Value.fancyFont = (buffer.readu8(RecieveBuffer, BLOCK_START + 14) == 1)
 	Value.global = (buffer.readu8(RecieveBuffer, BLOCK_START + 15) == 1)
 	return Value
 end
 
-local function ReadEVENT_PlayerDataUpdate(): any
+local function ReadEVENT_PlayerDataUpdate(): (any)
 	RecieveInstanceCursor += 1
 	local Value = RecieveInstances[RecieveInstanceCursor]
 	return Value
@@ -323,7 +295,7 @@ local function WriteEVENT_ExitTowerRequest(Value: nil): ()
 	buffer.writeu8(SendBuffer, BLOCK_START + 0, 9)
 end
 
-local function WriteEVENT_UpdateSettings(Value: { [string]: any }): ()
+local function WriteEVENT_UpdateSettings(Value: {[string]: any}): ()
 	-- Allocate BLOCK: 3 bytes
 	local BLOCK_START = Allocate(3)
 	buffer.writeu8(SendBuffer, BLOCK_START + 0, 10)
@@ -347,15 +319,88 @@ local function WriteEVENT_SetPracticeMode(Value: boolean): ()
 	buffer.writeu8(SendBuffer, BLOCK_START + 1, Value and 1 or 0)
 end
 
+local function WriteEVENT_AllJumpsSetCheckpoint(Value: { CharacterCFrame: CFrame, CameraCFrame: CFrame, LinearVelocity: Vector3, AngularVelocity: Vector3, HumanoidState: string }): ()
+	-- Allocate BLOCK: 75 bytes
+	local BLOCK_START = Allocate(75)
+	buffer.writeu8(SendBuffer, BLOCK_START + 0, 12)
+	local Vector = Value.CharacterCFrame.Position
+	buffer.writef32(SendBuffer, BLOCK_START + 1, Vector.X)
+	buffer.writef32(SendBuffer, BLOCK_START + 5, Vector.Y)
+	buffer.writef32(SendBuffer, BLOCK_START + 9, Vector.Z)
+	local rX, rY, rZ = Value.CharacterCFrame:ToOrientation()
+	buffer.writef32(SendBuffer, BLOCK_START + 13, rX)
+	buffer.writef32(SendBuffer, BLOCK_START + 17, rY)
+	buffer.writef32(SendBuffer, BLOCK_START + 21, rZ)
+	local Vector = Value.CameraCFrame.Position
+	buffer.writef32(SendBuffer, BLOCK_START + 25, Vector.X)
+	buffer.writef32(SendBuffer, BLOCK_START + 29, Vector.Y)
+	buffer.writef32(SendBuffer, BLOCK_START + 33, Vector.Z)
+	local rX, rY, rZ = Value.CameraCFrame:ToOrientation()
+	buffer.writef32(SendBuffer, BLOCK_START + 37, rX)
+	buffer.writef32(SendBuffer, BLOCK_START + 41, rY)
+	buffer.writef32(SendBuffer, BLOCK_START + 45, rZ)
+	local Vector = Value.LinearVelocity
+	buffer.writef32(SendBuffer, BLOCK_START + 49, Vector.X)
+	buffer.writef32(SendBuffer, BLOCK_START + 53, Vector.Y)
+	buffer.writef32(SendBuffer, BLOCK_START + 57, Vector.Z)
+	local Vector = Value.AngularVelocity
+	buffer.writef32(SendBuffer, BLOCK_START + 61, Vector.X)
+	buffer.writef32(SendBuffer, BLOCK_START + 65, Vector.Y)
+	buffer.writef32(SendBuffer, BLOCK_START + 69, Vector.Z)
+	local Length = #Value.HumanoidState
+	buffer.writeu16(SendBuffer, BLOCK_START + 73, Length)
+	Allocate(Length)
+	buffer.writestring(SendBuffer, SendOffset, Value.HumanoidState, Length)
+end
+
+local function WriteEVENT_AllJumpsRemoveCheckpoint(Value: nil): ()
+	-- Allocate BLOCK: 1 bytes
+	local BLOCK_START = Allocate(1)
+	buffer.writeu8(SendBuffer, BLOCK_START + 0, 13)
+end
+
+local function ReadEVENT_AllJumpsRestoreState(): ({ CharacterCFrame: CFrame, CameraCFrame: CFrame, LinearVelocity: Vector3, AngularVelocity: Vector3, HumanoidState: string })
+	-- Read BLOCK: 74 bytes
+	local BLOCK_START = Read(74)
+	local Value = {} :: any
+	local X = buffer.readf32(RecieveBuffer, BLOCK_START + 0)
+	local Y = buffer.readf32(RecieveBuffer, BLOCK_START + 4)
+	local Z = buffer.readf32(RecieveBuffer, BLOCK_START + 8)
+	local Position = Vector3.new(X, Y, Z)
+	local rX = buffer.readf32(RecieveBuffer, BLOCK_START + 12)
+	local rY = buffer.readf32(RecieveBuffer, BLOCK_START + 16)
+	local rZ = buffer.readf32(RecieveBuffer, BLOCK_START + 20)
+	Value.CharacterCFrame = CFrame.new(Position) * CFrame.fromOrientation(rX, rY, rZ)
+	X = buffer.readf32(RecieveBuffer, BLOCK_START + 24)
+	Y = buffer.readf32(RecieveBuffer, BLOCK_START + 28)
+	Z = buffer.readf32(RecieveBuffer, BLOCK_START + 32)
+	Position = Vector3.new(X, Y, Z)
+	rX = buffer.readf32(RecieveBuffer, BLOCK_START + 36)
+	rY = buffer.readf32(RecieveBuffer, BLOCK_START + 40)
+	rZ = buffer.readf32(RecieveBuffer, BLOCK_START + 44)
+	Value.CameraCFrame = CFrame.new(Position) * CFrame.fromOrientation(rX, rY, rZ)
+	X = buffer.readf32(RecieveBuffer, BLOCK_START + 48)
+	Y = buffer.readf32(RecieveBuffer, BLOCK_START + 52)
+	Z = buffer.readf32(RecieveBuffer, BLOCK_START + 56)
+	Value.LinearVelocity = Vector3.new(X, Y, Z)
+	X = buffer.readf32(RecieveBuffer, BLOCK_START + 60)
+	Y = buffer.readf32(RecieveBuffer, BLOCK_START + 64)
+	Z = buffer.readf32(RecieveBuffer, BLOCK_START + 68)
+	Value.AngularVelocity = Vector3.new(X, Y, Z)
+	local Length = buffer.readu16(RecieveBuffer, BLOCK_START + 72)
+	Value.HumanoidState = buffer.readstring(RecieveBuffer, Read(Length), Length)
+	return Value
+end
+
 local function WriteFUNCTION_DATA_GetPlayerData(Value: number, InvocationIdentifier: number): ()
 	-- Allocate BLOCK: 6 bytes
 	local BLOCK_START = Allocate(6)
-	buffer.writeu8(SendBuffer, BLOCK_START + 0, 12)
+	buffer.writeu8(SendBuffer, BLOCK_START + 0, 15)
 	buffer.writeu8(SendBuffer, BLOCK_START + 1, InvocationIdentifier)
 	buffer.writeu32(SendBuffer, BLOCK_START + 2, Value)
 end
 
-local function ReadFUNCTION_RETURN_GetPlayerData(): any
+local function ReadFUNCTION_RETURN_GetPlayerData(): (any)
 	-- Read BLOCK: 1 bytes
 	local BLOCK_START = Read(1)
 	local Success = buffer.readu8(RecieveBuffer, BLOCK_START + 0)
@@ -370,90 +415,96 @@ end
 if not RunService:IsRunning() then
 	local NOOP = function() end
 	local Returns = table.freeze({
-		RestartRequested = {
-			Fire = NOOP,
-		},
-		RequestEverpresentCOs = {
-			Invoke = NOOP,
-		},
-		UpdateTowerTimer = {
-			On = NOOP,
-		},
-		UpdateTowerRush = {
-			On = NOOP,
-		},
-		LoadTower = {
-			On = NOOP,
-		},
-		UnloadTower = {
-			On = NOOP,
-		},
-		GameAnnouncement = {
-			On = NOOP,
-		},
-		GameWinAnnouncement = {
-			On = NOOP,
-		},
-		PlayerDataUpdate = {
-			On = NOOP,
-		},
-		SetAllJumpsMode = {
-			Fire = NOOP,
-		},
-		ExitTowerRequest = {
-			Fire = NOOP,
-		},
-		UpdateSettings = {
-			Fire = NOOP,
-		},
-		SetPracticeMode = {
-			Fire = NOOP,
-		},
-		GetPlayerData = {
-			Invoke = NOOP,
-		},
+	RestartRequested = {
+		Fire = NOOP
+	},
+	RequestEverpresentCOs = {
+		Invoke = NOOP
+	},
+	UpdateTowerTimer = {
+		On = NOOP
+	},
+	UpdateTowerRush = {
+		On = NOOP
+	},
+	LoadTower = {
+		On = NOOP
+	},
+	UnloadTower = {
+		On = NOOP
+	},
+	GameAnnouncement = {
+		On = NOOP
+	},
+	GameWinAnnouncement = {
+		On = NOOP
+	},
+	PlayerDataUpdate = {
+		On = NOOP
+	},
+	SetAllJumpsMode = {
+		Fire = NOOP
+	},
+	ExitTowerRequest = {
+		Fire = NOOP
+	},
+	UpdateSettings = {
+		Fire = NOOP
+	},
+	SetPracticeMode = {
+		Fire = NOOP
+	},
+	AllJumpsSetCheckpoint = {
+		Fire = NOOP
+	},
+	AllJumpsRemoveCheckpoint = {
+		Fire = NOOP
+	},
+	AllJumpsRestoreState = {
+		On = NOOP
+	},
+	GetPlayerData = {
+		Invoke = NOOP
+	},
 	})
 	return Returns :: BLINK_EVENTS_SYMBOL
 end
 
 if not RunService:IsClient() then
-	error("Client network module can only be required from the client.")
+    error("Client network module can only be required from the client.")
 end
 
 local Reliable: RemoteEvent = ReplicatedStorage:WaitForChild(BASE_EVENT_NAME .. "_RELIABLE_REMOTE") :: RemoteEvent
-local Unreliable: UnreliableRemoteEvent =
-	ReplicatedStorage:WaitForChild(BASE_EVENT_NAME .. "_UNRELIABLE_REMOTE") :: UnreliableRemoteEvent
+local Unreliable: UnreliableRemoteEvent = ReplicatedStorage:WaitForChild(BASE_EVENT_NAME .. "_UNRELIABLE_REMOTE") :: UnreliableRemoteEvent
 
 local function StepReplication()
-	if SendCursor <= 0 then
-		return
-	end
+    if SendCursor <= 0 then
+        return
+    end
 
-	local Buffer = buffer.create(SendCursor)
-	buffer.copy(Buffer, 0, SendBuffer, 0, SendCursor)
-	Reliable:FireServer(Buffer, SendInstances)
+    local Buffer = buffer.create(SendCursor)
+    buffer.copy(Buffer, 0, SendBuffer, 0, SendCursor)
+    Reliable:FireServer(Buffer, SendInstances)
 
-	SendSize = 64
-	SendCursor = 0
-	SendOffset = 0
-	SendBuffer = buffer.create(64)
-	table.clear(SendInstances)
+    SendSize = 64
+    SendCursor = 0
+    SendOffset = 0
+    SendBuffer = buffer.create(64)
+    table.clear(SendInstances)
 end
 RunService.Heartbeat:Connect(StepReplication)
-Reliable.OnClientEvent:Connect(function(Buffer: buffer, Instances: { Instance })
+Reliable.OnClientEvent:Connect(function(Buffer: buffer, Instances: {Instance})
 	RecieveCursor = 0
 	RecieveBuffer = Buffer
 	RecieveInstances = Instances
 	RecieveInstanceCursor = 0
 	local Size = buffer.len(RecieveBuffer)
 	if SerdesThread and coroutine.status(SerdesThread) == "suspended" then
-		warn(
-			`[Blink]: Yielded in a Sync call. Event "{SerdesEvent}" uses a Sync call, consider using an Async call instead.`
-		)
+		warn(`[Blink]: Yielded in a Sync call. Event "{SerdesEvent}" uses a Sync call, consider using an Async call instead.`)
 		coroutine.close(SerdesThread)
 	end
 	SerdesThread = coroutine.running()
-	while RecieveCursor < Size do
+	while (RecieveCursor < Size) do
 		-- Read BLOCK: 1 bytes
 		local BLOCK_START = Read(1)
 		local Index = buffer.readu8(RecieveBuffer, BLOCK_START + 0)
@@ -461,9 +512,9 @@ Reliable.OnClientEvent:Connect(function(Buffer: buffer, Instances: { Instance })
 			-- Read BLOCK: 1 bytes
 			local BLOCK_START = Read(1)
 			local InvocationIdentifier = buffer.readu8(RecieveBuffer, BLOCK_START + 0)
-			local Success, ReturnValue1, ReturnValue2 = pcall(function()
-				return ReadFUNCTION_RETURN_RequestEverpresentCOs()
-			end)
+				local Success, ReturnValue1, ReturnValue2 = pcall(function ()
+					return ReadFUNCTION_RETURN_RequestEverpresentCOs()
+				end)
 			if Calls[InvocationIdentifier] ~= nil then
 				task.spawn(Calls[InvocationIdentifier], Success, ReturnValue1, ReturnValue2)
 				Calls[InvocationIdentifier] = nil
@@ -474,31 +525,33 @@ Reliable.OnClientEvent:Connect(function(Buffer: buffer, Instances: { Instance })
 				task.spawn(Events.Reliable[2], Value1, Value2)
 			else
 				if #Queue.Reliable[2] > 256 then
-					warn(
-						'[Blink]: Event queue of "UpdateTowerRush" exceeded 256, did you forget to implement a listener?'
-					)
+					warn("[Blink]: Event queue of \"UpdateTowerRush\" exceeded 256, did you forget to implement a listener?")
 				end
-				table.insert(Queue.Reliable[2], { Value1, Value2 } :: { any })
+				table.insert(Queue.Reliable[2], {Value1, Value2} :: {any})
 			end
 		elseif Index == 3 then
 			local Value1: string, Value2: boolean, Value3: boolean = ReadEVENT_LoadTower()
-			if Events.Reliable[3] ~= nil then
-				task.spawn(Events.Reliable[3], Value1, Value2, Value3)
+			if #Events.Reliable[3] > 0 then
+				for _, Listener in Events.Reliable[3] do
+					task.spawn(Listener, Value1, Value2, Value3)
+				end
 			else
 				if #Queue.Reliable[3] > 256 then
-					warn('[Blink]: Event queue of "LoadTower" exceeded 256, did you forget to implement a listener?')
+					warn("[Blink]: Event queue of \"LoadTower\" exceeded 256, did you forget to implement a listener?")
 				end
-				table.insert(Queue.Reliable[3], { Value1, Value2, Value3 } :: { any })
+				table.insert(Queue.Reliable[3], {Value1, Value2, Value3} :: {any})
 			end
 		elseif Index == 4 then
 			local Value: nil = ReadEVENT_UnloadTower()
-			if Events.Reliable[4] ~= nil then
-				task.spawn(Events.Reliable[4], Value)
+			if #Events.Reliable[4] > 0 then
+				for _, Listener in Events.Reliable[4] do
+					task.spawn(Listener, Value)
+				end
 			else
 				if #Queue.Reliable[4] > 256 then
-					warn('[Blink]: Event queue of "UnloadTower" exceeded 256, did you forget to implement a listener?')
+					warn("[Blink]: Event queue of \"UnloadTower\" exceeded 256, did you forget to implement a listener?")
 				end
-				table.insert(Queue.Reliable[4], { Value } :: { any })
+				table.insert(Queue.Reliable[4], {Value} :: {any})
 			end
 		elseif Index == 5 then
 			local Value1: string, Value2: Color3, Value3: boolean? = ReadEVENT_GameAnnouncement()
@@ -506,33 +559,19 @@ Reliable.OnClientEvent:Connect(function(Buffer: buffer, Instances: { Instance })
 				task.spawn(Events.Reliable[5], Value1, Value2, Value3)
 			else
 				if #Queue.Reliable[5] > 256 then
-					warn(
-						'[Blink]: Event queue of "GameAnnouncement" exceeded 256, did you forget to implement a listener?'
-					)
+					warn("[Blink]: Event queue of \"GameAnnouncement\" exceeded 256, did you forget to implement a listener?")
 				end
-				table.insert(Queue.Reliable[5], { Value1, Value2, Value3 } :: { any })
+				table.insert(Queue.Reliable[5], {Value1, Value2, Value3} :: {any})
 			end
 		elseif Index == 6 then
-			local Value: {
-				playerName: string,
-				endingName: string,
-				time: number,
-				boostsUsed: { [string]: string },
-				allJumps: boolean,
-				color: Color3,
-				fancyFont: boolean,
-				global: boolean,
-			} =
-				ReadEVENT_GameWinAnnouncement()
+			local Value: { playerName: string, endingName: string, time: number, boostsUsed: {[string]: string}, allJumps: boolean, color: Color3, fancyFont: boolean, global: boolean } = ReadEVENT_GameWinAnnouncement()
 			if Events.Reliable[6] ~= nil then
 				task.spawn(Events.Reliable[6], Value)
 			else
 				if #Queue.Reliable[6] > 256 then
-					warn(
-						'[Blink]: Event queue of "GameWinAnnouncement" exceeded 256, did you forget to implement a listener?'
-					)
+					warn("[Blink]: Event queue of \"GameWinAnnouncement\" exceeded 256, did you forget to implement a listener?")
 				end
-				table.insert(Queue.Reliable[6], { Value } :: { any })
+				table.insert(Queue.Reliable[6], {Value} :: {any})
 			end
 		elseif Index == 7 then
 			local Value: any = ReadEVENT_PlayerDataUpdate()
@@ -542,19 +581,27 @@ Reliable.OnClientEvent:Connect(function(Buffer: buffer, Instances: { Instance })
 				end
 			else
 				if #Queue.Reliable[7] > 256 then
-					warn(
-						'[Blink]: Event queue of "PlayerDataUpdate" exceeded 256, did you forget to implement a listener?'
-					)
+					warn("[Blink]: Event queue of \"PlayerDataUpdate\" exceeded 256, did you forget to implement a listener?")
 				end
-				table.insert(Queue.Reliable[7], { Value } :: { any })
+				table.insert(Queue.Reliable[7], {Value} :: {any})
 			end
-		elseif Index == 12 then
+		elseif Index == 14 then
+			local Value: { CharacterCFrame: CFrame, CameraCFrame: CFrame, LinearVelocity: Vector3, AngularVelocity: Vector3, HumanoidState: string } = ReadEVENT_AllJumpsRestoreState()
+			if Events.Reliable[14] ~= nil then
+				task.spawn(Events.Reliable[14], Value)
+			else
+				if #Queue.Reliable[14] > 256 then
+					warn("[Blink]: Event queue of \"AllJumpsRestoreState\" exceeded 256, did you forget to implement a listener?")
+				end
+				table.insert(Queue.Reliable[14], {Value} :: {any})
+			end
+		elseif Index == 15 then
 			-- Read BLOCK: 1 bytes
 			local BLOCK_START = Read(1)
 			local InvocationIdentifier = buffer.readu8(RecieveBuffer, BLOCK_START + 0)
-			local Success, ReturnValue = pcall(function()
-				return ReadFUNCTION_RETURN_GetPlayerData()
-			end)
+				local Success, ReturnValue = pcall(function ()
+					return ReadFUNCTION_RETURN_GetPlayerData()
+				end)
 			if Calls[InvocationIdentifier] ~= nil then
 				task.spawn(Calls[InvocationIdentifier], Success, ReturnValue)
 				Calls[InvocationIdentifier] = nil
@@ -562,20 +609,18 @@ Reliable.OnClientEvent:Connect(function(Buffer: buffer, Instances: { Instance })
 		end
 	end
 end)
-Unreliable.OnClientEvent:Connect(function(Buffer: buffer, Instances: { Instance })
+Unreliable.OnClientEvent:Connect(function(Buffer: buffer, Instances: {Instance})
 	RecieveCursor = 0
 	RecieveBuffer = Buffer
 	RecieveInstances = Instances
 	RecieveInstanceCursor = 0
 	local Size = buffer.len(RecieveBuffer)
 	if SerdesThread and coroutine.status(SerdesThread) == "suspended" then
-		warn(
-			`[Blink]: Yielded in a Sync call. Event "{SerdesEvent}" uses a Sync call, consider using an Async call instead.`
-		)
+		warn(`[Blink]: Yielded in a Sync call. Event "{SerdesEvent}" uses a Sync call, consider using an Async call instead.`)
 		coroutine.close(SerdesThread)
 	end
 	SerdesThread = coroutine.running()
-	while RecieveCursor < Size do
+	while (RecieveCursor < Size) do
 		-- Read BLOCK: 1 bytes
 		local BLOCK_START = Read(1)
 		local Index = buffer.readu8(RecieveBuffer, BLOCK_START + 0)
@@ -588,13 +633,14 @@ Unreliable.OnClientEvent:Connect(function(Buffer: buffer, Instances: { Instance 
 	end
 end)
 
+
 local Returns = table.freeze({
 	StepReplication = StepReplication,
 
 	RestartRequested = {
 		Fire = function(Value: nil): ()
 			WriteEVENT_RestartRequested(Value)
-		end,
+		end
 	},
 	RequestEverpresentCOs = {
 		Invoke = function(Value: nil): (boolean, Folder?)
@@ -607,20 +653,20 @@ local Returns = table.freeze({
 			Calls[InvocationIdentifier] = coroutine.running()
 			local Success, ReturnValue1: boolean, ReturnValue2: Folder? = coroutine.yield()
 			if Success ~= true then
-				error('There was an exception while processing "RequestEverpresentCOs".')
+				error("There was an exception while processing \"RequestEverpresentCOs\".")
 			end
 			return ReturnValue1, ReturnValue2
-		end,
+		end
 	},
 	UpdateTowerTimer = {
 		On = function(Listener: (Value: number) -> ()): () -> ()
 			Events.Unreliable[0] = Listener
-			return function(): ()
+			return function (): ()
 				if Events.Unreliable[0] == Listener then
 					Events.Unreliable[0] = nil
 				end
 			end
-		end,
+		end
 	},
 	UpdateTowerRush = {
 		On = function(Listener: (Value1: number, Value2: number) -> ()): () -> ()
@@ -629,40 +675,42 @@ local Returns = table.freeze({
 				task.spawn(Listener, table.unpack(Arguments))
 			end
 			Queue.Reliable[2] = {}
-			return function(): ()
+			return function (): ()
 				if Events.Reliable[2] == Listener then
 					Events.Reliable[2] = nil
 				end
 			end
-		end,
+		end
 	},
 	LoadTower = {
 		On = function(Listener: (Value1: string, Value2: boolean, Value3: boolean) -> ()): () -> ()
-			Events.Reliable[3] = Listener
+			table.insert(Events.Reliable[3], Listener)
 			for Index, Arguments in Queue.Reliable[3] do
 				task.spawn(Listener, table.unpack(Arguments))
 			end
 			Queue.Reliable[3] = {}
-			return function(): ()
-				if Events.Reliable[3] == Listener then
-					Events.Reliable[3] = nil
+			return function (): ()
+				local Index = table.find(Events.Reliable[3], Listener)
+				if Index ~= nil then
+					table.remove(Events.Reliable[3], Index)
 				end
 			end
-		end,
+		end
 	},
 	UnloadTower = {
 		On = function(Listener: (Value: nil) -> ()): () -> ()
-			Events.Reliable[4] = Listener
+			table.insert(Events.Reliable[4], Listener)
 			for Index, Arguments in Queue.Reliable[4] do
 				task.spawn(Listener, table.unpack(Arguments))
 			end
 			Queue.Reliable[4] = {}
-			return function(): ()
-				if Events.Reliable[4] == Listener then
-					Events.Reliable[4] = nil
+			return function (): ()
+				local Index = table.find(Events.Reliable[4], Listener)
+				if Index ~= nil then
+					table.remove(Events.Reliable[4], Index)
 				end
 			end
-		end,
+		end
 	},
 	GameAnnouncement = {
 		On = function(Listener: (Value1: string, Value2: Color3, Value3: boolean?) -> ()): () -> ()
@@ -671,37 +719,26 @@ local Returns = table.freeze({
 				task.spawn(Listener, table.unpack(Arguments))
 			end
 			Queue.Reliable[5] = {}
-			return function(): ()
+			return function (): ()
 				if Events.Reliable[5] == Listener then
 					Events.Reliable[5] = nil
 				end
 			end
-		end,
+		end
 	},
 	GameWinAnnouncement = {
-		On = function(Listener: (
-			Value: {
-				playerName: string,
-				endingName: string,
-				time: number,
-				boostsUsed: { [string]: string },
-				allJumps: boolean,
-				color: Color3,
-				fancyFont: boolean,
-				global: boolean,
-			}
-		) -> ()): () -> ()
+		On = function(Listener: (Value: { playerName: string, endingName: string, time: number, boostsUsed: {[string]: string}, allJumps: boolean, color: Color3, fancyFont: boolean, global: boolean }) -> ()): () -> ()
 			Events.Reliable[6] = Listener
 			for Index, Arguments in Queue.Reliable[6] do
 				task.spawn(Listener, table.unpack(Arguments))
 			end
 			Queue.Reliable[6] = {}
-			return function(): ()
+			return function (): ()
 				if Events.Reliable[6] == Listener then
 					Events.Reliable[6] = nil
 				end
 			end
-		end,
+		end
 	},
 	PlayerDataUpdate = {
 		On = function(Listener: (Value: any) -> ()): () -> ()
@@ -710,36 +747,60 @@ local Returns = table.freeze({
 				task.spawn(Listener, table.unpack(Arguments))
 			end
 			Queue.Reliable[7] = {}
-			return function(): ()
+			return function (): ()
 				local Index = table.find(Events.Reliable[7], Listener)
 				if Index ~= nil then
 					table.remove(Events.Reliable[7], Index)
 				end
 			end
-		end,
+		end
 	},
 	SetAllJumpsMode = {
 		Fire = function(Value: boolean): ()
 			WriteEVENT_SetAllJumpsMode(Value)
-		end,
+		end
 	},
 	ExitTowerRequest = {
 		Fire = function(Value: nil): ()
 			WriteEVENT_ExitTowerRequest(Value)
-		end,
+		end
 	},
 	UpdateSettings = {
-		Fire = function(Value: { [string]: any }): ()
+		Fire = function(Value: {[string]: any}): ()
 			WriteEVENT_UpdateSettings(Value)
-		end,
+		end
 	},
 	SetPracticeMode = {
 		Fire = function(Value: boolean): ()
 			WriteEVENT_SetPracticeMode(Value)
-		end,
+		end
+	},
+	AllJumpsSetCheckpoint = {
+		Fire = function(Value: { CharacterCFrame: CFrame, CameraCFrame: CFrame, LinearVelocity: Vector3, AngularVelocity: Vector3, HumanoidState: string }): ()
+			WriteEVENT_AllJumpsSetCheckpoint(Value)
+		end
+	},
+	AllJumpsRemoveCheckpoint = {
+		Fire = function(Value: nil): ()
+			WriteEVENT_AllJumpsRemoveCheckpoint(Value)
+		end
+	},
+	AllJumpsRestoreState = {
+		On = function(Listener: (Value: { CharacterCFrame: CFrame, CameraCFrame: CFrame, LinearVelocity: Vector3, AngularVelocity: Vector3, HumanoidState: string }) -> ()): () -> ()
+			Events.Reliable[14] = Listener
+			for Index, Arguments in Queue.Reliable[14] do
+				task.spawn(Listener, table.unpack(Arguments))
+			end
+			Queue.Reliable[14] = {}
+			return function (): ()
+				if Events.Reliable[14] == Listener then
+					Events.Reliable[14] = nil
+				end
+			end
+		end
 	},
 	GetPlayerData = {
-		Invoke = function(Value: number): any
+		Invoke = function(Value: number): (any)
 			local InvocationIdentifier = Invoke()
 			if Calls[InvocationIdentifier] ~= nil then
 				Invocations -= 1
@@ -749,10 +810,10 @@ local Returns = table.freeze({
 			Calls[InvocationIdentifier] = coroutine.running()
 			local Success, ReturnValue: any = coroutine.yield()
 			if Success ~= true then
-				error('There was an exception while processing "GetPlayerData".')
+				error("There was an exception while processing \"GetPlayerData\".")
 			end
 			return ReturnValue
-		end,
+		end
 	},
 })
 type BLINK_EVENTS_SYMBOL = typeof(Returns)

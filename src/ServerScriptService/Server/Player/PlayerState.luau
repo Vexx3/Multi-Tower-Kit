@@ -1,4 +1,12 @@
--- Handles per-player state transitions such as resetting run data and winroom teleports.
+--[=[
+	Handles per-player state transitions.
+
+	Manages resetting run data, syncing attributes to clients,
+	and teleporting players to winrooms.
+
+	@class PlayerState
+	@server
+]=]
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Teams = game:GetService("Teams")
@@ -16,7 +24,8 @@ local MARKERS = workspace.Markers
 
 local PlayerState = {}
 
--- Pushes the latest tower/rush/timer data into player attributes for client consumption.
+--- Pushes the latest tower/rush/timer data into player attributes for client consumption.
+--- @param player PlayerInfo -- The player info to sync
 function PlayerState.updatePlayerInfoStats(player: PlayerInfo): ()
 	local boostList: string = Util.formatBoosts(player.boostItemNames)
 
@@ -30,7 +39,8 @@ function PlayerState.updatePlayerInfoStats(player: PlayerInfo): ()
 	player.player:SetAttribute("BoostItemNames", boostList)
 end
 
--- Resets in-memory player state for a new run and re-syncs attributes.
+--- Resets in-memory player state for a new run and re-syncs attributes.
+--- @param player PlayerInfo -- The player info to reset
 function PlayerState.resetPlayerInfo(player: PlayerInfo): ()
 	player.towerTimer = 0
 	player.currentTower = ""
@@ -45,7 +55,9 @@ function PlayerState.resetPlayerInfo(player: PlayerInfo): ()
 	PlayerState.updatePlayerInfoStats(player)
 end
 
--- Teleports a player to the winroom, unloads their current tower, and clears their run state.
+--- Teleports a player to the winroom, unloads their current tower, and clears their run state.
+--- @param player PlayerInfo -- The player to teleport
+--- @param winroomMarker string? -- Optional marker name for the winroom
 function PlayerState.teleportToWinroom(player: PlayerInfo, winroomMarker: string?): ()
 	local actualMarker: string = winroomMarker or ""
 	player.touchEventBusy = true

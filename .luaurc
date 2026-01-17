@@ -1,6 +1,3 @@
 {
-    "languageMode": "strict",
-    "aliases": {
-        "game": "./src"
-    }
+    "languageMode": "strict"
 }

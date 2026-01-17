@@ -1,4 +1,6 @@
--- Handles initialization of world markers (Teleports, LobbyTP, etc.)
+--[[
+	Handles initialization of world markers.
+]]
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Teams = game:GetService("Teams")
@@ -11,8 +13,6 @@ local Types = require(Shared.Types)
 local Util = require(Shared.Util)
 
 local MARKERS = workspace:FindFirstChild("Markers") :: Folder?
-
-local MarkerService = {}
 
 local function initMarker(marker: BasePart)
 	if marker.Name == "LobbyTP" then
@@ -34,7 +34,10 @@ local function initMarker(marker: BasePart)
 	end
 end
 
-function MarkerService.init()
+local MarkerService = {}
+
+--- Initializes all markers found in workspace.Markers.
+function MarkerService.Start()
 	if not MARKERS then
 		return
 	end

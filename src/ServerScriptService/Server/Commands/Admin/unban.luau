@@ -1,5 +1,7 @@
--- Command: /unban <user>
--- Unbans a player by UserId or username.
+--[[
+	Command: /unban <user>
+	Unbans a player by UserId or username.
+]]
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")

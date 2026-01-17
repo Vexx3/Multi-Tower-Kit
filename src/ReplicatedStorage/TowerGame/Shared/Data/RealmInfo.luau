@@ -1,6 +1,6 @@
 --[[
-	Configuration for realms, areas, and towers.
-	Defines the world structure and tower metadata for each area.
+	Realms, rings, and tower definitions for UI/progression.
+	rating: 1=Easy to 14=Nil | numDifficulty: 0.00-0.99 sub-tier
 ]]
 
 local Types = require("../Types")
@@ -11,6 +11,7 @@ local RealmInfo: Types.Realms = {
 			title = "Limbo",
 			emblem = "rbxassetid://110375453605989",
 			placeId = 0,
+
 			towers = {
 				ETV5 = { name = "Example Tower V5", badgeId = 0, rating = 1, numDifficulty = 0.00 },
 				ETV6 = { name = "Example Tower V6", badgeId = 0, rating = 8, numDifficulty = 0.01 },
@@ -20,9 +21,22 @@ local RealmInfo: Types.Realms = {
 				ToNC = { name = "Tower of No Context", badgeId = 0, rating = 6, numDifficulty = 0.38 },
 				ToUC = { name = "Tower of Ultra Cool", badgeId = 0, rating = 2, numDifficulty = 0.26 },
 				ToVP = { name = "Tower of Vela Pulsar", badgeId = 0, rating = 5, numDifficulty = 0.55 },
-				TSR = { name = "Tower Storage Rush", badgeId = 0, rating = 7, numDifficulty = 0.75, rush = true },
-				ETR = { name = "Example Tower Rush", badgeId = 0, rating = 8, numDifficulty = 0.37, rush = true },
+				TSR = {
+					name = "Tower Storage Rush",
+					badgeId = 0,
+					rating = 7,
+					numDifficulty = 0.75,
+					rush = true,
+				},
+				ETR = {
+					name = "Example Tower Rush",
+					badgeId = 0,
+					rating = 8,
+					numDifficulty = 0.37,
+					rush = true,
+				},
 			},
+
 			requirements = {
 				points = 22,
 				difficultyLocks = {

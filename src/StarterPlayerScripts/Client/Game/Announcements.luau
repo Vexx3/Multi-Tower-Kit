@@ -1,4 +1,6 @@
--- Displays server and global win announcements on the client, formatting chat output.
+--[[
+	Displays server and global win announcements on the client.
+]]
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local TextChatService = game:GetService("TextChatService")
@@ -8,7 +10,7 @@ local Shared = TowerGame.Shared
 local Framework = ReplicatedStorage.Framework
 
 local BlinkClient = require(TowerGame.Network.BlinkClient)
-local Config = require(script.Parent.Parent.Config)
+local Config = require("../Config")
 local Log = require(Framework.Log)
 local Util = require(Shared.Util)
 
@@ -25,7 +27,10 @@ type ClientWinMessageInfo = {
 
 local Announcements = {}
 
--- Shows a styled chat announcement with color, font, and size overrides.
+--- Shows a styled chat announcement with color, font, and size overrides.
+--- @param message string -- The message to display
+--- @param color Color3 -- The text color
+--- @param isFancyText boolean? -- Whether to use fancy font styling
 function Announcements.displayMessage(message: string, color: Color3, isFancyText: boolean?): ()
 	message = Util.formatTimeSyntax(message)
 
@@ -60,7 +65,8 @@ function Announcements.displayMessage(message: string, color: Color3, isFancyTex
 	textChannel:DisplaySystemMessage(finalMessage, "MTKv4System")
 end
 
--- Formats and displays a tower win message from server data.
+--- Formats and displays a tower win message from server data.
+--- @param info ClientWinMessageInfo -- The win message information
 function Announcements.displayWinMessage(info: ClientWinMessageInfo): ()
 	local boostList = Util.formatBoosts(info.boostsUsed)
 
@@ -81,9 +87,10 @@ function Announcements.displayWinMessage(info: ClientWinMessageInfo): ()
 	Announcements.displayMessage(finalMessage, info.color, info.fancyFont)
 end
 
+--- Initializes the announcements system and sets up event listeners.
 function Announcements.init(): ()
-	BlinkClient.GameAnnouncement.On(function(...): ()
-		Announcements.displayMessage(...)
+	BlinkClient.GameAnnouncement.On(function(message: string, color: Color3, isFancyText: boolean?): ()
+		Announcements.displayMessage(message, color, isFancyText)
 	end)
 
 	BlinkClient.GameWinAnnouncement.On(function(info: ClientWinMessageInfo): ()

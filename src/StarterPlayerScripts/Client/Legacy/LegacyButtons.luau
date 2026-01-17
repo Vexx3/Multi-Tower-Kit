@@ -1,5 +1,6 @@
--- Legacy button compatibility layer for older tower scripts.
--- Provides a global _G.Buttons interface for querying and controlling buttons.
+--[[
+	Legacy button compatibility for older tower scripts.
+]]
 
 export type ButtonInstance = Model & {
 	ClientObject: Instance,
@@ -72,7 +73,7 @@ function buttonMt:__call(mode: string, value: boolean?, color: Color3?): { Butto
 	return nil
 end
 
--- Initializes the legacy buttons interface.
+--- Initializes the legacy buttons interface by setting up _G.Buttons.
 function LegacyButtons.init(): ()
 	_G.Buttons = setmetatable({}, buttonMt)
 end

@@ -1,5 +1,7 @@
--- Command: /tpmarker <player> <marker>
--- Teleports a player to a named marker.
+--[[
+	Command: /tpmarker <player> <marker>
+	Teleports a player to a named marker.
+]]
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 

@@ -1,4 +1,6 @@
--- Handles tool equipment logic for anti-cheat and boost tracking.
+--[[
+	Handles tool equipment logic for anti-cheat and boost tracking.
+]]
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local ServerStorage = game:GetService("ServerStorage")
@@ -15,7 +17,9 @@ local COMPLETION_TOOLS = ServerStorage:FindFirstChild("CompletionTools") :: Fold
 
 local ToolService = {}
 
--- Handles tool equipment logic for anti-cheat and boost tracking.
+--- Handles tool equipment logic for anti-cheat and boost tracking.
+--- @param player PlayerInfo -- The player who equipped the tool
+--- @param item Tool -- The tool that was equipped
 function ToolService.handleToolEquipped(player: Types.PlayerInfo, item: Tool)
 	if player.currentTower == "" then
 		return
@@ -49,7 +53,9 @@ function ToolService.handleToolEquipped(player: Types.PlayerInfo, item: Tool)
 	end
 end
 
--- Gives tools from a tower's folder in ServerStorage to a player.
+--- Gives tools from a tower's folder in ServerStorage to a player.
+--- @param player Player -- The player to give tools to
+--- @param towerAcronym string -- The tower acronym to look up tools for
 function ToolService.giveTowerTools(player: Player, towerAcronym: string)
 	if not COMPLETION_TOOLS then
 		return
@@ -85,7 +91,8 @@ function ToolService.giveTowerTools(player: Player, towerAcronym: string)
 	end
 end
 
--- Gives tools for all towers the player has completed.
+--- Gives tools for all towers the player has completed.
+--- @param player Player -- The player to give tools to
 function ToolService.giveAllCompletedTowerTools(player: Player)
 	local data = PlayerData.getData(player)
 	if not data or not data.completedTowers then

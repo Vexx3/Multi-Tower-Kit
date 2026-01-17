@@ -1,5 +1,6 @@
--- Handles in-server announcements, cross-server global win messages,
--- and anti-cheat kick broadcasts.
+--[[
+	Handles in-server announcements and cross-server global win messages.
+]]
 
 local HttpService = game:GetService("HttpService")
 local MessagingService = game:GetService("MessagingService")
@@ -47,8 +48,6 @@ type Message = {
 
 local latestGlobalMessageId = ""
 
-local AnnouncementService = {}
-
 local function broadcastWinAnnouncement(info: WinMessageInfo)
 	local difficultyInfo = Util.getDifficulty(info.difficultyName)
 
@@ -74,11 +73,19 @@ local function onGlobalWinMessage(message: Message)
 	broadcastWinAnnouncement(info)
 end
 
+local AnnouncementService = {}
+
+--- Sends a game-wide announcement to all players.
+--- @param message string -- The message text to display
+--- @param color Color3 -- The color of the announcement text
+--- @param isFancyText boolean? -- Whether to use fancy text styling
 function AnnouncementService.gameAnnouncement(message: string, color: Color3, isFancyText: boolean?)
 	BlinkServer.GameAnnouncement.FireAll(message, color, isFancyText)
 end
 
--- Kicks a player for anti-cheat with a themed message broadcast to the server.
+--- Kicks a player for anti-cheat violation with a themed message broadcast to the server.
+--- @param player Player -- The player to kick
+--- @param reason string -- The kick reason shown to the player
 function AnnouncementService.antiCheatKick(player: Player, reason: string)
 	local kickMessage = KickMessages[math.random(1, #KickMessages)]
 	kickMessage = kickMessage:gsub("{Player}", if Config.useDisplayName then player.DisplayName else player.Name)
@@ -87,8 +94,11 @@ function AnnouncementService.antiCheatKick(player: Player, reason: string)
 	player:Kick(reason)
 end
 
--- Broadcasts a tower win locally and optionally globally, then posts to the
--- webhook channel.
+--- Broadcasts a tower win locally and optionally globally, then posts to the webhook channel.
+--- @param player PlayerInfo -- The player info of the winner
+--- @param endingName string -- The name of the ending/tower completed
+--- @param difficultyName string -- The difficulty tier of the completion
+--- @param timeOverride number? -- Optional time to use instead of player's tower timer
 function AnnouncementService.winAnnouncement(
 	player: PlayerInfo,
 	endingName: string,
@@ -122,7 +132,8 @@ function AnnouncementService.winAnnouncement(
 	task.spawn(WebhookService.sendMessage, player, endingName, difficultyName, finalTime)
 end
 
-function AnnouncementService.init()
+--- Initializes the announcement service and subscribes to cross-server messages.
+function AnnouncementService.Start()
 	MessagingService:SubscribeAsync("GlobalWin", onGlobalWinMessage)
 end
 

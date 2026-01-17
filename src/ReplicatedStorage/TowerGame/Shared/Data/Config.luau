@@ -1,74 +1,41 @@
--- Global configuration for the Multi Tower Kit.
--- Contains all server and shared configuration values.
+--[[
+	Main configuration for Multi Tower Kit.
+]]
 
 local Types = require("../Types")
 
 local Config: Types.GlobalConfig = {
-	-- The client and server both track tower time, but only the
-	-- server value is authoritative. To prevent desynchronization,
-	-- the server periodically sends a corrected timer value to the
-	-- client. This setting determines how often (in seconds) the
-	-- correction occurs.
-	timerSyncInterval = 2,
+	-- TIMER
+	timerSyncInterval = 2, -- Seconds between server-client timer sync
+	restartCooldown = 1, -- Seconds between restarts
 
-	-- Interval (in seconds) at which the server verifies whether a
-	-- player has touched the required anti-cheat checkpoints.
-	checkpointInterval = 0.25,
+	-- ANTI-CHEAT
+	checkpointInterval = 0.25, -- Seconds between checkpoint validation
 
-	-- Minimum time (in seconds) required between player restarts.
-	restartCooldown = 1,
+	-- TOWER RUSH
+	restartResetsTowerRush = true, -- true = restart from first tower, false = current tower
 
-	-- Determines whether holding the R key resets the player's
-	-- position to the first tower in a tower rush, or preserves
-	-- the player's current tower.
-	restartResetsTowerRush = true,
-
-	-- Interval (in seconds) at which winpads should change color.
+	-- WINPAD
 	winpadInterval = 0.25,
-
-	-- Enables or disables the winpad color-cycling effect.
 	winpadsChangeColor = true,
-
-	-- Enables or disables winpad material changes.
 	winpadsChangeMaterial = true,
 
-	-- If enabled, player display names are used instead of usernames
-	-- in announcements and webhook messages.
-	useDisplayName = false,
+	-- ANNOUNCEMENTS
+	useDisplayName = false, -- Use display names instead of usernames
 
-	-- Warns if a tower contains no checkpoints.
-	checkpointsMissingWarning = true,
-
-	-- Warns if a tower does not define a minimum completion time.
-	noMinimumTimeWarning = true,
-
-	-- Warns if players spawn with R15 rigs, which may be incompatible
-	-- with certain tower elements.
-	r15Warning = true,
-
-	-- Keys used for player data storage. The studio key is used when
-	-- testing in Roblox Studio.
-	-- WARNING: Do not change these keys after release or players will lose data!
+	-- DATA STORE (WARNING: Changing keys resets all player data!)
 	dataStoreKey = "Productionagainnnnnnnnnnnn",
-	dataStoreKeyStudio = "Test1024617",
+	dataStoreKeyStudio = "Test102461777",
 
-	-- Enables/disables outgoing webhook notifications.
-	-- Create a webhook in your game settings under "Secrets".
-	-- Enable HTTP requests for the game.
-	-- Secret name must be "SC_WEBHOOK" or "NORMAL_WEBHOOK".
+	-- WEBHOOKS (Requires HTTP Requests enabled + secret named "SC_WEBHOOK" or "NORMAL_WEBHOOK" or "ALL_JUMPS_WEBHOOK")
 	webhooksEnabled = false,
-
-	-- Template for the standard win announcement webhook.
 	webhookNormalMessage = "**{PlayerName}** has beaten **{EndingName} [{DifficultyEmoji}]** in `{Time}`",
-
-	-- Template for the all-jumps win announcement webhook.
 	webhookAjMessage = "**{PlayerName}** has all-jumped **{EndingName} [{DifficultyEmoji}]** in `{Time}`",
-
-	-- Template for the message boosts used.
 	webhookBoostsUsed = "\nUsed: {BoostList}",
 
-	-- Role-based permission configuration. Each role defines a list
-	-- of permissions granted to users assigned to that role.
+	-- ADMIN
+	adminHotkey = Enum.KeyCode.F4,
+
 	roles = {
 		admin = {
 			"kick-player",
@@ -83,15 +50,16 @@ local Config: Types.GlobalConfig = {
 		player = {},
 	},
 
-	-- Maps UserIds to roles. The "super-user" role grants universal
-	-- access to all registered permissions.
+	-- UserId -> roles ("super-user" = all permissions)
 	userRoles = {
 		[949649253] = { "super-user" },
 		[3471772640] = { "super-user" },
 	},
 
-	-- The keyboard hotkey used to open the admin console UI.
-	adminHotkey = Enum.KeyCode.F4,
+	-- DEBUG WARNINGS
+	checkpointsMissingWarning = true,
+	noMinimumTimeWarning = true,
+	r15Warning = true,
 }
 
 return Config

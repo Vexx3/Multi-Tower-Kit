@@ -1,4 +1,13 @@
--- Coordinates tower rush flow: starting rushes, advancing through towers, and awarding completions.
+--[=[
+	Coordinates tower rush flow: starting rushes, advancing through towers,
+	and awarding completions.
+
+	Manages rush state on player info objects, advances players through
+	tower sequences, and awards badges/stats upon rush completion.
+
+	@class TowerRushService
+	@server
+]=]
 
 local BadgeService = game:GetService("BadgeService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -43,8 +52,6 @@ do
 		end
 	end
 end
-
-local TowerRushService = {}
 
 local function awardTowerCompletion(playerInfo: PlayerInfo, towerInfo: TowerInfo, splitTime: number)
 	local player = playerInfo.player
@@ -97,7 +104,11 @@ local function awardRushCompletion(playerInfo: PlayerInfo, towerRushName: string
 	PlayerState.teleportToWinroom(playerInfo, rushConfig.winroomMarker)
 end
 
--- Begin a tower rush for the player, initializing rush state and loading the first tower.
+local TowerRushService = {}
+
+--- Begins a tower rush for the player, initializing rush state and loading the first tower.
+--- @param player PlayerInfo -- The player info
+--- @param towerRushName string -- The name of the tower rush
 function TowerRushService.loadTowerRush(player: PlayerInfo, towerRushName: string)
 	local towerRush: TowerRush? = TowerRushes[towerRushName]
 
@@ -124,7 +135,8 @@ function TowerRushService.loadTowerRush(player: PlayerInfo, towerRushName: strin
 	BlinkServer.UpdateTowerRush.Fire(player.player, 1, #towerRush.towers)
 end
 
--- Advance a player to the next tower in their active rush or complete the rush if on the final tower.
+--- Advances a player to the next tower in their active rush or completes the rush.
+--- @param player PlayerInfo -- The player to advance
 function TowerRushService.advanceTowerRush(player: PlayerInfo)
 	local towerRush: TowerRush? = TowerRushes[player.currentTowerRush]
 	if not towerRush then

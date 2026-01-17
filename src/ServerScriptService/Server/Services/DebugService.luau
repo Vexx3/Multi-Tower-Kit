@@ -1,4 +1,6 @@
--- Handles studio-specific debug items and validation warnings.
+--[[
+	Handles studio-specific debug items and validation warnings.
+]]
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
@@ -13,8 +15,8 @@ local STARTER_PACK_STUDIO = ServerStorage:FindFirstChild("StarterPackStudio") ::
 
 local DebugService = {}
 
-function DebugService.init()
-	-- Load debug tools in Studio
+--- Initializes debug tools in Studio and validates boost item configuration.
+function DebugService.Start()
 	if RunService:IsStudio() and STARTER_PACK_STUDIO then
 		Log({ "Running in Studio, loading debug tools..." })
 		for _, tool in STARTER_PACK_STUDIO:GetChildren() do
@@ -23,7 +25,6 @@ function DebugService.init()
 		end
 	end
 
-	-- Validate boost items
 	for _, tool in StarterPack:GetChildren() do
 		if not tool:IsA("Tool") then
 			continue

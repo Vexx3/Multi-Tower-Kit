@@ -1,5 +1,6 @@
--- Loads, wires, and unloads client objects for towers, including everpresent
--- objects and custom repository support.
+--[[
+	Loads, wires, and unloads client objects for towers.
+]]
 
 type COScriptContext = ModuleScript | StringValue
 type ClientObjectScope = {
@@ -85,7 +86,7 @@ local function loadClientObjects(coFolder: Instance, orphaned: boolean, acronym:
 			(name == "ClientObjectScript" and (v:IsA("ModuleScript") or Utility.Instance.isPointer(v)))
 			or (name == "RunRepoScript" and (v:IsA("StringValue") or Utility.Instance.isPointer(v)))
 		then
-			loadClientObjectScript(v :: any, orphaned)
+			loadClientObjectScript(v :: COScriptContext, orphaned)
 		-- Handle collision groups
 		elseif name == "SetCollisionGroup" and v:IsA("StringValue") and parent and parent:IsA("BasePart") then
 			parent.CollisionGroup = v.Value

@@ -1,4 +1,12 @@
--- Handles winpad collision detection, player win validation, and tower/rush completion.
+--[=[
+	Handles winpad collision detection, player win validation, and tower/rush completion.
+
+	Registers touch events on all winpads, validates wins through AntiCheatService,
+	and delegates to TowerRushService or direct completion logic based on mode.
+
+	@class WinpadService
+	@server
+]=]
 
 local BadgeService = game:GetService("BadgeService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -16,6 +24,7 @@ local Config = require(Data.Config)
 local LeaderstatsService = require("./LeaderstatsService")
 local PlayerService = require("./PlayerService")
 local PlayerState = require("../Player/PlayerState")
+local TicketService = require("./TicketService")
 local TowerData = require("../Player/PlayerData/TowerData")
 local TowerRushService = require("./TowerRushService")
 local TowerService = require("./TowerService")
@@ -35,8 +44,6 @@ local WINPAD_PARTICLES = ServerStorage.WinpadParticles
 local WINPAD_MATERIALS = Enum.Material:GetEnumItems()
 
 local winpads: List<BasePart> = {}
-
-local WinpadService = {}
 
 local function updateWinpadAnimations(_time: number, deltaTime: number)
 	local prevInterval = math.floor((_time - deltaTime) / Config.winpadInterval) * Config.winpadInterval
@@ -131,6 +138,11 @@ local function onPlayerTouchedWinpad(playerName: string, towerName: string, endi
 			else
 				TowerData.recordTowerWin(player.player, towerName, runTime, player.boostItemUsed)
 				LeaderstatsService.setTowerStat(player.player, tower, tower.towerPoints)
+
+				-- Award tickets for normal completions (not AllJumps, not boosted)
+				if not player.boostItemUsed then
+					TicketService.awardTickets(player.player, tower)
+				end
 			end
 		end
 
@@ -183,7 +195,10 @@ local function initWinpad(towerName: string, winpad: BasePart)
 	table.insert(winpads, winpad)
 end
 
-function WinpadService.init()
+local WinpadService = {}
+
+--- Initializes the winpad service, discovers all winpads, and starts animations.
+function WinpadService.Start()
 	for _, tower in TOWERS:GetChildren() do
 		for _, descendant in tower:GetDescendants() do
 			if descendant.Name == "WinPad" and descendant:IsA("BasePart") then

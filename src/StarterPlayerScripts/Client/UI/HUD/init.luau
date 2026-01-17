@@ -1,18 +1,23 @@
--- Client-side tower HUD: shows tower name/acronym, rush progress, timer,
--- boosts-used state, restart prompt, and a simple FPS/ping overlay.
+--[=[
+	Client-side tower HUD coordinator module.
+	Orchestrates UI components: tower name/acronym, rush progress, timer,
+	boosts-used state, restart prompt, loading screen, and FPS overlay.
+
+	@class HUD
+	@client
+]=]
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local RunService = game:GetService("RunService")
 
 local TowerGame = ReplicatedStorage.TowerGame
 local Shared = TowerGame.Shared
-local Packages = ReplicatedStorage.Packages
 
-local GUIHandler = require(Shared.GUIHandler)
-local Icon = require(Packages.topbarplus)
 local Types = require(Shared.Types)
 local Util = require(Shared.Util)
+
+local LoadingScreen = require("@self/LoadingScreen")
+local TowerHUD = require("@self/TowerHUD")
 
 type TowerRush = Types.TowerRush
 
@@ -28,32 +33,14 @@ local PlayerGui = Player:WaitForChild("PlayerGui")
 local screenGui = PlayerGui:WaitForChild("TowerGUI") :: ScreenGui
 screenGui.Enabled = true
 
-local towerAcronymLabel = screenGui:FindFirstChild("TowerAcronym", true) :: TextLabel?
 local towerRushProgressLabel = screenGui:FindFirstChild("TowerRushProgress", true) :: TextLabel?
 local towerRushNameLabel = screenGui:FindFirstChild("TowerRushName", true) :: TextLabel?
-local timerLabel = screenGui:FindFirstChild("Timer", true) :: TextLabel?
 local boostsUsedLabel = screenGui:FindFirstChild("BoostsUsed", true) :: TextLabel?
-local restartLabelElement = screenGui:FindFirstChild("RestartLabel", true) :: TextLabel?
 local trProgressListFrame = screenGui:FindFirstChild("TRProgressList", true) :: Frame?
 local trProgressItemTemplate = trProgressListFrame and trProgressListFrame:FindFirstChild("TowerName") :: TextLabel?
 local boostListFrame = screenGui:FindFirstChild("BoostList", true) :: Frame?
 local boostListItemTemplate = boostListFrame and boostListFrame:FindFirstChild("ItemName") :: TextLabel?
 
--- Loading Screen Elements
-local loadingScreenGroup = screenGui:FindFirstChild("LoadingScreen", true) :: CanvasGroup?
-local loadingLabelElement = loadingScreenGroup and loadingScreenGroup:FindFirstChild("LoadingLabel") :: TextLabel?
-local attentionLabelElement = loadingScreenGroup and loadingScreenGroup:FindFirstChild("Attention") :: TextLabel?
-
-local restartTransparency = 0
-local restartStrokeTransparency = 1
-
-if restartLabelElement then
-	restartTransparency = restartLabelElement.TextTransparency
-	restartStrokeTransparency = restartLabelElement.TextStrokeTransparency
-end
-
-local currentAcronym = ""
-local currentTowerName = ""
 local currentBoostList: { string } = {}
 local currentRushList: { string } = {}
 local currentRushIndex = 0
@@ -204,91 +191,38 @@ local function updateTowerRush(): ()
 	refreshTowerRushUI()
 end
 
-local timeFunction = if RunService:IsRunning() then time else os.clock
-local frameUpdateTable: { number } = {}
-local start = timeFunction()
-local lastIteration = start
+--[=[
+	Shows the loading screen with the specified message.
 
-local performance = Icon.new():lock():modifyTheme({
-	{
-		"IconLabel",
-		"FontFace",
-		Font.new("rbxasset://fonts/families/Montserrat.json", Enum.FontWeight.Medium),
-	},
-	{ "IconLabel", "TextSize", 14 },
-} :: any)
-
--- Calculates the current FPS based on frame timing.
-local function getPlayerFPS(): number
-	lastIteration = timeFunction()
-
-	for index = #frameUpdateTable, 1, -1 do
-		frameUpdateTable[index + 1] = if frameUpdateTable[index] >= lastIteration - 1
-			then frameUpdateTable[index]
-			else nil
-	end
-
-	frameUpdateTable[1] = lastIteration
-
-	return math.floor(
-		if timeFunction() - start >= 1 then #frameUpdateTable else #frameUpdateTable / (timeFunction() - start)
-	)
-end
-
--- Updates the FPS display on each heartbeat.
-local function onHeartbeat(): ()
-	local playerFPS = getPlayerFPS()
-	performance:setLabel(`FPS: {playerFPS}`)
-end
-
--- Shows the loading screen with the specified message.
+	@param message string -- The message to display
+	@param showAttention boolean? -- Whether to show the attention label
+]=]
 function TowerGUI.showLoadingScreen(message: string, showAttention: boolean?): ()
-	if loadingLabelElement then
-		loadingLabelElement.Text = message
-	end
-	if attentionLabelElement then
-		attentionLabelElement.Visible = showAttention or false
-	end
-	if loadingScreenGroup then
-		loadingScreenGroup.Visible = true
-		GUIHandler.toggleUI(loadingScreenGroup, true, 1)
-	end
+	LoadingScreen.show(message, showAttention)
 end
 
--- Hides the loading screen.
+--[=[
+	Hides the loading screen with a fade transition.
+]=]
 function TowerGUI.hideLoadingScreen(): ()
-	if loadingScreenGroup then
-		GUIHandler.toggleUI(loadingScreenGroup, false, 1, function()
-			if attentionLabelElement then
-				attentionLabelElement.Visible = false
-			end
-		end)
-	end
+	LoadingScreen.hide()
 end
 
--- Sets the tower acronym display and caches the full tower name.
+--[=[
+	Sets the tower acronym display and caches the full tower name.
+
+	@param acronym string -- The tower acronym to display
+]=]
 function TowerGUI.setTowerAcronym(acronym: string): ()
-	if not towerAcronymLabel then
-		return
-	end
-
-	currentAcronym = acronym
-	towerAcronymLabel.Visible = acronym ~= ""
-	towerAcronymLabel.Text = acronym
-
-	local textColor, strokeColor = Util.getTowerColors(acronym)
-	towerAcronymLabel.TextColor3 = textColor
-	towerAcronymLabel.TextStrokeColor3 = strokeColor
-
-	currentTowerName = acronym
-
-	local realmTower = Util.getRealmTowerInfo(acronym)
-	if realmTower and realmTower.name then
-		currentTowerName = realmTower.name
-	end
+	TowerHUD.setAcronym(acronym)
 end
 
--- Updates tower rush progress text and toggles visibility when no rush is active.
+--[=[
+	Updates tower rush progress text and toggles visibility when no rush is active.
+
+	@param progress number -- Current progress in the rush
+	@param max number -- Total towers in the rush
+]=]
 function TowerGUI.setTowerRush(progress: number, max: number): ()
 	if towerRushProgressLabel then
 		towerRushProgressLabel.Text = `{progress}/{max}`
@@ -312,14 +246,20 @@ function TowerGUI.setTowerRush(progress: number, max: number): ()
 	end
 end
 
--- Sets the displayed tower timer using formatted seconds.
+--[=[
+	Sets the displayed tower timer using formatted seconds.
+
+	@param seconds number -- The time in seconds to display
+]=]
 function TowerGUI.setTowerTimer(seconds: number): ()
-	if timerLabel then
-		timerLabel.Text = Util.formatTimer(seconds)
-	end
+	TowerHUD.setTimer(seconds)
 end
 
--- Shows or hides the boosts-used indicator and refreshes the boost list.
+--[=[
+	Shows or hides the boosts-used indicator and refreshes the boost list.
+
+	@param value boolean -- Whether boosts were used
+]=]
 function TowerGUI.setBoostsUsed(value: boolean): ()
 	if boostsUsedLabel then
 		boostsUsedLabel.Visible = value
@@ -332,27 +272,17 @@ function TowerGUI.setBoostsUsed(value: boolean): ()
 	end
 end
 
--- Fades the restart label based on a normalized progress value (0-1).
+--[=[
+	Fades the restart label based on a normalized progress value.
+
+	@param t number -- Progress value from 0 (hidden) to 1 (fully visible)
+]=]
 function TowerGUI.setRestartLabel(t: number): ()
-	if restartLabelElement then
-		restartLabelElement.Visible = t > 0
-		restartLabelElement.TextTransparency = 1 - (t * (1 - restartTransparency))
-		restartLabelElement.TextStrokeTransparency = 1 - (t * (1 - restartStrokeTransparency))
-	end
+	TowerHUD.setRestartProgress(t)
 end
 
-RunService.Heartbeat:Connect(onHeartbeat)
-
-if towerAcronymLabel then
-	towerAcronymLabel.MouseEnter:Connect(function()
-		if currentAcronym ~= "" then
-			towerAcronymLabel.Text = currentTowerName
-		end
-	end)
-	towerAcronymLabel.MouseLeave:Connect(function()
-		towerAcronymLabel.Text = currentAcronym
-	end)
-end
+-- Initialize split modules
+TowerHUD.Start()
 
 if boostsUsedLabel and boostListFrame then
 	boostsUsedLabel.MouseEnter:Connect(function()

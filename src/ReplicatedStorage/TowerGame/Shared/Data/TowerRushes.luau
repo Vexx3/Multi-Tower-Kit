@@ -1,6 +1,5 @@
 --[[
-	Tower rush configurations.
-	Each rush defines a sequence of towers that must be completed in order.
+	Tower rush configurations (multi-tower challenges).
 ]]
 
 local Types = require("../Types")
