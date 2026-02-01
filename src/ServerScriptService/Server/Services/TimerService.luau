@@ -62,18 +62,31 @@ local function checkCheckpointProgress(playerName: string, session: Types.Player
 end
 
 local function onStepped(_time: number, deltaTime: number)
+	debug.profilebegin("MTK_ServerStep")
+
 	Session.incrementTimers(deltaTime)
 
 	local shouldCheckCheckpoints = crossedInterval(_time, deltaTime, Config.checkpointInterval)
+	local shouldUpdateStats = crossedInterval(_time, deltaTime, Config.timerSyncInterval)
 
 	for playerName, session in PlayerService.getAllSessions() do
 		syncTimerIfNeeded(session, deltaTime)
-		PlayerState.updatePlayerInfoStats(session)
+
+		-- Only update player attributes at sync interval, not every frame
+		if shouldUpdateStats then
+			debug.profilebegin("MTK_UpdatePlayerStats")
+			PlayerState.updatePlayerInfoStats(session)
+			debug.profileend()
+		end
 
 		if shouldCheckCheckpoints then
+			debug.profilebegin("MTK_CheckCheckpoints")
 			checkCheckpointProgress(playerName, session)
+			debug.profileend()
 		end
 	end
+
+	debug.profileend()
 end
 
 local TimerService = {}

@@ -41,19 +41,16 @@ local LegacyCompat = {}
 -- BUTTONS (from LegacyButtons)
 --------------------------------------------------------------------------------
 
-local function checkColor3(color: unknown): boolean
-	return typeof(color) == "Color3"
-end
-
 local function getAllButtons(color: Color3?): { ButtonInstance }
-	local isColor3 = checkColor3(color)
+	debug.profilebegin("MTK_GetAllButtons")
+
 	local buttonTable: { ButtonInstance } = {}
 
 	for _, v in workspace:GetDescendants() do
 		if v.Name == "Button" and v:FindFirstChild("ClientObject") and v:FindFirstChild("Pressed") then
 			local shouldInsert = false
 
-			if color and isColor3 then
+			if color then
 				for _, b in v:GetDescendants() do
 					if b:IsA("BasePart") and b.Color == color then
 						shouldInsert = true
@@ -70,6 +67,7 @@ local function getAllButtons(color: Color3?): { ButtonInstance }
 		end
 	end
 
+	debug.profileend()
 	return buttonTable
 end
 

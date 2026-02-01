@@ -145,6 +145,8 @@ local function onCharacterAdded(character: Model): ()
 end
 
 local function onStep(deltaTime: number): ()
+	debug.profilebegin("MTK_ClientStep")
+
 	local state = TowerState()
 
 	if state.currentTower == "" then
@@ -185,6 +187,8 @@ local function onStep(deltaTime: number): ()
 		HUD.setRestartLabel(currentState.restartProgress)
 		lastRestartProgress = currentState.restartProgress
 	end
+
+	debug.profileend()
 end
 
 local function onInputBegan(input: InputObject, gameProcessed: boolean): ()

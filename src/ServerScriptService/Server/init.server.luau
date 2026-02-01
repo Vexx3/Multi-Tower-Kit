@@ -8,7 +8,11 @@ local ServerStorage = game:GetService("ServerStorage")
 
 local Packages = ReplicatedStorage.Packages
 local Framework = ReplicatedStorage.Framework
+local TowerGame = ReplicatedStorage.TowerGame
+local Shared = TowerGame.Shared
 
+local Config = require(Shared.Data.Config)
+local ConfigValidator = require(Shared.ConfigValidator)
 local Loader = require(Packages.loader)
 local Log = require(Framework.Log)
 local TowerService = require("@self/Services/TowerService")
@@ -16,6 +20,9 @@ local TowerService = require("@self/Services/TowerService")
 do
 	local startTime = os.clock()
 	Log({ "Initializing MTK Server Framework..." })
+
+	-- Validate config at startup
+	ConfigValidator.validateWithWarnings(Config)
 
 	-- Ensure EverpresentCOs are moved to ServerStorage before loading services
 	local towers = workspace:WaitForChild("Towers")
