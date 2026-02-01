@@ -2,7 +2,9 @@
 	Utility functions used throughout the Multi Tower Kit.
 ]]
 
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Players = game:GetService("Players")
+local Dash = require(ReplicatedStorage.Modules.Dash)
 
 local DifficultiesModule = require("./Data/Difficulties")
 local RealmInfo = require("./Data/RealmInfo")
@@ -202,13 +204,8 @@ end
 
 --- Formats a dictionary of boosts as a comma-separated string.
 --- @param boosts Dictionary<string> -- Map of boost item names to display names
---- @return string -- Comma-separated boost names
 function Util.formatBoosts(boosts: Dictionary<string>): string
-	local boostList: { string } = {}
-	for _, boostName in boosts do
-		table.insert(boostList, boostName)
-	end
-	return table.concat(boostList, ", ")
+	return table.concat(Dash.values(boosts), ", ")
 end
 
 --- Registers a touch handler with player detection and debounce.
@@ -280,12 +277,7 @@ end
 --- @param predicate (T) -> boolean -- The predicate function
 --- @return T? -- The first matching element, or nil
 function Util.find<T>(list: List<T>, predicate: (T) -> boolean): T?
-	for _, value in list do
-		if predicate(value) then
-			return value
-		end
-	end
-	return nil
+	return Dash.find(list, predicate)
 end
 
 --- Gets a cycling rainbow color based on current time.

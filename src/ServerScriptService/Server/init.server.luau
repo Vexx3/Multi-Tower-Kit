@@ -1,5 +1,6 @@
 --[[
 	Main server entry point for Multi-Tower Kit.
+	Initializes producers, events, and services in order.
 ]]
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -8,7 +9,7 @@ local ServerStorage = game:GetService("ServerStorage")
 local Packages = ReplicatedStorage.Packages
 local Framework = ReplicatedStorage.Framework
 
-local Loader = require(Packages.Loader)
+local Loader = require(Packages.loader)
 local Log = require(Framework.Log)
 local TowerService = require("@self/Services/TowerService")
 
@@ -20,6 +21,10 @@ do
 	local towers = workspace:WaitForChild("Towers")
 	local ecos = towers:WaitForChild("EverpresentCOs")
 	ecos.Parent = ServerStorage
+
+	-- Load producers first (state management)
+	Loader.LoadDescendants(script.Producers)
+	Log({ "Producers loaded" })
 
 	-- Initialize core services that others depend on first
 	TowerService.Start()

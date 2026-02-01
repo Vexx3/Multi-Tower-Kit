@@ -1,13 +1,7 @@
---[=[
+--[[
 	Core server manager for individual tower lifecycle.
-
-	Registers tower metadata from workspace folders, loads client objects,
-	teleports players to tower spawn points, and exposes APIs for other
-	services to trigger tower loads.
-
-	@class TowerService
-	@server
-]=]
+	Registers tower metadata, loads client objects, and handles tower loading.
+]]
 
 local HttpService = game:GetService("HttpService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -21,6 +15,7 @@ local Attributes = require(Shared.Attributes)
 local BlinkServer = require("../Network/BlinkServer")
 local Config = require(Data.Config)
 local Log = require(ReplicatedStorage.Framework.Log)
+local Session = require("../Producers/SessionManager")
 local TowerData = require("../Player/PlayerData/TowerData")
 local Types = require(Shared.Types)
 local Util = require(Shared.Util)
@@ -47,51 +42,28 @@ end
 
 local TowerService = {}
 
---- Loads a tower for a player, initializing their state and teleporting them.
---- @param player PlayerInfo -- The player to load the tower for
---- @param towerName string -- The acronym of the tower to load
---- @param resetTimer boolean -- Whether to reset the player's tower timer
 function TowerService.loadTower(player: PlayerInfo, towerName: string, resetTimer: boolean)
-	-- Get the player and tower info objects being referenced
 	local tower: TowerInfo? = towers[towerName]
 	if not tower then
-		Log({
-			type = "warn",
-			[1] = `Unknown tower "{towerName}"`,
-		})
+		Log({ type = "warn", [1] = `Unknown tower "{towerName}"` })
 		return
 	end
 
-	-- If the player is already currently loading a tower, don't do it twice
 	if player.isLoadingTower then
 		return
 	end
 
-	-- Set the player object's properties appropriately
-	if resetTimer then
-		player.towerTimer = 0
-		player.boostItemUsed = false
-		player.boostItemNames = {}
-	end
-	player.currentTower = towerName
-	player.currentCheckpoint = 1
-	-- "this player is currently loading a tower, do not attempt to load a tower while this tower loading is in progress"
-	player.isLoadingTower = true
+	-- Update state via Session
+	Session.setTower(player.player.Name, towerName, resetTimer)
 
 	TowerData.incrementTowerAttempt(player.player, towerName)
-
-	-- Forcefully load the character
-	-- should disrupt natural respawning
 	Util.respawnAndTeleport(player.player, tower.spawnLocation)
 
-	-- Delete the ClientSidedObjects folder from the player if it exists, which in this case, shouldn't
 	local oldCOFolder: Instance? = player.player:FindFirstChild("ClientSidedObjects")
 	if oldCOFolder then
 		oldCOFolder:Destroy()
 	end
 
-	-- Send over the client objects if they exist
-	-- (If they don't, the tower is truely purist)
 	local purist = tower.clientObjects == nil
 	if not purist and tower.clientObjects then
 		local coFolder: Instance = tower.clientObjects:Clone()
@@ -173,7 +145,8 @@ local function initTower(towerFolder: Instance): TowerInfo?
 		})
 	end
 
-	local realmTower = Util.getRealmTowerInfo(acronym)
+	-- Realm tower info shape varies; treat as `any` for optional metadata fields (name/rating/badgeId).
+	local realmTower = Util.getRealmTowerInfo(acronym) :: any
 
 	local towerNameString = acronym
 	local towerDifficulty = "default"
@@ -194,6 +167,11 @@ local function initTower(towerFolder: Instance): TowerInfo?
 		end
 	end
 
+	-- Prefer reading configuration values from an optional Configuration folder,
+	-- but fall back to the tower folder for backward compatibility.
+	local configFolder = towerFolder:FindFirstChild("Configuration")
+	local minimumTimeSource: Instance = configFolder or towerFolder
+
 	-- Construct the tower object
 	local tower: TowerInfo = {
 		name = towerNameString,
@@ -204,13 +182,14 @@ local function initTower(towerFolder: Instance): TowerInfo?
 		allJumpsPoints = Attributes.getInt(towerFolder, "AllJumpsPoints"),
 		noBoosts = towerFolder:HasTag("NoBoosts"),
 
-		folder = towerFolder,
+		-- `Types.TowerInfo.folder` is `Instance`; `towerFolder` is inferred as `Folder | Model`.
+		folder = towerFolder :: Instance,
 		spawnLocation = spawnLocation :: BasePart,
 		clientObjects = clientObjects,
 
 		endings = {},
 
-		minimumTime = Attributes.getNumber(towerFolder, "MinimumTime") or 0,
+		minimumTime = Attributes.getNumber(minimumTimeSource, "MinimumTime") or 0,
 		checkpoints = checkpointsList,
 		checkpointCount = checkpointCount,
 	}

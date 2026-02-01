@@ -2,7 +2,11 @@
 	Provides reusable animations and state transitions for UI components.
 ]]
 
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local TweenService = game:GetService("TweenService")
+local Packages = ReplicatedStorage.Packages
+
+local Promise = require(Packages.promise)
 
 local DEFAULT_TOGGLE_DURATION = 0.5
 local DEFAULT_SHRINK_DURATION = 0.3
@@ -15,13 +19,12 @@ local GUIHandler = {}
 --- @param canvasGroup CanvasGroup -- The canvas group to toggle
 --- @param show boolean? -- Force show/hide, or toggle if nil
 --- @param duration number? -- Animation duration in seconds
---- @param callback ((opening: boolean) -> ())? -- Called when animation completes
+--- @return Promise -- A promise that resolves when the animation completes
 function GUIHandler.toggleUI(
 	canvasGroup: CanvasGroup,
 	show: boolean?,
-	duration: number?,
-	callback: ((opening: boolean) -> ())?
-): ()
+	duration: number?
+)
 	local tweenDuration = duration or DEFAULT_TOGGLE_DURATION
 	local isVisible = canvasGroup.GroupTransparency < 1
 	local shouldShow = if show ~= nil then show else not isVisible
@@ -31,21 +34,28 @@ function GUIHandler.toggleUI(
 		canvasGroup.Visible = true
 	end
 
-	local tween = TweenService:Create(
-		canvasGroup,
-		TweenInfo.new(tweenDuration, Enum.EasingStyle.Quad, Enum.EasingDirection.InOut),
-		{ GroupTransparency = targetTransparency }
-	)
+	return Promise.new(function(resolve, reject, onCancel)
+		local tween = TweenService:Create(
+			canvasGroup,
+			TweenInfo.new(tweenDuration, Enum.EasingStyle.Quad, Enum.EasingDirection.InOut),
+			{ GroupTransparency = targetTransparency }
+		)
 
-	tween:Play()
-	tween.Completed:Once(function()
-		if not shouldShow then
-			canvasGroup.Visible = false
-		end
+		tween:Play()
 
-		if callback then
-			callback(shouldShow)
-		end
+		local conn
+		conn = tween.Completed:Connect(function()
+			conn:Disconnect()
+			if not shouldShow then
+				canvasGroup.Visible = false
+			end
+			resolve(shouldShow)
+		end)
+
+		onCancel(function()
+			tween:Cancel()
+			if conn then conn:Disconnect() end
+		end)
 	end)
 end
 
@@ -53,13 +63,12 @@ end
 --- @param guiObject GuiObject -- The GUI object to toggle
 --- @param show boolean? -- Force show/hide, or toggle if nil
 --- @param duration number? -- Animation duration in seconds
---- @param callback ((opening: boolean) -> ())? -- Called when animation completes
+--- @return Promise -- A promise that resolves when the animation completes
 function GUIHandler.shrinkAnimation(
 	guiObject: GuiObject,
 	show: boolean?,
-	duration: number?,
-	callback: ((opening: boolean) -> ())?
-): ()
+	duration: number?
+)
 	local tweenDuration = duration or DEFAULT_SHRINK_DURATION
 	local isVisible = guiObject.Visible and guiObject.Size.X.Scale > 0.01
 	local shouldShow = if show ~= nil then show else not isVisible
@@ -77,25 +86,32 @@ function GUIHandler.shrinkAnimation(
 		guiObject.Visible = true
 	end
 
-	local tween = TweenService:Create(
-		guiObject,
-		TweenInfo.new(
-			tweenDuration,
-			Enum.EasingStyle.Back,
-			if shouldShow then Enum.EasingDirection.Out else Enum.EasingDirection.In
-		),
-		{ Size = targetSize }
-	)
+	return Promise.new(function(resolve, reject, onCancel)
+		local tween = TweenService:Create(
+			guiObject,
+			TweenInfo.new(
+				tweenDuration,
+				Enum.EasingStyle.Back,
+				if shouldShow then Enum.EasingDirection.Out else Enum.EasingDirection.In
+			),
+			{ Size = targetSize }
+		)
 
-	tween:Play()
-	tween.Completed:Once(function()
-		if not shouldShow then
-			guiObject.Visible = false
-		end
+		tween:Play()
 
-		if callback then
-			callback(shouldShow)
-		end
+		local conn
+		conn = tween.Completed:Connect(function()
+			conn:Disconnect()
+			if not shouldShow then
+				guiObject.Visible = false
+			end
+			resolve(shouldShow)
+		end)
+
+		onCancel(function()
+			tween:Cancel()
+			if conn then conn:Disconnect() end
+		end)
 	end)
 end
 

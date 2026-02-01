@@ -1,23 +1,21 @@
 --[[
 	Creates and updates Roblox leaderstats for players.
+	Uses Sift for array operations.
 ]]
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Shared = ReplicatedStorage.TowerGame.Shared
+local Modules = ReplicatedStorage.Modules
+local Packages = ReplicatedStorage.Packages
 
+local Leaderboard = require(Modules.Leaderboard)
 local PlayerData = require("../Player/PlayerData")
+local Sift = require(Packages.sift)
 local ToolService = require("./ToolService")
 local Types = require(Shared.Types)
 
-type LeaderstatsInfo = {
-	player: Player,
-	leaderStatsFolder: Folder,
-	towerStat: IntValue,
-	allJumpsStat: IntValue,
-}
-
-local players: { [string]: LeaderstatsInfo } = {}
+local Array = Sift.Array
 
 local LeaderstatsService = {}
 
@@ -29,28 +27,8 @@ function LeaderstatsService.initPlayer(player: Player)
 		return
 	end
 
-	local leaderstats = Instance.new("Folder")
-	leaderstats.Name = "leaderstats"
-	leaderstats.Parent = player
-
-	local towerStat = Instance.new("IntValue")
-	towerStat.Name = "Towers"
-	towerStat.Value = data.towers
-	towerStat.Parent = leaderstats
-
-	local allJumpsStat = Instance.new("IntValue")
-	allJumpsStat.Name = "All-jumps"
-	allJumpsStat.Value = data.allJumps
-	allJumpsStat.Parent = leaderstats
-
-	local info: LeaderstatsInfo = {
-		player = player,
-		leaderStatsFolder = leaderstats,
-		towerStat = towerStat,
-		allJumpsStat = allJumpsStat,
-	}
-
-	players[player.Name] = info
+	Leaderboard.setStat(player, "Towers", data.towers)
+	Leaderboard.setStat(player, "All-jumps", data.allJumps)
 end
 
 --- Awards tower completion, increments the Towers stat, and records the completed tower.
@@ -58,25 +36,20 @@ end
 --- @param towerInfo TowerInfo -- The tower that was completed
 --- @param stat number -- The number of points to award
 function LeaderstatsService.setTowerStat(player: Player, towerInfo: Types.TowerInfo, stat: number)
-	local info: LeaderstatsInfo? = players[player.Name]
-	if not info then
-		return
-	end
-
 	local playerData = PlayerData.getData(player)
 	if not playerData then
 		return
 	end
 
 	local acronym = towerInfo.folder.Name
-	if table.find(playerData.completedTowers, acronym) then
+	if Array.includes(playerData.completedTowers, acronym) then
 		return
 	end
 
 	PlayerData.updateAsync(player, function(data: PlayerData.PlayerData)
 		data.towers += stat
-		info.towerStat.Value = data.towers
-		table.insert(data.completedTowers, acronym)
+		Leaderboard.setStat(player, "Towers", data.towers)
+		data.completedTowers = Array.push(data.completedTowers, acronym)
 		return true
 	end)
 
@@ -88,24 +61,17 @@ end
 --- @param towerInfo TowerInfo -- The tower that was completed
 --- @param stat number -- The number of points to award
 function LeaderstatsService.setAllJumpsStat(player: Player, towerInfo: Types.TowerInfo, stat: number)
-	local info: LeaderstatsInfo? = players[player.Name]
-	if not info then
-		return
-	end
-
 	local towerKey = towerInfo.folder.Name
 	local playerData = PlayerData.getData(player)
 
-	if not playerData or (playerData.completedAjTowers and table.find(playerData.completedAjTowers, towerKey)) then
+	if not playerData or Array.includes(playerData.completedAjTowers or {}, towerKey) then
 		return
 	end
 
 	PlayerData.updateAsync(player, function(data: PlayerData.PlayerData)
-		local current = data.allJumps
-		data.allJumps = current + stat
-		info.allJumpsStat.Value = data.allJumps
-
-		table.insert(data.completedAjTowers, towerKey)
+		data.allJumps = data.allJumps + stat
+		Leaderboard.setStat(player, "All-jumps", data.allJumps)
+		data.completedAjTowers = Array.push(data.completedAjTowers, towerKey)
 		return true
 	end)
 end

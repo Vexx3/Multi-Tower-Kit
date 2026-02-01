@@ -1,19 +1,25 @@
 --[[
-	Handles tool equipment logic for anti-cheat and boost tracking.
+	Handles tool equipment logic, boost tracking, and debug tools.
+	Merged from ToolService + DebugService for simplicity.
 ]]
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local RunService = game:GetService("RunService")
 local ServerStorage = game:GetService("ServerStorage")
+local StarterPack = game:GetService("StarterPack")
 
 local TowerGame = ReplicatedStorage.TowerGame
 local Shared = TowerGame.Shared
+local Framework = ReplicatedStorage.Framework
 
+local Log = require(Framework.Log)
 local PlayerData = require("../Player/PlayerData")
 local Types = require(Shared.Types)
 
 local TowerRushes = require(Shared.Data.TowerRushes)
 
 local COMPLETION_TOOLS = ServerStorage:FindFirstChild("CompletionTools") :: Folder?
+local STARTER_PACK_STUDIO = ServerStorage:FindFirstChild("StarterPackStudio") :: Folder?
 
 local ToolService = {}
 
@@ -102,6 +108,36 @@ function ToolService.giveAllCompletedTowerTools(player: Player)
 	for _, acronym in data.completedTowers do
 		ToolService.giveTowerTools(player, acronym)
 	end
+end
+
+--- Initializes debug tools in Studio and validates boost item configuration.
+function ToolService.initializeDebugTools()
+	if RunService:IsStudio() and STARTER_PACK_STUDIO then
+		Log({ "Running in Studio, loading debug tools..." })
+		for _, tool in STARTER_PACK_STUDIO:GetChildren() do
+			tool:SetAttribute("DebugItem", true)
+			tool.Parent = StarterPack
+		end
+	end
+
+	for _, tool in StarterPack:GetChildren() do
+		if not tool:IsA("Tool") then
+			continue
+		end
+
+		local boostNameValue = tool:FindFirstChild("BoostName")
+		if boostNameValue and boostNameValue:IsA("StringValue") then
+			Log({
+				type = "warn",
+				[1] = `Boost item {tool.Name} uses a StringValue for BoostName, please change it to an attribute`,
+			})
+			tool:SetAttribute("BoostName", boostNameValue.Value)
+		end
+	end
+end
+
+function ToolService.Start()
+	ToolService.initializeDebugTools()
 end
 
 return ToolService

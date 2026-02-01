@@ -21,8 +21,8 @@ local Packages = ReplicatedStorage.Packages
 local BlinkServer = require(script.Parent.Parent.Network.BlinkServer)
 local Config = require(Data.Config)
 local InternalTemplate = require(script.InternalTemplate)
-local Lyra = require(Packages.Lyra)
-local t = require(Packages._Index["osyrisrblx_t@3.1.1"].t)
+local Lyra = require(Packages.lyra)
+local t = require(Packages.t)
 
 export type PlayerData = InternalTemplate.PlayerData
 

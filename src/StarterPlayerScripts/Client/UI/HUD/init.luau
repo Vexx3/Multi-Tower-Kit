@@ -10,9 +10,11 @@
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
+local Modules = ReplicatedStorage.Modules
 local TowerGame = ReplicatedStorage.TowerGame
 local Shared = TowerGame.Shared
 
+local Dash = require(Modules.Dash)
 local Types = require(Shared.Types)
 local Util = require(Shared.Util)
 
@@ -71,11 +73,11 @@ local function rebuildBoostList(list: { string }): ()
 	end
 	local template = boostListItemTemplate :: TextLabel
 
-	for _, child in boostListFrame:GetChildren() do
+	Dash.forEach(boostListFrame:GetChildren(), function(child: Instance)
 		if child:IsA("TextLabel") and child ~= template then
 			child:Destroy()
 		end
-	end
+	end)
 
 	template.Visible = false
 
@@ -92,13 +94,9 @@ local function updateBoostList(): ()
 	local boostAttr = Player:GetAttribute("BoostItemNames") :: string?
 	local boostNames = if boostAttr then boostAttr else ""
 	local pieces = string.split(boostNames, ",")
-	local list = {}
-
-	for _, part in pieces do
-		if part ~= "" then
-			table.insert(list, part)
-		end
-	end
+	local list = Dash.filter(pieces, function(part)
+		return part ~= ""
+	end)
 
 	currentBoostList = list
 	rebuildBoostList(currentBoostList)
@@ -110,11 +108,11 @@ local function rebuildTowerRushList(): ()
 	end
 	local template = trProgressItemTemplate :: TextLabel
 
-	for _, child in trProgressListFrame:GetChildren() do
+	Dash.forEach(trProgressListFrame:GetChildren(), function(child: Instance)
 		if child:IsA("TextLabel") and child ~= template then
 			child:Destroy()
 		end
-	end
+	end)
 
 	template.Visible = false
 

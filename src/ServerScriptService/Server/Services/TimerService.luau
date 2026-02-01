@@ -1,5 +1,6 @@
 --[[
-	Handles game timers, syncs, and checkpoint detection.
+	TimerService - Handles game timers, syncs, and checkpoint detection.
+	Uses Session for state management with clean helper functions.
 ]]
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -13,62 +14,70 @@ local BlinkServer = require("../Network/BlinkServer")
 local Config = require(Data.Config)
 local PlayerService = require("./PlayerService")
 local PlayerState = require("../Player/PlayerState")
+local Session = require("../Producers/SessionManager")
 local TowerService = require("./TowerService")
 local Types = require(Shared.Types)
 local Util = require(Shared.Util)
 
+--- Helper: Check if interval boundary was crossed
+local function crossedInterval(time: number, deltaTime: number, interval: number): boolean
+	local prev = math.floor((time - deltaTime) / interval) * interval
+	local curr = math.floor(time / interval) * interval
+	return curr > prev
+end
+
+--- Syncs timer with client if sync interval crossed
+local function syncTimerIfNeeded(session: Types.PlayerInfo, deltaTime: number)
+	if session.currentTower == "" then
+		return
+	end
+
+	local oldTimer = session.towerTimer - deltaTime
+	if crossedInterval(session.towerTimer, session.towerTimer - oldTimer, Config.timerSyncInterval) then
+		BlinkServer.UpdateTowerTimer.Fire(session.player, session.towerTimer)
+	end
+end
+
+--- Checks and advances checkpoint if player is touching it
+local function checkCheckpointProgress(playerName: string, session: Types.PlayerInfo)
+	local character = session.player.Character
+	if session.currentTower == "" or not character then
+		return
+	end
+
+	local tower = TowerService.getTower(session.currentTower)
+	if not tower then
+		return
+	end
+
+	local checkpoint = tower.checkpoints[session.currentCheckpoint]
+	if not checkpoint then
+		return
+	end
+
+	local point = character:GetPivot().Position
+	if Util.isPointInPart(point, checkpoint) then
+		Session.advanceCheckpoint(playerName)
+	end
+end
+
 local function onStepped(_time: number, deltaTime: number)
-	for _, v in PlayerService.getAllSessions() do
-		-- Increment game timer and tower timer
-		v.gameTimer += deltaTime
-		if v.currentTower ~= "" then
-			local tower = TowerService.getTower(v.currentTower)
-			if not tower then
-				continue
-			end
+	Session.incrementTimers(deltaTime)
 
-			local oldTowerTimer = v.towerTimer
-			v.towerTimer += deltaTime
+	local shouldCheckCheckpoints = crossedInterval(_time, deltaTime, Config.checkpointInterval)
 
-			-- Sync timer with client periodically
-			local i = Config.timerSyncInterval
-			local a = math.floor(oldTowerTimer / i) * i
-			local b = math.floor(v.towerTimer / i) * i
-			if b > a then
-				BlinkServer.UpdateTowerTimer.Fire(v.player, v.towerTimer)
-			end
-		end
+	for playerName, session in PlayerService.getAllSessions() do
+		syncTimerIfNeeded(session, deltaTime)
+		PlayerState.updatePlayerInfoStats(session)
 
-		-- Update player attributes
-		PlayerState.updatePlayerInfoStats(v)
-
-		-- Checkpoint detection
-		local prevInterval = math.floor((_time - deltaTime) / Config.checkpointInterval) * Config.checkpointInterval
-		local currentInterval = math.floor(_time / Config.checkpointInterval) * Config.checkpointInterval
-		if prevInterval < currentInterval then
-			local character = v.player.Character
-			if v.currentTower ~= "" and character then
-				local tower: Types.TowerInfo? = TowerService.getTower(v.currentTower)
-				if not tower then
-					continue
-				end
-
-				local checkpoint: BasePart? = tower.checkpoints[v.currentCheckpoint]
-				if checkpoint then
-					local point = character:GetPivot().Position
-					local touching = Util.isPointInPart(point, checkpoint)
-					if touching then
-						v.currentCheckpoint += 1
-					end
-				end
-			end
+		if shouldCheckCheckpoints then
+			checkCheckpointProgress(playerName, session)
 		end
 	end
 end
 
 local TimerService = {}
 
---- Initializes the timer service and starts the stepped loop.
 function TimerService.Start()
 	RunService.Stepped:Connect(onStepped)
 end

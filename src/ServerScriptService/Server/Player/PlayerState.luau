@@ -1,12 +1,8 @@
---[=[
+--[[
 	Handles per-player state transitions.
-
-	Manages resetting run data, syncing attributes to clients,
-	and teleporting players to winrooms.
-
-	@class PlayerState
-	@server
-]=]
+	Manages attribute syncing and winroom teleportation.
+	Uses Session for state management.
+]]
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Teams = game:GetService("Teams")
@@ -15,6 +11,7 @@ local TowerGame = ReplicatedStorage.TowerGame
 local Shared = TowerGame.Shared
 
 local BlinkServer = require("../Network/BlinkServer")
+local Session = require("../Producers/SessionManager")
 local Types = require(Shared.Types)
 local Util = require(Shared.Util)
 
@@ -24,8 +21,6 @@ local MARKERS = workspace.Markers
 
 local PlayerState = {}
 
---- Pushes the latest tower/rush/timer data into player attributes for client consumption.
---- @param player PlayerInfo -- The player info to sync
 function PlayerState.updatePlayerInfoStats(player: PlayerInfo): ()
 	local boostList: string = Util.formatBoosts(player.boostItemNames)
 
@@ -39,28 +34,19 @@ function PlayerState.updatePlayerInfoStats(player: PlayerInfo): ()
 	player.player:SetAttribute("BoostItemNames", boostList)
 end
 
---- Resets in-memory player state for a new run and re-syncs attributes.
---- @param player PlayerInfo -- The player info to reset
 function PlayerState.resetPlayerInfo(player: PlayerInfo): ()
-	player.towerTimer = 0
-	player.currentTower = ""
-	player.currentCheckpoint = 0
-	player.currentTowerRush = ""
-	player.currentTowerRushIndex = 0
-	player.currentTowerRushSplitTime = 0
-	player.boostItemNames = {}
-	player.boostItemUsed = false
-	player.debugItemUsed = false
+	Session.resetRun(player.player.Name)
 
-	PlayerState.updatePlayerInfoStats(player)
+	-- Re-fetch the updated session after reset
+	local session = Session.get(player.player.Name)
+	if session then
+		PlayerState.updatePlayerInfoStats(session)
+	end
 end
 
---- Teleports a player to the winroom, unloads their current tower, and clears their run state.
---- @param player PlayerInfo -- The player to teleport
---- @param winroomMarker string? -- Optional marker name for the winroom
 function PlayerState.teleportToWinroom(player: PlayerInfo, winroomMarker: string?): ()
 	local actualMarker: string = winroomMarker or ""
-	player.touchEventBusy = true
+	Session.setTouchBusy(player.player.Name, true)
 
 	player.player.Team = Teams.Winners
 	BlinkServer.UnloadTower.Fire(player.player)
@@ -78,7 +64,7 @@ function PlayerState.teleportToWinroom(player: PlayerInfo, winroomMarker: string
 		Util.respawnAndTeleport(player.player, winroomPart)
 	end
 
-	player.touchEventBusy = false
+	Session.setTouchBusy(player.player.Name, false)
 end
 
 return PlayerState

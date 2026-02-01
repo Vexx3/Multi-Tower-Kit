@@ -115,11 +115,13 @@ type HardestTower = {
 
 type SortMode = "Areas" | "Difficulties"
 
+local Modules = ReplicatedStorage.Modules
 local Packages = ReplicatedStorage.Packages
 local TowerGame = ReplicatedStorage.TowerGame
 
 local BlinkClient = require(TowerGame.Network.BlinkClient)
-local Janitor = require(Packages.Janitor)
+local Dash = require(Modules.Dash)
+local Janitor = require(Packages.janitor)
 local RealmInfo = require(TowerGame.Shared.Data.RealmInfo)
 local Util = require(TowerGame.Shared.Util)
 
@@ -144,6 +146,7 @@ local tooltipJanitor = Janitor.new()
 
 local ACTIVE_COLOR = Color3.fromRGB(166, 227, 161)
 local COMPLETED_COLOR = Color3.fromRGB(115, 156, 111)
+local AJ_COMPLETED_COLOR = Color3.fromRGB(245, 205, 48)
 local DEFAULT_FILL_COLOR = Color3.fromRGB(166, 227, 161)
 
 local defaultStrokeColors = {
@@ -157,6 +160,46 @@ local viewingUserName = Player.Name
 local function getUserIdFromUsername(username: string): number?
 	local success, userId = pcall(Players.GetUserIdFromNameAsync, Players, username)
 	return if success then userId else nil
+end
+
+local DEFAULT_STATS: Stats = {
+	attempts = 0,
+	wins = 0,
+	bestWinTimeFormatted = "N/A",
+	bestAJWinTimeFormatted = "N/A",
+	totalTimeSpentFormatted = "0s",
+	allJumpsWins = 0,
+}
+
+local function normalizeStats(rawStat: any): Stats
+	if not rawStat then
+		return DEFAULT_STATS
+	end
+
+	-- Stats from the server have nested time objects; flatten them for the UI.
+	local bestWin = rawStat.bestWinTime
+	local bestAj = rawStat.bestAjWinTime
+	local totalTime = rawStat.totalTimeSpent
+
+	return {
+		attempts = rawStat.attempts or 0,
+		wins = rawStat.wins or 0,
+		bestWinTimeFormatted = if bestWin and bestWin.formatted then bestWin.formatted else "N/A",
+		bestAJWinTimeFormatted = if bestAj and bestAj.formatted then bestAj.formatted else "N/A",
+		totalTimeSpentFormatted = if totalTime and totalTime.formatted then totalTime.formatted else "0s",
+		allJumpsWins = rawStat.allJumpsWins or 0,
+	}
+end
+
+local function getTowerStats(acronym: string, towerData: TowerData): Stats
+	if not cachedData then
+		return DEFAULT_STATS
+	end
+
+	local statCategory = if towerData.rush then cachedData.towerRushStats else cachedData.towerStats
+	local rawStat = statCategory and statCategory[acronym]
+
+	return normalizeStats(rawStat)
 end
 
 local function showNotification(message: string, canClose: boolean)
@@ -212,16 +255,7 @@ local function showTowerDetails(acronym: string, towerData: TowerData)
 		return
 	end
 
-	local statCategory = if towerData.rush then cachedData.towerRushStats else cachedData.towerStats
-	local stats: Stats = (statCategory and statCategory[acronym])
-		or {
-			attempts = 0,
-			wins = 0,
-			bestWinTimeFormatted = "N/A",
-			bestAJWinTimeFormatted = "N/A",
-			totalTimeSpentFormatted = "0s",
-			allJumpsWins = 0,
-		}
+	local stats = getTowerStats(acronym, towerData)
 
 	local towerColor, towerStroke = Util.getTowerColors(acronym)
 
@@ -275,7 +309,11 @@ local function createTowerButton(acronym: string, towerData: TowerData, areaEmbl
 	local completionList = if towerData.rush then data.completedTowerRushes else data.completedTowers
 	local isCompleted = table.find(completionList, acronym) ~= nil
 	if isCompleted then
-		button.BackgroundColor3 = COMPLETED_COLOR
+		local stats = getTowerStats(acronym, towerData)
+		local allJumpsWins = stats.allJumpsWins
+		local hasAllJumpsWin = allJumpsWins > 0
+
+		button.BackgroundColor3 = if hasAllJumpsWin then AJ_COMPLETED_COLOR else COMPLETED_COLOR
 	end
 
 	button.MouseEnter:Connect(function()
@@ -361,14 +399,9 @@ local function loadPlayerCompletions(username: string)
 end
 
 local function buildAreaEntries(areaData: any): { TowerEntry }
-	local entries: { TowerEntry } = {}
-	for acronym, towerData: TowerData in pairs(areaData.towers :: { [string]: TowerData }) do
-		local entry: TowerEntry = {
-			acronym = acronym,
-			data = towerData,
-		}
-		table.insert(entries, entry)
-	end
+	local entries: { TowerEntry } = Dash.collectArray(areaData.towers :: { [string]: TowerData }, function(acronym, towerData)
+		return { acronym = acronym, data = towerData }
+	end)
 
 	table.sort(entries, function(a: TowerEntry, b: TowerEntry)
 		local aRush = a.data.rush or false
@@ -462,10 +495,7 @@ local function buildTowersByDifficulty(): ({ [number]: { DifficultySortedEntry }
 		end
 	end
 
-	local sortedRatings = {}
-	for rating in pairs(towersByDiff) do
-		table.insert(sortedRatings, rating)
-	end
+	local sortedRatings = Dash.keys(towersByDiff)
 	table.sort(sortedRatings)
 
 	return towersByDiff, sortedRatings

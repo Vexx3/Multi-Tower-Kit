@@ -49,7 +49,7 @@ end
 ]=]
 function LoadingScreen.hide(): ()
 	if loadingScreenGroup then
-		GUIHandler.toggleUI(loadingScreenGroup, false, 1, function()
+		GUIHandler.toggleUI(loadingScreenGroup, false, 1):andThen(function()
 			if attentionLabelElement then
 				attentionLabelElement.Visible = false
 			end

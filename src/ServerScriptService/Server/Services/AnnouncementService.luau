@@ -1,5 +1,7 @@
 --[[
-	Handles in-server announcements and cross-server global win messages.
+	AnnouncementService - Handles all game announcements and notifications.
+	Includes in-game broadcasts, cross-server messaging, and Discord webhooks.
+	Merged from AnnouncementService + WebhookService.
 ]]
 
 local HttpService = game:GetService("HttpService")
@@ -8,13 +10,14 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Shared = ReplicatedStorage.TowerGame.Shared
 local Data = Shared.Data
+local Framework = ReplicatedStorage.Framework
 
 local BlinkServer = require("../Network/BlinkServer")
 local Config = require(Data.Config)
 local KickMessages = require(Data.KickMessages)
+local Log = require(Framework.Log)
 local Types = require(Shared.Types)
 local Util = require(Shared.Util)
-local WebhookService = require("./WebhookService")
 
 type Dictionary<T> = Types.Dictionary<T>
 type PlayerInfo = Types.PlayerInfo
@@ -73,6 +76,71 @@ local function onGlobalWinMessage(message: Message)
 	broadcastWinAnnouncement(info)
 end
 
+-- Webhook message formatting
+local function formatWebhookMessage(
+	message: string,
+	playerName: string,
+	endingName: string,
+	difficultyEmoji: string,
+	formattedTime: string,
+	boostList: string
+): string
+	local formatted = message
+		:gsub("{PlayerName}", playerName)
+		:gsub("{EndingName}", endingName)
+		:gsub("{DifficultyEmoji}", difficultyEmoji or "")
+		:gsub("{Time}", formattedTime)
+
+	if boostList ~= "" then
+		local boostsMessage = Config.webhookBoostsUsed:gsub("{BoostList}", boostList)
+		formatted = `{formatted}{boostsMessage}`
+	end
+
+	return formatted
+end
+
+-- Send webhook to Discord
+local function sendWebhook(player: PlayerInfo, endingName: string, difficultyName: string, finalTime: number)
+	if not Config.webhooksEnabled then
+		return
+	end
+
+	local boostList = Util.formatBoosts(player.boostItemNames)
+	local difficultyInfo = Util.getDifficulty(difficultyName)
+	local formattedTime = Util.formatTimer(finalTime)
+	local playerName = if Config.useDisplayName then player.player.DisplayName else player.player.Name
+
+	local isAllJumps = player.mode == "AllJumps"
+	local messageTemplate = if isAllJumps then Config.webhookAjMessage else Config.webhookNormalMessage
+	local message = formatWebhookMessage(
+		messageTemplate,
+		playerName,
+		endingName,
+		difficultyInfo.difficultyEmoji or "",
+		formattedTime,
+		boostList
+	)
+
+	local isSoulCrushing = difficultyInfo.rating >= 8
+
+	local webhookLink
+	if isAllJumps then
+		webhookLink = HttpService:GetSecret("ALL_JUMPS_WEBHOOK")
+	elseif isSoulCrushing then
+		webhookLink = HttpService:GetSecret("SC_WEBHOOK")
+	else
+		webhookLink = HttpService:GetSecret("NORMAL_WEBHOOK")
+	end
+
+	local data = { content = message }
+	local encodedData = HttpService:JSONEncode(data)
+
+	local success, response = pcall(HttpService.PostAsync, HttpService, webhookLink, encodedData)
+	if not success then
+		Log({ `Failed to send webhook message: {response}` })
+	end
+end
+
 local AnnouncementService = {}
 
 --- Sends a game-wide announcement to all players.
@@ -129,7 +197,7 @@ function AnnouncementService.winAnnouncement(
 	end
 
 	broadcastWinAnnouncement(info)
-	task.spawn(WebhookService.sendMessage, player, endingName, difficultyName, finalTime)
+	task.spawn(sendWebhook, player, endingName, difficultyName, finalTime)
 end
 
 --- Initializes the announcement service and subscribes to cross-server messages.
