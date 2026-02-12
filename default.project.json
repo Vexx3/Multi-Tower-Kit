@@ -1,28 +1,43 @@
 {
   "name": "Multi Tower Kit",
+  "emitLegacyScripts": false,
   "tree": {
     "$className": "DataModel",
     "ReplicatedStorage": {
       "$ignoreUnknownInstances": true,
-      "$path": "src/ReplicatedStorage",
-
+      "Framework": {
+        "$path": "src/Framework"
+      },
+      "ChangeLighting": {
+        "$path": "src/assets/ChangeLighting.rbxm"
+      },
+      "DamageEvent": {
+        "$path": "src/assets/DamageEvent.rbxm"
+      },
+      "ResetEffectGui": {
+        "$path": "src/assets/ResetEffectGui.rbxm"
+      },
+      "src": {
+        "$className": "Folder",
+        "client": {
+          "$path": "src/client"
+        },
+        "server": {
+          "$path": "src/server"
+        },
+        "shared": {
+          "$path": "src/shared"
+        }
+      },
       "Packages": {
         "$path": "Packages"
       }
-    },
-    "ServerScriptService": {
-      "$path": "src/ServerScriptService",
-      "$ignoreUnknownInstances": true
     },
     "ServerStorage": {
       "$ignoreUnknownInstances": true,
       "$path": "src/ServerStorage"
     },
     "StarterPlayer": {
-      "StarterPlayerScripts": {
-        "$ignoreUnknownInstances": true,
-        "$path": "src/StarterPlayerScripts"
-      },
       "$properties": {
         "AutoJumpEnabled": false,
         "CameraMaxZoomDistance": 128.0,
