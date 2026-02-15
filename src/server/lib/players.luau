@@ -9,14 +9,15 @@ local Teams = game:GetService("Teams")
 local BlinkServer = require("../Network/BlinkServer")
 local Config = require("../../shared/constants/config")
 local Log = require("../../../Framework/Log")
-local Observers = require("../../../Packages/observers")
 local Promise = require("../../../Packages/promise")
 local Types = require("../../shared/types")
 local Util = require("../../shared/utils/util")
 local accounts = require("../accounts")
 local allJumps = require("../gameplay/allJumps")
 local leaderstats = require("./leaderstats")
+local playerLifecycle = require("../../shared/utils/playerLifecycle")
 local playerState = require("./playerState")
+local practiceTools = require("../gameplay/practiceTools")
 local sessionStore = require("../stores/sessionStore")
 local tools = require("../gameplay/tools")
 local towerRush = require("../gameplay/towerRush")
@@ -70,7 +71,12 @@ local function onExitTowerRequest(playerInstance: Player)
 	player.player.Team = Teams.Start
 	BlinkServer.UnloadTower.Fire(player.player)
 	sessionStore.resetRun(playerInstance.Name)
-	playerState.updatePlayerInfoStats(player)
+	practiceTools.remove(playerInstance)
+
+	local freshSession = sessionStore.get(playerInstance.Name)
+	if freshSession then
+		playerState.updatePlayerInfoStats(freshSession)
+	end
 
 	if spawnLocation and spawnLocation:IsA("BasePart") then
 		Util.respawnAndTeleport(player.player, spawnLocation)
@@ -98,7 +104,16 @@ local function setPlayerMode(playerInstance: Player, mode: Types.PlayerMode)
 		sessionStore.setMode(playerInstance.Name, mode)
 	end
 
-	playerState.updatePlayerInfoStats(player)
+	local freshSession = sessionStore.get(playerInstance.Name)
+	if freshSession then
+		playerState.updatePlayerInfoStats(freshSession)
+	end
+
+	-- Practice tools are given inside towers.loadTower when mode is Practice.
+	-- If not in a tower, just remove any leftover tools.
+	if mode ~= "Practice" or player.currentTower == "" then
+		practiceTools.remove(playerInstance)
+	end
 end
 
 local function onPlayerSetAllJumpsMode(playerInstance: Player, enabled: boolean)
@@ -149,7 +164,7 @@ local function onCharacterAdded(character: Model)
 
 	character.ChildAdded:Connect(function(item)
 		if item:IsA("Tool") then
-			tools.handleToolEquipped(player, item)
+			tools.handleToolEquipped(character.Name, item)
 		end
 	end)
 
@@ -174,7 +189,12 @@ local function onCharacterAdded(character: Model)
 
 	BlinkServer.UnloadTower.Fire(player.player)
 	sessionStore.resetRun(character.Name)
-	playerState.updatePlayerInfoStats(player)
+	practiceTools.remove(player.player)
+
+	local freshSession = sessionStore.get(character.Name)
+	if freshSession then
+		playerState.updatePlayerInfoStats(freshSession)
+	end
 end
 
 local DEFAULT_PLAYER_INFO: Types.PlayerInfo = {
@@ -222,13 +242,9 @@ local players = {}
 function players.init()
 	EVERPRESENT_COS = ServerStorage:WaitForChild("EverpresentCOs") :: Folder
 
-	Observers.observePlayer(function(player)
+	playerLifecycle.onPlayerAdded(function(player)
 		initializePlayer(player)
-
-		return Observers.observeCharacter(function(_, character)
-			onCharacterAdded(character)
-			return function() end
-		end, { player })
+		playerLifecycle.onCharacterAdded(player, onCharacterAdded)
 	end, function(player)
 		sessionStore.remove(player.Name)
 	end)

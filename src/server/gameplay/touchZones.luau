@@ -37,6 +37,7 @@ local Hooks = require("../../shared/hooks")
 local Log = require("../../../Framework/Log")
 local Util = require("../../shared/utils/util")
 local players = require("../lib/players")
+local sessionStore = require("../stores/sessionStore")
 local towerRush = require("./towerRush")
 local towers = require("./towers")
 
@@ -116,9 +117,9 @@ local function setupPortal(portalPart: BasePart)
 		registerZone(portalPart, function(playerName)
 			local player = players.getSession(playerName)
 			if player and not player.touchEventBusy then
-				player.touchEventBusy = true
+				sessionStore.setTouchBusy(playerName, true)
 				Util.teleportPlayerToPart(player.player, targetPart)
-				player.touchEventBusy = false
+				sessionStore.setTouchBusy(playerName, false)
 			end
 		end)
 	else

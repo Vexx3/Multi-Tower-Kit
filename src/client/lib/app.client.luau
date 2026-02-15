@@ -1,6 +1,6 @@
 --[[
 	Main client entry point for Multi-Tower Kit.
-	Uses TowerState (Charm) for reactive state management.
+	Uses TowerState (Charm atom) for reactive state management.
 ]]
 
 local Players = game:GetService("Players")
@@ -21,6 +21,7 @@ local TowerStateModule = require("../stores/towerState")
 local chat = require("./chat")
 local display = require("./display")
 local legacyCompat = require("./legacyCompat")
+local towerVisibility = require("./towerVisibility")
 local TowerState = TowerStateModule.atom
 local DEFAULT_TOWER_STATE = TowerStateModule.DEFAULT
 local conch = require("../../../Packages/conch")
@@ -77,6 +78,7 @@ local function loadTower(acronym: string, purist: boolean, resetTimer: boolean):
 	HUD.setTowerAcronym(acronym)
 	ResetEffectGui:Fire()
 	restartDebounce = false
+	towerVisibility.onTowerLoaded(acronym)
 
 	if not purist then
 		local coFolder: Instance? = LocalPlayer:WaitForChild("ClientSidedObjects", 10)
@@ -104,6 +106,7 @@ local function unloadTower(): ()
 	HUD.setTowerRush(0, 0)
 	HUD.setBoostsUsed(false)
 	HUD.setRestartLabel(0)
+	towerVisibility.onTowerUnloaded()
 end
 
 local function correctTimer(time: number): ()
@@ -230,6 +233,7 @@ do
 	chat.init()
 	display.init()
 	legacyCompat.init()
+	towerVisibility.init()
 	allJumps.Start()
 
 	-- Initialize UI modules
@@ -256,29 +260,29 @@ do
 	HUD.setTowerAcronym("")
 	HUD.setTowerRush(0, 0)
 
-	-- Handle data loading state
-	local function applyPlayerSettings(data: any)
+	-- Single listener for all player data updates (initial load + changes)
+	local hasHiddenLoadingScreen = false
+	BlinkClient.PlayerDataUpdate.On(function(data: any)
+		-- Hide loading screen on first data arrival
+		if not hasHiddenLoadingScreen then
+			hasHiddenLoadingScreen = true
+			HUD.hideLoadingScreen()
+		end
+
+		-- Apply settings
 		local settings = data and data.settings
 		if settings then
 			restartTimeMax = settings.quickResetDelay
+
+			if settings.towerLoadingBehavior then
+				towerVisibility.setBehavior(settings.towerLoadingBehavior)
+			end
 		end
 
-		-- Update tower sign colors based on completed towers
+		-- Update tower sign colors
 		display.updateCompletedTowers(data)
-	end
 
-	local dataLoaded = LocalPlayer:GetAttribute("DataLoaded")
-	if dataLoaded then
-		HUD.hideLoadingScreen()
-	else
-		LocalPlayer:GetAttributeChangedSignal("DataLoaded"):Connect(function()
-			local loaded = LocalPlayer:GetAttribute("DataLoaded")
-			if loaded == true then
-				HUD.hideLoadingScreen()
-			end
-		end)
-	end
-
-	-- Listen for data updates (also fires on initial load)
-	BlinkClient.PlayerDataUpdate.On(applyPlayerSettings)
+		-- Update completions menu
+		MenuController.applyPlayerData(data)
+	end)
 end

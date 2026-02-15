@@ -1,8 +1,13 @@
 local Players = game:GetService("Players")
 
 local BlinkClient = require("../../shared/Network/BlinkClient")
+local Notification = require("@self/notification")
+local TicketConfig = require("../../shared/constants/ticketConfig")
 local UIManager = require("@self/uiManager")
+local Util = require("../../shared/utils/util")
 local completions = require("@self/completions")
+local settingsController = require("@self/settingsController")
+local ticketsDisplay = require("@self/ticketsDisplay")
 
 local Player = Players.LocalPlayer :: Player
 local PlayerGui = Player:WaitForChild("PlayerGui")
@@ -30,6 +35,8 @@ local ExitMenuButton = ButtonsContainer:FindFirstChild("ExitButton") :: GuiButto
 
 local completionsCache: completions.PlayerDataCache? = nil
 local hasOpenedOnce = false
+local previousTickets: number? = nil
+local currentTowerAcronym = ""
 
 local MenuController = {}
 
@@ -106,6 +113,12 @@ local function setupButtonConnections()
 			continue
 		end
 
+		-- Only wire buttons in ButtonsContainer or inside the TeleportMenu.
+		-- Skip buttons nested inside other menus (e.g. CompletionsMenu's SettingsButton).
+		if not desc:IsDescendantOf(ButtonsContainer) and not desc:IsDescendantOf(teleportMenu) then
+			continue
+		end
+
 		local prefix = string.gsub(desc.Name, "Button", "")
 		local targetMenu = MenusContainer:FindFirstChild(prefix .. "Menu", true) :: Frame
 
@@ -158,22 +171,77 @@ local function setupModals()
 	syncAttributes()
 end
 
+--- Formats a duration in seconds into a human-readable string.
+local function formatCooldownText(seconds: number): string
+	local days = math.floor(seconds / 86400)
+	if days >= 7 then
+		local weeks = math.floor(days / 7)
+		return if weeks == 1 then "a week" else `{weeks} weeks`
+	end
+	if days >= 1 then
+		return if days == 1 then "a day" else `{days} days`
+	end
+	local hours = math.floor(seconds / 3600)
+	if hours >= 1 then
+		return if hours == 1 then "an hour" else `{hours} hours`
+	end
+	return "some time"
+end
+
+--- Call this whenever new player data arrives (completions, tower stats, etc.).
+function MenuController.applyPlayerData(incoming: any)
+	applyCompletionsData(incoming)
+
+	-- Sync settings
+	local settings = incoming and incoming.settings
+	if settings then
+		settingsController.applySettings(settings)
+	end
+
+	-- Update ticket display and show notification on ticket gain
+	local tickets = incoming and incoming.tickets
+	if tickets ~= nil then
+		ticketsDisplay.updateTickets(tickets)
+
+		if previousTickets ~= nil and tickets > previousTickets then
+			local earned = tickets - previousTickets
+
+			-- Build rich-text message with difficulty-colored tower acronym
+			local towerAcronym = currentTowerAcronym
+			local towerColor = Util.getTowerColors(towerAcronym)
+			local colorHex = towerColor:ToHex()
+
+			local cooldownText = formatCooldownText(TicketConfig.cooldownDuration)
+			local message =
+				`You received {earned} ticket{if earned == 1 then "" else "s"} for beating <font color="#{colorHex}">{towerAcronym}</font>! Tickets can be re-obtained from this tower after {cooldownText}.`
+
+			Notification.show(message)
+		end
+		previousTickets = tickets
+	end
+end
+
 function MenuController.Start()
 	setupButtonConnections()
 	setupMenuToggle()
 	setupModals()
+	ticketsDisplay.setup()
 
 	completions.setup(CompletionsMenu)
-	BlinkClient.PlayerDataUpdate.On(applyCompletionsData)
 
 	-- Tower-dependent button visibility
 	updateTowerButtonsVisibility(false)
-	BlinkClient.LoadTower.On(function()
+	BlinkClient.LoadTower.On(function(acronym: string)
+		currentTowerAcronym = acronym
 		updateTowerButtonsVisibility(true)
 	end)
 	BlinkClient.UnloadTower.On(function()
+		currentTowerAcronym = ""
 		updateTowerButtonsVisibility(false)
 	end)
 end
+
+--- Exposes the settings controller for external use.
+MenuController.settings = settingsController
 
 return MenuController

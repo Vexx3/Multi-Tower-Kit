@@ -7,8 +7,8 @@ local ServerStorage = game:GetService("ServerStorage")
 local StarterPack = game:GetService("StarterPack")
 
 local Log = require("../../../Framework/Log")
-local Types = require("../../shared/types")
 local accounts = require("../accounts")
+local sessionStore = require("../stores/sessionStore")
 
 local TowerRushes = require("../../shared/constants/towerRushes")
 
@@ -18,8 +18,11 @@ local STARTER_PACK_STUDIO = ServerStorage:FindFirstChild("StarterPackStudio") ::
 local tools = {}
 
 --- Handles tool equipment logic for anti-cheat and boost tracking.
-function tools.handleToolEquipped(player: Types.PlayerInfo, item: Tool)
-	if player.currentTower == "" then
+--- Accepts a player name and reads the fresh session from the atom so
+--- mutations are never lost to a stale snapshot.
+function tools.handleToolEquipped(playerName: string, item: Tool)
+	local player = sessionStore.get(playerName)
+	if not player or player.currentTower == "" then
 		return
 	end
 
@@ -28,15 +31,20 @@ function tools.handleToolEquipped(player: Types.PlayerInfo, item: Tool)
 	local hasBoost = boostName ~= nil and boostName ~= ""
 
 	if isDebugItem or hasBoost then
-		player.debugItemUsed = true
+		sessionStore.update(playerName, { debugItemUsed = true })
 	end
 
 	if not hasBoost then
 		return
 	end
 
-	player.boostItemUsed = true
-	player.boostItemNames[item.Name] = boostName or "Boost Item"
+	local updatedNames = table.clone(player.boostItemNames)
+	updatedNames[item.Name] = boostName or "Boost Item"
+
+	sessionStore.update(playerName, {
+		boostItemUsed = true,
+		boostItemNames = updatedNames,
+	})
 
 	if player.currentTowerRush ~= "" then
 		local rush = TowerRushes[player.currentTowerRush]

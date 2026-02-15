@@ -15,6 +15,7 @@ local accounts = require("../accounts")
 local announcements = require("./announcements")
 local leaderstats = require("../lib/leaderstats")
 local playerState = require("../lib/playerState")
+local sessionStore = require("../stores/sessionStore")
 local towers = require("./towers")
 
 type TowerRush = Types.TowerRush
@@ -109,14 +110,23 @@ function towerRush.loadTowerRush(player: PlayerInfo, towerRushName: string)
 		return
 	end
 
-	player.currentTowerRush = towerRushName
-	player.currentTowerRushIndex = 1
-	player.currentTowerRushSplitTime = 0
-	player.boostItemUsed = false
-	player.boostItemNames = {}
+	local playerName = player.player.Name
+
+	sessionStore.update(playerName, {
+		currentTowerRush = towerRushName,
+		currentTowerRushIndex = 1,
+		currentTowerRushSplitTime = 0,
+		boostItemUsed = false,
+		boostItemNames = {},
+	})
 
 	accounts.incrementRushAttempt(player.player, towerRushName)
-	towers.loadTower(player, rushConfig.towers[1], true)
+
+	local freshSession = sessionStore.get(playerName)
+	if freshSession then
+		towers.loadTower(freshSession, rushConfig.towers[1], true)
+	end
+
 	BlinkServer.UpdateTowerRush.Fire(player.player, 1, #rushConfig.towers)
 end
 
@@ -143,12 +153,21 @@ function towerRush.advanceTowerRush(player: PlayerInfo)
 		return
 	end
 
-	player.currentTowerRushIndex += 1
-	player.currentTowerRushSplitTime = rushTime
+	local nextIndex = player.currentTowerRushIndex + 1
+	local playerName = player.player.Name
 
-	local towerName = rushConfig.towers[player.currentTowerRushIndex]
-	towers.loadTower(player, towerName, false)
-	BlinkServer.UpdateTowerRush.Fire(player.player, player.currentTowerRushIndex, towerCount)
+	sessionStore.update(playerName, {
+		currentTowerRushIndex = nextIndex,
+		currentTowerRushSplitTime = rushTime,
+	})
+
+	local towerName = rushConfig.towers[nextIndex]
+	local freshSession = sessionStore.get(playerName)
+	if freshSession then
+		towers.loadTower(freshSession, towerName, false)
+	end
+
+	BlinkServer.UpdateTowerRush.Fire(player.player, nextIndex, towerCount)
 end
 
 return towerRush

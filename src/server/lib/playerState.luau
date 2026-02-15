@@ -27,8 +27,6 @@ function playerState.updatePlayerInfoStats(player: PlayerInfo): ()
 	player.player:SetAttribute("PracticeMode", player.mode == "Practice")
 	player.player:SetAttribute("CurrentTowerRush", player.currentTowerRush)
 	player.player:SetAttribute("CurrentTowerRushIndex", player.currentTowerRushIndex)
-	player.player:SetAttribute("TowerTimer", Util.formatTimer(player.towerTimer))
-	player.player:SetAttribute("BoostItemUsed", player.boostItemUsed)
 	player.player:SetAttribute("BoostItemNames", boostList)
 end
 

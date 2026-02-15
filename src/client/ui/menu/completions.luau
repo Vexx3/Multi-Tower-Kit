@@ -136,6 +136,7 @@ local NotifyClose: GuiButton?
 
 local activeRushButtons: { [GuiObject]: boolean } = {}
 local currentSortMode: SortMode = "Areas"
+local pendingSortMode: SortMode = "Areas"
 local cachedData: PlayerDataCache? = nil
 local tooltipJanitor = Janitor.new()
 
@@ -238,10 +239,10 @@ local function updateSortVisuals()
 	local diffStroke = SettingsFrame.DifficultyButton:FindFirstChildOfClass("UIStroke")
 
 	if areaStroke then
-		areaStroke.Color = if currentSortMode == "Areas" then ACTIVE_COLOR else defaultStrokeColors.Area
+		areaStroke.Color = if pendingSortMode == "Areas" then ACTIVE_COLOR else defaultStrokeColors.Area
 	end
 	if diffStroke then
-		diffStroke.Color = if currentSortMode == "Difficulties" then ACTIVE_COLOR else defaultStrokeColors.Difficulty
+		diffStroke.Color = if pendingSortMode == "Difficulties" then ACTIVE_COLOR else defaultStrokeColors.Difficulty
 	end
 end
 
@@ -693,15 +694,13 @@ function completions.setup(menuFrame: Frame)
 	end
 
 	SettingsFrame.AreaButton.MouseButton1Click:Connect(function()
-		currentSortMode = "Areas"
+		pendingSortMode = "Areas"
 		updateSortVisuals()
-		completions.refresh()
 	end)
 
 	SettingsFrame.DifficultyButton.MouseButton1Click:Connect(function()
-		currentSortMode = "Difficulties"
+		pendingSortMode = "Difficulties"
 		updateSortVisuals()
-		completions.refresh()
 	end)
 
 	SettingsFrame.UsernameBox:GetPropertyChangedSignal("Text"):Connect(function()
@@ -720,6 +719,8 @@ function completions.setup(menuFrame: Frame)
 		local targetUser = SettingsFrame.UsernameBox.Text
 		SettingsFrame.Visible = false
 
+		currentSortMode = pendingSortMode
+
 		local targetId = getUserIdFromUsername(targetUser) or Player.UserId
 		if targetId == viewingUserId then
 			completions.refresh()
@@ -729,10 +730,14 @@ function completions.setup(menuFrame: Frame)
 	end)
 
 	Menu.SettingsButton.MouseButton1Click:Connect(function()
+		pendingSortMode = currentSortMode
+		updateSortVisuals()
 		SettingsFrame.Visible = true
 	end)
 
 	SettingsFrame.CancelButton.MouseButton1Click:Connect(function()
+		pendingSortMode = currentSortMode
+		updateSortVisuals()
 		SettingsFrame.Visible = false
 	end)
 

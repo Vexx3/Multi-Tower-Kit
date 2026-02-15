@@ -7,7 +7,7 @@ local Players = game:GetService("Players")
 local TextChatService = game:GetService("TextChatService")
 
 local ChatTagsData = require("../../shared/constants/chatTags")
-local Observers = require("../../../Packages/observers")
+local playerLifecycle = require("../../shared/utils/playerLifecycle")
 
 type PlayerTag = {
 	Text: string,
@@ -73,12 +73,11 @@ function chat.getPlayerTag(userId: number): PlayerTag?
 end
 
 function chat.init()
-	Observers.observePlayer(function(player)
+	playerLifecycle.onPlayerAdded(function(player)
 		resolvers[player.UserId] = {
 			player = player,
 			tag = resolvePlayerTag(player),
 		}
-		return function() end
 	end, function(player)
 		resolvers[player.UserId] = nil
 	end)

@@ -1,11 +1,11 @@
 --[[
 	TowerState - Client tower state using Charm atom.
-	
-	Charm usage:
-	- atom() to read state
-	- atom(newState) to replace state  
-	- atom(fn) to update (fn receives current, returns new)
-	- Charm.subscribe(atom, callback) to listen
+
+	Charm atom API:
+	- atom()               reads current state
+	- atom(newState)       replaces state
+	- atom(fn)             updates via fn(current) -> new
+	- Charm.subscribe(atom, listener) to listen for changes
 ]]
 
 local Charm = require("../../../Packages/charm")
@@ -30,7 +30,6 @@ local DEFAULT: TowerStateData = {
 
 local atom = Charm.atom(table.clone(DEFAULT))
 
--- Export both atom and helpers as a module
 return {
 	atom = atom,
 	DEFAULT = DEFAULT,

@@ -14,6 +14,7 @@ local Log = require("../../../Framework/Log")
 local Types = require("../../shared/types")
 local Util = require("../../shared/utils/util")
 local accounts = require("../accounts")
+local practiceTools = require("./practiceTools")
 local sessionStore = require("../stores/sessionStore")
 
 type PlayerInfo = Types.PlayerInfo
@@ -67,6 +68,14 @@ local function loadTower(player: PlayerInfo, towerName: string, resetTimer: bool
 
 	BlinkServer.LoadTower.Fire(player.player, towerName, purist, resetTimer)
 	Hooks.fire("TowerLoaded", player.player, towerName)
+
+	-- Give practice tools when entering a tower in Practice mode
+	local freshSession = sessionStore.get(player.player.Name)
+	if freshSession and freshSession.mode == "Practice" then
+		practiceTools.give(player.player)
+	else
+		practiceTools.remove(player.player)
+	end
 end
 
 local function initTower(towerFolder: Instance): TowerInfo?

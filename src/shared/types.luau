@@ -183,7 +183,7 @@ export type Settings = {
 	resetOnDeath: boolean,
 	highFPSPhysicsFix: boolean,
 	utility: "Off" | "Emote" | "Alignment",
-	lowDetailMode: "Off" | "On" | "Ultra",
+	towerLoadingBehavior: "Load All" | "Unload Towers" | "Unload All",
 	fpsDisplay: boolean,
 	hideTimer: boolean,
 	invisiblePlayers: "Off" | "Not Friended" | "Everyone Else" | "Near",

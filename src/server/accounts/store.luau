@@ -168,7 +168,7 @@ local tSchema = t.strictInterface({
 		resetOnDeath = t.boolean,
 		highFPSPhysicsFix = t.boolean,
 		utility = t.union(t.literal("Off"), t.literal("Emote"), t.literal("Alignment")),
-		lowDetailMode = t.union(t.literal("Off"), t.literal("On"), t.literal("Ultra")),
+		towerLoadingBehavior = t.union(t.literal("Load All"), t.literal("Unload Towers"), t.literal("Unload All")),
 		fpsDisplay = t.boolean,
 		hideTimer = t.boolean,
 		invisiblePlayers = t.union(
@@ -248,6 +248,20 @@ local store = Lyra.createPlayerStore({
 			tickets = 0,
 			ticketCooldowns = {},
 		}),
+
+		Lyra.MigrationStep.transform("renameLowDetailMode", function(data: any)
+			local settings = data.settings
+			if settings and settings.lowDetailMode ~= nil then
+				local mapping = {
+					["Off"] = "Load All",
+					["On"] = "Unload Towers",
+					["Ultra"] = "Unload All",
+				}
+				settings.towerLoadingBehavior = mapping[settings.lowDetailMode] or "Load All"
+				settings.lowDetailMode = nil
+			end
+			return data
+		end),
 	},
 	importLegacyData = function(key: string)
 		local dataStore: GlobalDataStore = DataStoreService:GetDataStore(DATA_STORE_KEY)
@@ -277,7 +291,7 @@ end
 
 local function waitForData(player: Player): PlayerData?
 	while not loaded[player] and player.Parent do
-		player:GetAttributeChangedSignal("DataLoaded"):Wait()
+		task.wait(0.1)
 	end
 	return getData(player)
 end
@@ -289,7 +303,6 @@ end
 local function loadAsync(player: Player)
 	store:loadAsync(player)
 	loaded[player] = true
-	player:SetAttribute("DataLoaded", true)
 end
 
 local function unloadAsync(player: Player)

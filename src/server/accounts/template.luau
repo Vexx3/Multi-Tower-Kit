@@ -49,7 +49,7 @@ local PlayerDataTemplate: PlayerData = {
 		utility = "Off", -- "Off" | "Emote" | "Alignment"
 
 		-- Visuals
-		lowDetailMode = "Off", -- "Off" | "On" | "Ultra"
+		towerLoadingBehavior = "Load All", -- "Load All" | "Unload Towers" | "Unload All"
 		fpsDisplay = false, -- show FPS counter?
 		hideTimer = false, -- hide the tower timer?
 		invisiblePlayers = "Off", -- "Off" | "Not Friended" | "Everyone Else" | "Near"

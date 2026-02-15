@@ -58,10 +58,14 @@ end
 
 local function markSignCompleted(sign: TowerSignData, isAllJumps: boolean)
 	if isAllJumps then
-		sign.completionState = "alljumps"
-		applySignColor(sign.portalSign, AJ_COMPLETED_COLOR)
-		applySignColor(sign.chartLine, AJ_COMPLETED_COLOR)
-	elseif sign.completionState ~= "alljumps" then
+		-- Only color yellow if not already green (legit beat takes priority)
+		if sign.completionState ~= "normal" then
+			sign.completionState = "alljumps"
+			applySignColor(sign.portalSign, AJ_COMPLETED_COLOR)
+			applySignColor(sign.chartLine, AJ_COMPLETED_COLOR)
+		end
+	else
+		-- Green always wins, regardless of current state
 		sign.completionState = "normal"
 		applySignColor(sign.portalSign, COMPLETED_COLOR)
 		applySignColor(sign.chartLine, COMPLETED_COLOR)
@@ -128,15 +132,16 @@ function display.updateCompletedTowers(data: { completedTowers: { string }?, com
 		return
 	end
 
-	if data.completedTowers then
-		Dash.forEach(data.completedTowers, function(towerName)
-			display.markTowerCompleted(towerName, false)
-		end)
-	end
-
+	-- Apply AJ completions first so legit completions can override (green > yellow)
 	if data.completedAjTowers then
 		Dash.forEach(data.completedAjTowers, function(towerName)
 			display.markTowerCompleted(towerName, true)
+		end)
+	end
+
+	if data.completedTowers then
+		Dash.forEach(data.completedTowers, function(towerName)
+			display.markTowerCompleted(towerName, false)
 		end)
 	end
 end
