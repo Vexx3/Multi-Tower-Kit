@@ -23,6 +23,7 @@ function playerState.updatePlayerInfoStats(player: PlayerInfo): ()
 	local boostList = Util.formatBoosts(player.boostItemNames)
 
 	player.player:SetAttribute("CurrentTower", player.currentTower)
+	player.player:SetAttribute("TowerTimer", player.towerTimer)
 	player.player:SetAttribute("AllJumpsMode", player.mode == "AllJumps")
 	player.player:SetAttribute("PracticeMode", player.mode == "Practice")
 	player.player:SetAttribute("CurrentTowerRush", player.currentTowerRush)

@@ -7,6 +7,7 @@ local UIManager = require("@self/uiManager")
 local Util = require("../../shared/utils/util")
 local completions = require("@self/completions")
 local settingsController = require("@self/settingsController")
+local spectate = require("@self/spectate")
 local ticketsDisplay = require("@self/ticketsDisplay")
 
 local Player = Players.LocalPlayer :: Player
@@ -15,6 +16,7 @@ local MainMenuGui = PlayerGui:WaitForChild("MainMenu") :: ScreenGui
 
 local ButtonsHolder = MainMenuGui:FindFirstChild("ButtonsHolder") :: Frame
 local MenuButton = ButtonsHolder:FindFirstChild("MenuButton") :: GuiButton
+local SpectateButton = ButtonsHolder:FindFirstChild("SpectateButton") :: GuiButton?
 local MainMenu = MainMenuGui:FindFirstChild("Main") :: Frame
 local CloseButton = MainMenu:FindFirstChild("CloseButton") :: GuiButton
 local ButtonsContainer = MainMenu:FindFirstChild("ButtonsContainer") :: Frame
@@ -226,6 +228,14 @@ function MenuController.Start()
 	setupMenuToggle()
 	setupModals()
 	ticketsDisplay.setup()
+	spectate.setup(MainMenuGui)
+
+	if SpectateButton then
+		SpectateButton.MouseButton1Click:Connect(function()
+			UIManager.PlayClick()
+			spectate.toggle()
+		end)
+	end
 
 	completions.setup(CompletionsMenu)
 
