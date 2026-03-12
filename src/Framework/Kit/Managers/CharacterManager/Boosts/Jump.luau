@@ -16,27 +16,17 @@ Boost.Information = {
 	color = Color3.fromRGB(175, 255, 0),
 }
 
-function Boost.Start(boostData: _TDefs.BoostData)
-	
-end
+function Boost.Start(boostData: _TDefs.BoostData) end
 
 function Boost.Update(boostData: _TDefs.BoostData)
-	Utility.Character.changeHumanoidProperty(
-		"JumpPower",
-		boostData.power,
-		boostData.startTweenInfo
-	)
+	Utility.Character.changeHumanoidProperty("JumpPower", boostData.power, boostData.startTweenInfo)
 end
 
 function Boost.End(boostData: _TDefs.BoostData)
 	local activeBoost = Utility.Character.getActiveBoost(boostData.type, boostData.mode ~= "Pad")
 	local defaultJumpPower = if activeBoost then activeBoost.power else StarterPlayer.CharacterJumpPower
-	
-	Utility.Character.changeHumanoidProperty(
-		"JumpPower",
-		defaultJumpPower,
-		boostData.endTweenInfo
-	)
+
+	Utility.Character.changeHumanoidProperty("JumpPower", defaultJumpPower, boostData.endTweenInfo)
 end
 
 function Boost.GetMultiplier(boostData: _TDefs.BoostData): number

@@ -3,12 +3,12 @@ local UIManager = {}
 type LayerData = {
 	frame: Frame?,
 	button: GuiButton?,
-	color: Color3?
+	color: Color3?,
 }
 
 local activeData: { [string]: LayerData } = {
-	Main = {frame = nil, button = nil, color = nil},
-	Sub = {frame = nil, button = nil, color = nil}
+	Main = { frame = nil, button = nil, color = nil },
+	Sub = { frame = nil, button = nil, color = nil },
 }
 
 local ACTIVE_COLOR = Color3.fromRGB(166, 227, 161)
@@ -32,7 +32,7 @@ function UIManager.OpenFrame(targetFrame: Frame, targetButton: GuiButton, isSubM
 
 	if layer.button and layer.color then
 		local prevStroke: UIStroke? = layer.button:FindFirstChildOfClass("UIStroke")
-		if prevStroke then 
+		if prevStroke then
 			prevStroke.Color = layer.color
 		end
 	end

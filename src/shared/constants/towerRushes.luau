@@ -44,7 +44,7 @@ local TowerRushes: Types.Dictionary<TowerRush> = {
 	-- Tower Storage Rush: 5 towers, no boosts allowed
 	TSR = {
 		winroomMarker = "WinroomSpawn",
-		towers = { "ToUC", "ToVP", "ToNC", "ToDIM", "ToMD" },
+		towers = { "ToNI", "ToFH", "ToCQ", "ToADS", "ToDNE", "CoIL", "CoT" },
 		noBoosts = true, -- boosts kill the player in this rush
 	},
 }

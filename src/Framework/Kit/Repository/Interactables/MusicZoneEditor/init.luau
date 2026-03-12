@@ -313,7 +313,7 @@ function MusicZoneEditor.Run(scope: _T.Scope, utility: _T.Utility)
 	if musicZonePriorityValue and musicZonePriorityValue:HasTag(DEFAULTS_SET_KEY) then
 		musicZonePriorityValue.Value = musicZonePriorityValue:GetAttribute(DEFAULTS_TEMPLATE)
 	end
-	
+
 	-- touch functionality
 	scope:add(musicZoneEditor.Touched:Connect(function(toucher)
 		if not utility.ClientObjects.evaluateToucher(musicZoneEditor, toucher, touchConfiguration) then

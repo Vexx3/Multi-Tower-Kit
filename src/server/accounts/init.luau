@@ -3,12 +3,8 @@
 	Combines data store access with per-tower and per-rush statistics.
 ]]
 
-local Players = game:GetService("Players")
-
-local BlinkServer = require("./Network/BlinkServer")
 local Types = require("../shared/types")
 local Util = require("../shared/utils/util")
-local playerLifecycle = require("../shared/utils/playerLifecycle")
 local store = require("@self/store")
 
 export type PlayerData = store.PlayerData
@@ -270,34 +266,6 @@ function accounts.recordRushWin(
 		end
 
 		return true
-	end)
-end
-
---- Initializes player data lifecycle: load on join, unload on leave, handle Blink requests.
-function accounts.init()
-	playerLifecycle.onPlayerAdded(function(player)
-		store.loadAsync(player)
-	end, function(player)
-		store.unloadAsync(player)
-	end)
-
-	game:BindToClose(function()
-		store.closeAsync()
-	end)
-
-	BlinkServer.GetPlayerData.On(function(_player: Player, targetUserId: number)
-		local targetPlayer = Players:GetPlayerByUserId(targetUserId)
-		if targetPlayer then
-			return store.getData(targetPlayer)
-		end
-		return store.peekAsync(targetUserId)
-	end)
-
-	BlinkServer.UpdateSettings.On(function(player: Player, settings: any)
-		store.updateAsync(player, function(data: PlayerData)
-			data.settings = settings
-			return true
-		end)
 	end)
 end
 

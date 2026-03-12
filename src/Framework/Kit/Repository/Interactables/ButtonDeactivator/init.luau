@@ -21,8 +21,8 @@ Thank you
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
-local _T = require(ReplicatedStorage.Framework.ClientTypes)
 local SequencerSupport = require(script.SequencerSupport)
+local _T = require(ReplicatedStorage.Framework.ClientTypes)
 
 local ButtonDeactivator = {
 	CanQueue = true,

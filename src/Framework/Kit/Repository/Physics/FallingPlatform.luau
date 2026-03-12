@@ -108,16 +108,14 @@ function FallingPlatform.Run(scope: _T.Scope, utility: _T.Utility)
 	alignPosition.ForceRelativeTo = Enum.ActuatorRelativeTo.World
 	alignPosition.Position = platform.Position
 	platform.Anchored = false
-	
+
 	local buttonCache = nil
 	local buttonActivated = platform:HasTag("ButtonActivated")
-	local platformColor = utility.Functions.roundColor(
-		platform:GetAttribute("ColorOverride") or platform.Color
-	)
+	local platformColor = utility.Functions.roundColor(platform:GetAttribute("ColorOverride") or platform.Color)
 
 	local connectedParts = platform:GetConnectedParts(true)
-	local partTable: {FallingPart} = {}
-	
+	local partTable: { FallingPart } = {}
+
 	do
 		local buttonScript = scope.repository["Interactables/Button"]
 		if typeof(buttonScript) ~= "table" then
@@ -128,21 +126,18 @@ function FallingPlatform.Run(scope: _T.Scope, utility: _T.Utility)
 		local buttonRequest = scope:getCommunicator("request", Communicator.KEY)
 		buttonCache = buttonRequest:request(Communicator.AWAIT_CACHE)
 	end
-	
+
 	local function isButtonActivated(color: Color3): boolean
 		if not buttonCache then
 			return false
 		end
-		
+
 		for _, button in buttonCache.Buttons do
-			if
-				platformColor == utility.Functions.roundColor(button.Color)
-				and button.Pressed.Value
-			then
+			if platformColor == utility.Functions.roundColor(button.Color) and button.Pressed.Value then
 				return true
 			end
 		end
-		
+
 		return false
 	end
 
@@ -154,11 +149,11 @@ function FallingPlatform.Run(scope: _T.Scope, utility: _T.Utility)
 				continue
 			end
 		end
-		
+
 		local realTransparency = if buttonActivated
 			then utility.Functions.getButtonActivatedTransparency(part, not part:HasTag("Invert"))
 			else part.Transparency
-		
+
 		table.insert(partTable, {
 			part = part,
 			transparency = part.Transparency,
@@ -182,23 +177,21 @@ function FallingPlatform.Run(scope: _T.Scope, utility: _T.Utility)
 		alignPosition.MaxVelocity = RELEASE_VELOCITY
 
 		task.wait(activeTime)
-		
+
 		local buttonActive = isButtonActivated(platformColor)
 		for _, part in partTable do
 			-- get cancollide
-			local realCanCollide = if buttonActivated
-				then buttonActive
-				else part.canCollide
-			
+			local realCanCollide = if buttonActivated then buttonActive else part.canCollide
+
 			if part.part:HasTag("Invert") then
 				realCanCollide = not realCanCollide
 			end
-			
+
 			-- get transparency
 			local realTransparency = if buttonActivated
 				then utility.Functions.getButtonActivatedTransparency(part.part, buttonActive)
 				else part.transparency
-			
+
 			part.part.CanCollide = realCanCollide
 			part.part.Transparency = realTransparency
 		end

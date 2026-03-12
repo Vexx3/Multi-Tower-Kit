@@ -8,6 +8,7 @@ local StarterPack = game:GetService("StarterPack")
 
 local Log = require("../../../Framework/Log")
 local accounts = require("../accounts")
+local playerState = require("../lib/playerState")
 local sessionStore = require("../stores/sessionStore")
 
 local TowerRushes = require("../../shared/constants/towerRushes")
@@ -45,6 +46,11 @@ function tools.handleToolEquipped(playerName: string, item: Tool)
 		boostItemUsed = true,
 		boostItemNames = updatedNames,
 	})
+
+	local freshSession = sessionStore.get(playerName)
+	if freshSession then
+		playerState.updatePlayerInfoStats(freshSession)
+	end
 
 	if player.currentTowerRush ~= "" then
 		local rush = TowerRushes[player.currentTowerRush]

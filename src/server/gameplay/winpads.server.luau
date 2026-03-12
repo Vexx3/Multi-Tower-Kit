@@ -209,6 +209,11 @@ local function updateWinpadAnimations(_time: number, deltaTime: number)
 	end
 end
 
+-- Wait for towers to be registered by init.server.luau before discovering winpads
+while not next(towers.getAllTowers()) do
+	task.wait()
+end
+
 -- Discover all winpads and set them up
 for _, towerFolder in TOWERS:GetChildren() do
 	local tower = towers.getTower(towerFolder.Name)
@@ -224,5 +229,3 @@ for _, towerFolder in TOWERS:GetChildren() do
 end
 
 RunService.Stepped:Connect(updateWinpadAnimations)
-
-return nil

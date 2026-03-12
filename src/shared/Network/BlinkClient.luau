@@ -169,7 +169,9 @@ Queue.Reliable[6] = table.create(256)
 Events.Reliable[7] = {}
 Queue.Reliable[7] = table.create(256)
 Queue.Reliable[14] = table.create(256)
+Events.Reliable[15] = {}
 Queue.Reliable[15] = table.create(256)
+Queue.Reliable[16] = table.create(256)
 export type ClientWinMessageInfo = { playerName: string, endingName: string, time: number, boostsUsed: {[string]: string}, allJumps: boolean, color: Color3, fancyFont: boolean, global: boolean }
 export type AllJumpsCheckpointState = { CharacterCFrame: CFrame, CameraCFrame: CFrame, LinearVelocity: Vector3, AngularVelocity: Vector3, HumanoidState: string }
 local function WriteEVENT_RestartRequested(Value: nil): ()
@@ -392,10 +394,16 @@ local function ReadEVENT_AllJumpsRestoreState(): ({ CharacterCFrame: CFrame, Cam
 	return Value
 end
 
+local function ReadEVENT_SyncState(): (any)
+	RecieveInstanceCursor += 1
+	local Value = RecieveInstances[RecieveInstanceCursor]
+	return Value
+end
+
 local function WriteFUNCTION_DATA_GetPlayerData(Value: number, InvocationIdentifier: number): ()
 	-- Allocate BLOCK: 6 bytes
 	local BLOCK_START = Allocate(6)
-	buffer.writeu8(SendBuffer, BLOCK_START + 0, 15)
+	buffer.writeu8(SendBuffer, BLOCK_START + 0, 16)
 	buffer.writeu8(SendBuffer, BLOCK_START + 1, InvocationIdentifier)
 	buffer.writeu32(SendBuffer, BLOCK_START + 2, Value)
 end
@@ -461,6 +469,9 @@ if not RunService:IsRunning() then
 		Fire = NOOP
 	},
 	AllJumpsRestoreState = {
+		On = NOOP
+	},
+	SyncState = {
 		On = NOOP
 	},
 	GetPlayerData = {
@@ -596,6 +607,18 @@ Reliable.OnClientEvent:Connect(function(Buffer: buffer, Instances: {Instance})
 				table.insert(Queue.Reliable[14], {Value} :: {any})
 			end
 		elseif Index == 15 then
+			local Value: any = ReadEVENT_SyncState()
+			if #Events.Reliable[15] > 0 then
+				for _, Listener in Events.Reliable[15] do
+					task.spawn(Listener, Value)
+				end
+			else
+				if #Queue.Reliable[15] > 256 then
+					warn("[Blink]: Event queue of \"SyncState\" exceeded 256, did you forget to implement a listener?")
+				end
+				table.insert(Queue.Reliable[15], {Value} :: {any})
+			end
+		elseif Index == 16 then
 			-- Read BLOCK: 1 bytes
 			local BLOCK_START = Read(1)
 			local InvocationIdentifier = buffer.readu8(RecieveBuffer, BLOCK_START + 0)
@@ -795,6 +818,21 @@ local Returns = table.freeze({
 			return function (): ()
 				if Events.Reliable[14] == Listener then
 					Events.Reliable[14] = nil
+				end
+			end
+		end
+	},
+	SyncState = {
+		On = function(Listener: (Value: any) -> ()): () -> ()
+			table.insert(Events.Reliable[15], Listener)
+			for Index, Arguments in Queue.Reliable[15] do
+				task.spawn(Listener, table.unpack(Arguments))
+			end
+			Queue.Reliable[15] = {}
+			return function (): ()
+				local Index = table.find(Events.Reliable[15], Listener)
+				if Index ~= nil then
+					table.remove(Events.Reliable[15], Index)
 				end
 			end
 		end

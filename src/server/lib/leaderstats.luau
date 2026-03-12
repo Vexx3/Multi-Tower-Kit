@@ -3,12 +3,9 @@
 ]]
 
 local Leaderboard = require("../../shared/utils/Leaderboard")
-local Sift = require("../../../Packages/sift")
 local Types = require("../../shared/types")
 local accounts = require("../accounts")
 local tools = require("../gameplay/tools")
-
-local Array = Sift.Array
 
 local leaderstats = {}
 
@@ -31,14 +28,14 @@ function leaderstats.setTowerStat(player: Player, towerInfo: Types.TowerInfo, st
 	end
 
 	local acronym = towerInfo.folder.Name
-	if Array.includes(playerData.completedTowers, acronym) then
+	if table.find(playerData.completedTowers, acronym) then
 		return
 	end
 
 	accounts.updateAsync(player, function(data: accounts.PlayerData)
 		data.towers += stat
 		Leaderboard.setStat(player, "Towers", data.towers)
-		data.completedTowers = Array.push(data.completedTowers, acronym)
+		table.insert(data.completedTowers, acronym)
 		return true
 	end)
 
@@ -50,14 +47,14 @@ function leaderstats.setAllJumpsStat(player: Player, towerInfo: Types.TowerInfo,
 	local towerKey = towerInfo.folder.Name
 	local playerData = accounts.getData(player)
 
-	if not playerData or Array.includes(playerData.completedAjTowers or {}, towerKey) then
+	if not playerData or table.find(playerData.completedAjTowers or {}, towerKey) then
 		return
 	end
 
 	accounts.updateAsync(player, function(data: accounts.PlayerData)
 		data.allJumps = data.allJumps + stat
 		Leaderboard.setStat(player, "All-jumps", data.allJumps)
-		data.completedAjTowers = Array.push(data.completedAjTowers, towerKey)
+		table.insert(data.completedAjTowers, towerKey)
 		return true
 	end)
 end

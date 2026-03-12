@@ -21,21 +21,18 @@ local TowerStateModule = require("../stores/towerState")
 local chat = require("./chat")
 local display = require("./display")
 local legacyCompat = require("./legacyCompat")
+local objects = require("../../shared/utils/objects")
 local towerVisibility = require("./towerVisibility")
-local TowerState = TowerStateModule.atom
+
 local DEFAULT_TOWER_STATE = TowerStateModule.DEFAULT
 local conch = require("../../../Packages/conch")
 local conchui = require("../../../Packages/conch-ui")
 
 type TowerStateData = TowerStateModule.TowerStateData
 
--- Helper to update a single field in TowerState
-local function updateState(key: string, value: any)
-	TowerState(function(s: TowerStateData): TowerStateData
-		local new: any = table.clone(s)
-		new[key] = value
-		return new
-	end)
+-- Helper to update fields in TowerState
+local function updateState(updates: { [string]: any })
+	TowerStateModule.setTowerState(objects.join(TowerStateModule.getTowerState(), updates))
 end
 
 -- EToH v6 Managers
@@ -57,12 +54,12 @@ local lastDisplayedTimer = -1
 local lastRestartProgress = -1
 
 local function loadTower(acronym: string, purist: boolean, resetTimer: boolean): ()
-	local state = TowerState()
+	local state = TowerStateModule.getTowerState()
 	if state.currentTower ~= "" then
 		LightingManager:ResetLighting()
 	end
 
-	TowerState({
+	TowerStateModule.setTowerState({
 		currentTower = acronym,
 		towerTimer = 0,
 		rushIndex = state.rushIndex,
@@ -91,12 +88,12 @@ local function loadTower(acronym: string, purist: boolean, resetTimer: boolean):
 end
 
 local function unloadTower(): ()
-	local state = TowerState()
+	local state = TowerStateModule.getTowerState()
 	if state.currentTower ~= "" then
 		LightingManager:ResetLighting()
 	end
 
-	TowerState(table.clone(DEFAULT_TOWER_STATE))
+	TowerStateModule.setTowerState(table.clone(DEFAULT_TOWER_STATE))
 
 	ResetEffectGui:Fire()
 	ClientObjects.unloadClientObjects()
@@ -110,16 +107,14 @@ local function unloadTower(): ()
 end
 
 local function correctTimer(time: number): ()
-	updateState("towerTimer", time)
+	updateState({ towerTimer = time })
 end
 
 local function updateTowerRush(index: number, total: number): ()
-	TowerState(function(s: TowerStateData): TowerStateData
-		local new = table.clone(s)
-		new.rushIndex = index
-		new.rushTotal = total
-		return new
-	end)
+	updateState({
+		rushIndex = index,
+		rushTotal = total,
+	})
 	HUD.setTowerRush(index, total)
 end
 
@@ -132,9 +127,9 @@ local function onCharacterAdded(character: Model): ()
 	character.ChildAdded:Connect(function(ins: Instance)
 		if ins:IsA("Tool") then
 			local boostName = ins:GetAttribute("BoostName") :: string?
-			local state = TowerState()
+			local state = TowerStateModule.getTowerState()
 			if boostName and boostName ~= "" and state.currentTower ~= "" then
-				updateState("isBoostUsed", true)
+				updateState({ isBoostUsed = true })
 				HUD.setBoostsUsed(true)
 			end
 		end
@@ -144,7 +139,7 @@ end
 local function onStep(deltaTime: number): ()
 	debug.profilebegin("MTK_ClientStep")
 
-	local state = TowerState()
+	local state = TowerStateModule.getTowerState()
 	local newTimer = state.towerTimer
 	local newProgress = state.restartProgress
 
@@ -166,14 +161,12 @@ local function onStep(deltaTime: number): ()
 		end
 	end
 
-	-- Single atom write per frame (only if something changed)
+	-- Single signal write per frame (only if something changed)
 	if newTimer ~= state.towerTimer or newProgress ~= state.restartProgress then
-		TowerState(function(s: TowerStateData): TowerStateData
-			local new = table.clone(s)
-			new.towerTimer = newTimer
-			new.restartProgress = newProgress
-			return new
-		end)
+		updateState({
+			towerTimer = newTimer,
+			restartProgress = newProgress,
+		})
 	end
 
 	-- Update HUD displays

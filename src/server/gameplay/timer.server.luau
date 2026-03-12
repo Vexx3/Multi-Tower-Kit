@@ -83,5 +83,3 @@ local function onStepped(_time: number, deltaTime: number)
 end
 
 RunService.Stepped:Connect(onStepped)
-
-return nil

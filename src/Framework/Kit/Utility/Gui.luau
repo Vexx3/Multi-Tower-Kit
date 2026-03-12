@@ -27,9 +27,9 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Framework = ReplicatedStorage.Framework
 local Managers = Framework.Kit.Managers
 
+local CharacterManager_Types = require(Managers.CharacterManager.TypeDefs)
 local GuiManager = require(Managers.GuiManager):Init()
 local GuiManager_Types = require(Managers.GuiManager.TypeDefs)
-local CharacterManager_Types = require(Managers.CharacterManager.TypeDefs)
 
 Gui.EffectGui = GuiManager.Gui -- DEPRECATED: use `Gui.getEffectGui()` instead
 

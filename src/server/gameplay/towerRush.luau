@@ -124,6 +124,7 @@ function towerRush.loadTowerRush(player: PlayerInfo, towerRushName: string)
 
 	local freshSession = sessionStore.get(playerName)
 	if freshSession then
+		playerState.updatePlayerInfoStats(freshSession)
 		towers.loadTower(freshSession, rushConfig.towers[1], true)
 	end
 

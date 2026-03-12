@@ -42,9 +42,9 @@ local Framework = ReplicatedStorage.Framework
 
 local Log = require(Framework.Log)
 
-local PropertyUtil = require(Framework.Kit.Utility.Property)
 local Config = require(Framework.Kit.Utility.Config)
 local GuiManager = require(Framework.Kit.Managers.GuiManager)
+local PropertyUtil = require(Framework.Kit.Utility.Property)
 local _TDefs = require(script.TypeDefs)
 
 local DamageEvent = Framework.Remotes.Towers.Objects.DamageEvent
@@ -80,10 +80,10 @@ Boost variables
 ]]
 
 local activeBoosts: { _TDefs.BoostData } = {}
-local boostModules: {[string]: _TDefs.Boost} = {}
-local customBoostModules: {[string]: _TDefs.Boost} = {}
+local boostModules: { [string]: _TDefs.Boost } = {}
+local customBoostModules: { [string]: _TDefs.Boost } = {}
 
-local humanoidTweens: {[string]: Tween} = {}
+local humanoidTweens: { [string]: Tween } = {}
 
 local BOOST_TIMER_LARGE_DURATION = 10 ^ 10
 local BOOST_INFINITE_DURATION = math.huge
@@ -196,13 +196,13 @@ function CharacterManager:ChangeHumanoidProperty(property: string, value: any, t
 	if not humanoid then
 		return
 	end
-	
+
 	if humanoidTweens[property] then
 		humanoidTweens[property]:Cancel()
 	end
-	
+
 	if tweenInfo and tweenInfo.Time > 0 then
-		local tween = TweenService:Create(humanoid, tweenInfo, {[property] = value})
+		local tween = TweenService:Create(humanoid, tweenInfo, { [property] = value })
 		tween:Play()
 		tween.Completed:Connect(function(playbackState)
 			if playbackState == Enum.PlaybackState.Completed then
@@ -210,7 +210,7 @@ function CharacterManager:ChangeHumanoidProperty(property: string, value: any, t
 				humanoidTweens[property] = nil
 			end
 		end)
-		
+
 		humanoidTweens[property] = tween
 	else
 		PropertyUtil.setPropertySafe(humanoid, property, value)
@@ -229,8 +229,8 @@ function CharacterManager:GetActiveBoost(boostType: string, isPad: boolean?): _T
 		if isPad and boost.mode ~= "Pad" then
 			continue
 		end
-		
-		if (boost.type == boostType or not boostType) then
+
+		if boost.type == boostType or not boostType then
 			return boost
 		end
 	end
@@ -279,7 +279,7 @@ function CharacterManager:RegisterCustomBoost(boostType: string, boostData: _TDe
 		})
 		return
 	end
-		
+
 	customBoostModules[boostType] = boostData
 end
 
@@ -305,12 +305,12 @@ function CharacterManager:StartBoost(boostData: _TDefs.BoostData)
 			activeBoost.multiplier = activeBoost.module.GetMultiplier(activeBoost)
 			activeBoost.timeLeft = boostData.duration
 		end
-		
+
 		activeBoost.module.Update(boostData)
 		GuiManager:UpdateBoostFrame(activeBoost)
 		return
 	end
-	
+
 	boostData.multiplier = boostData.module.GetMultiplier(boostData)
 	boostData.frame = GuiManager:CreateBoostFrame(boostData)
 
@@ -378,7 +378,7 @@ function CharacterManager:Init()
 		return CharacterManager
 	end
 	self.__initialized = true
-	
+
 	-- require boost modules
 	for _, boost in script.Boosts:GetChildren() do
 		if boost:IsA("ModuleScript") then
@@ -391,7 +391,7 @@ function CharacterManager:Init()
 		for _, boost in activeBoosts do
 			GuiManager:DestroyBoostFrame(boost)
 		end
-		
+
 		table.clear(activeBoosts)
 		table.clear(customBoostModules)
 

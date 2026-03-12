@@ -8,8 +8,8 @@
 
 local Dash = script.Parent
 local None = require(Dash.None)
-local forEachArgs = require(Dash.forEachArgs)
 local forEach = require(Dash.forEach)
+local forEachArgs = require(Dash.forEachArgs)
 local insert = table.insert
 
 local function append<T>(target: { T }, ...: { T }?): { T }

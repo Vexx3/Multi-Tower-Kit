@@ -89,9 +89,13 @@ local function updateBoostList(): ()
 	local boostAttr = Player:GetAttribute("BoostItemNames") :: string?
 	local boostNames = if boostAttr then boostAttr else ""
 	local pieces = string.split(boostNames, ",")
-	local list = Dash.filter(pieces, function(part)
-		return part ~= ""
-	end)
+	local list = {}
+	for _, piece in pieces do
+		local trimmed = piece:match("^%s*(.-)%s*$") or ""
+		if trimmed ~= "" then
+			table.insert(list, trimmed)
+		end
+	end
 
 	currentBoostList = list
 	rebuildBoostList(currentBoostList)
@@ -217,6 +221,9 @@ end
 	@param max number -- Total towers in the rush
 ]=]
 function TowerGUI.setTowerRush(progress: number, max: number): ()
+	currentRushIndex = progress
+	updateTowerRush()
+
 	if towerRushProgressLabel then
 		towerRushProgressLabel.Text = `{progress}/{max}`
 		towerRushProgressLabel.Visible = max ~= 0
@@ -230,9 +237,6 @@ function TowerGUI.setTowerRush(progress: number, max: number): ()
 		towerRushProgressLabel.TextColor3 = progressColor
 		towerRushProgressLabel.TextStrokeColor3 = progressStroke
 	end
-
-	currentRushIndex = progress
-	updateTowerRush()
 
 	if max == 0 then
 		setRushListVisible(false)

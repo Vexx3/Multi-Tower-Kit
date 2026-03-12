@@ -62,7 +62,7 @@ function PushboxSpawn.Run(scope: _T.Scope, utility: _T.Utility)
 		})
 		return
 	end
-	
+
 	local function anchorModel(model: typeof(pushboxTemplate), anchored: boolean)
 		for _, part in model:GetDescendants() do
 			if part:IsA("BasePart") and not part:HasTag("BoxAnchor") then
@@ -70,13 +70,13 @@ function PushboxSpawn.Run(scope: _T.Scope, utility: _T.Utility)
 			end
 		end
 	end
-	
+
 	local coUtil = utility.ClientObjects
 	local coVersion = coUtil.getCOVersion(spawnConfig)
-	
+
 	--> set up box template
 	scope:add(pushboxTemplate)
-	
+
 	pushboxTemplate.Parent = nil
 	pushboxTemplate:RemoveTag("SkipObjectLoad")
 	-- ^ this line above is important to reduce IsDescendantOf checks and also

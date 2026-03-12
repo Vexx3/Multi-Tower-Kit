@@ -55,12 +55,18 @@ local RealmInfo: Types.Realms = {
 				ETV6 = { name = "Example Tower V6", badgeId = 0, rating = 8, numDifficulty = 0.01 },
 
 				-- More tower examples
-				ToCAP = { name = "Tower of Climbing A Pillar", badgeId = 0, rating = 8, numDifficulty = 0.34 },
-				ToDIM = { name = "Tower of Diving Into Madness", badgeId = 0, rating = 6, numDifficulty = 0.45 },
-				ToMD = { name = "Tower of Mechanical Disarray", badgeId = 0, rating = 7, numDifficulty = 0.56 },
-				ToNC = { name = "Tower of No Context", badgeId = 0, rating = 6, numDifficulty = 0.38 },
-				ToUC = { name = "Tower of Ultra Cool", badgeId = 0, rating = 2, numDifficulty = 0.26 },
-				ToVP = { name = "Tower of Vela Pulsar", badgeId = 0, rating = 5, numDifficulty = 0.55 },
+				ToNI = { name = "Tower of No Idea", badgeId = 0, rating = 1, numDifficulty = 0.34 },
+				ToFH = { name = "Tower of Fractured Hyperactivity", badgeId = 0, rating = 4, numDifficulty = 0.45 },
+				ToCQ = { name = "Tower of Celestial Quietude", badgeId = 0, rating = 5, numDifficulty = 0.56 },
+				ToADS = { name = "Tower of A Deformed Structure", badgeId = 0, rating = 7, numDifficulty = 0.38 },
+				ToDNE = {
+					name = "Tower of Delightfully Nightmarish Endeavors",
+					badgeId = 0,
+					rating = 9,
+					numDifficulty = 0.26,
+				},
+				CoIL = { name = "Citadel of Infuriating Layers", badgeId = 0, rating = 7, numDifficulty = 0.55 },
+				CoT = { name = "Citadel of Tribulations", badgeId = 0, rating = 8, numDifficulty = 0.55 },
 
 				-- Tower Rush entries — these use `rush = true` and must also have
 				-- a matching entry in `towerRushes.luau`

@@ -10,6 +10,7 @@ local RunService = game:GetService("RunService")
 local BlinkServer = require("../Network/BlinkServer")
 local Config = require("../../shared/constants/config")
 local Lyra = require("../../../Packages/lyra")
+local accountStore = require("../stores/accountStore")
 local t = require("../../../Packages/t")
 local template = require("./template")
 
@@ -33,6 +34,13 @@ local function createLogger()
 				warn(`[Lyra] {message.message}`)
 			end
 		end
+	end
+end
+
+local function onAccountChanged(key: string, newData: PlayerData)
+	local player = Players:GetPlayerByUserId(tonumber(key) :: number)
+	if player then
+		accountStore.setAccount(player.Name, newData)
 	end
 end
 
@@ -196,7 +204,7 @@ local store = Lyra.createPlayerStore({
 	name = DATA_STORE_KEY,
 	template = template,
 	schema = tSchema,
-	changedCallbacks = { syncWithClient },
+	changedCallbacks = { onAccountChanged, syncWithClient },
 	migrationSteps = {
 		Lyra.MigrationStep.transform("migrateLegacyFormat", function(data: any)
 			local mapping: { [string]: string } = {

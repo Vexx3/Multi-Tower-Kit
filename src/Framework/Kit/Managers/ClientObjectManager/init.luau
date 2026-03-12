@@ -33,15 +33,15 @@ local Framework = ReplicatedStorage.Framework
 local _TDefs = require(script.TypeDefs)
 
 local Kit = Framework.Kit
+local LightingManager = require(Kit.Managers.LightingManager)
+local Log = require(Framework.Log)
 local ScopeConstructor = require(Kit.Managers.ScopeConstructor)
 local ScopeTypes = require(Kit.Managers.ScopeConstructor.TypeDefs)
 local Utility = require(Kit.Utility)
-local Log = require(Framework.Log)
-local LightingManager = require(Kit.Managers.LightingManager)
 
 local ClientObjectManager = {
 	__initialized = false,
-    VERSION_NUMBER = "6.1.2",
+	VERSION_NUMBER = "6.1.2",
 } :: _TDefs.ClientObjectsController
 
 type Repo = { [string]: any }
@@ -118,12 +118,12 @@ local function loadScript(targetScope: ScopeTypes.Scope, scriptPath: string, ins
 		local innerScope = targetScope:inherit({
 			instance = instance,
 			scriptPath = scriptPath,
-        })
-        if instance then
-            targetScope.activeScripts[scriptPath][instance] = true
-            innerScope:attach(instance)
-        end
-        
+		})
+		if instance then
+			targetScope.activeScripts[scriptPath][instance] = true
+			innerScope:attach(instance)
+		end
+
 		if typeof(thisScript) == "function" then
 			thisScript(innerScope, Utility)
 		elseif typeof(thisScript) == "table" and typeof(thisScript.Run) == "function" then
@@ -153,8 +153,8 @@ end
 ]=]
 function ClientObjectManager:ScanFolder(targetScope: ScopeTypes.Scope, path: Instance, targetPath: Instance?)
 	local repository = targetScope.repository
-    local activeScripts = targetScope.activeScripts
-    
+	local activeScripts = targetScope.activeScripts
+
 	--> Get objects that shouldnt be loaded in (yet?)
 	local objectBlacklist = {}
 	for _, instance in CollectionService:GetTagged("SkipObjectLoad") do
@@ -166,10 +166,10 @@ function ClientObjectManager:ScanFolder(targetScope: ScopeTypes.Scope, path: Ins
 	--> Get scripts
 	local scriptQueue = {}
 	for scriptPath, thisScript in repository do
-        for _, instance in CollectionService:GetTagged("CO_" .. scriptPath) do
-            if not instance:IsDescendantOf(path) then
-                continue
-            end       
+		for _, instance in CollectionService:GetTagged("CO_" .. scriptPath) do
+			if not instance:IsDescendantOf(path) then
+				continue
+			end
 			if activeScripts[scriptPath] and activeScripts[scriptPath][instance] then
 				continue
 			end
@@ -239,10 +239,10 @@ function ClientObjectManager:LoadClientObjects(
 		repository = thisRepository,
 	})
 
-    local container = rootScope:add(Instance.new("Folder"))
-    container.Name = `{tower}TempContainer`
-    container.Parent = ReplicatedStorage
-    rootScope.shared.TempContainer = container
+	local container = rootScope:add(Instance.new("Folder"))
+	container.Name = `{tower}TempContainer`
+	container.Parent = ReplicatedStorage
+	rootScope.shared.TempContainer = container
 
 	--> Scan folder for repo scripts
 	ClientObjectManager:ScanFolder(rootScope, from, target)

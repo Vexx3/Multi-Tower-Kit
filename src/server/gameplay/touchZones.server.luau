@@ -191,5 +191,3 @@ CollectionService:GetInstanceAddedSignal("CustomZone"):Connect(function(part)
 		end)
 	end
 end)
-
-return nil

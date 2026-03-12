@@ -1,11 +1,5 @@
 --[[
-	TowerState - Client tower state using Charm atom.
-
-	Charm atom API:
-	- atom()               reads current state
-	- atom(newState)       replaces state
-	- atom(fn)             updates via fn(current) -> new
-	- Charm.subscribe(atom, listener) to listen for changes
+	TowerState - Client tower state using Charm signal.
 ]]
 
 local Charm = require("../../../Packages/charm")
@@ -28,9 +22,10 @@ local DEFAULT: TowerStateData = {
 	restartProgress = 0,
 }
 
-local atom = Charm.atom(table.clone(DEFAULT))
+local getTowerState, setTowerState = Charm.signal(table.clone(DEFAULT))
 
 return {
-	atom = atom,
+	getTowerState = getTowerState,
+	setTowerState = setTowerState,
 	DEFAULT = DEFAULT,
 }

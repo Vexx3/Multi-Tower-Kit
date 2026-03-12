@@ -13,8 +13,8 @@
 local Dash = script.Parent
 local None = require(Dash.None)
 local Types = require(Dash.Types)
-local forEach = require(Dash.forEach)
 local copy = require(Dash.copy)
+local forEach = require(Dash.forEach)
 
 -- TODO Luau: Support typing varargs
 -- TODO Luau: Support function generics

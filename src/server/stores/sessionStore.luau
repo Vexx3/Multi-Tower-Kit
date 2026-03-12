@@ -1,207 +1,122 @@
 --[[
-	Server-side player session state using Reflex producer.
+	Server-side player session state using Charm.
 	Provides access to per-player runtime info (tower, timer, mode, etc.).
-
-	Uses Reflex createProducer for structured, immutable state management
-	with named actions. Each action is a pure function that receives the
-	current state and returns the next state.
 ]]
 
-local Reflex = require("../../../Packages/reflex")
+local Charm = require("../../../Packages/charm")
 local Types = require("../../shared/types")
+local objects = require("../../shared/utils/objects")
 
 type PlayerInfo = Types.PlayerInfo
 type SessionState = { [string]: PlayerInfo }
 
-local INITIAL_STATE: SessionState = {}
+local getSessions, setSessions = Charm.signal({} :: SessionState)
 
-local producer = Reflex.createProducer(INITIAL_STATE, {
-	add = function(state: SessionState, playerName: string, info: PlayerInfo): SessionState
-		local newState = table.clone(state)
-		newState[playerName] = info
-		return newState
-	end,
-
-	remove = function(state: SessionState, playerName: string): SessionState
-		local newState = table.clone(state)
-		newState[playerName] = nil
-		return newState
-	end,
-
-	update = function(state: SessionState, playerName: string, updates: { [string]: any }): SessionState
-		local session = state[playerName]
-		if not session then
-			return state
-		end
-
-		local newSession = table.clone(session)
-		for key, value in updates do
-			(newSession :: any)[key] = value
-		end
-
-		local newState = table.clone(state)
-		newState[playerName] = newSession
-		return newState
-	end,
-
-	setTower = function(state: SessionState, playerName: string, towerName: string, resetTimer: boolean): SessionState
-		local session = state[playerName]
-		if not session then
-			return state
-		end
-
-		local newSession = table.clone(session)
-		newSession.currentTower = towerName
-		newSession.currentCheckpoint = 1
-		newSession.isLoadingTower = true
-
-		if resetTimer then
-			newSession.towerTimer = 0
-			newSession.boostItemUsed = false
-			newSession.boostItemNames = {}
-		end
-
-		local newState = table.clone(state)
-		newState[playerName] = newSession
-		return newState
-	end,
-
-	resetRun = function(state: SessionState, playerName: string): SessionState
-		local session = state[playerName]
-		if not session then
-			return state
-		end
-
-		local newSession = table.clone(session)
-		newSession.towerTimer = 0
-		newSession.currentTower = ""
-		newSession.currentCheckpoint = 0
-		newSession.currentTowerRush = ""
-		newSession.currentTowerRushIndex = 0
-		newSession.currentTowerRushSplitTime = 0
-		newSession.boostItemNames = {}
-		newSession.boostItemUsed = false
-		newSession.debugItemUsed = false
-
-		local newState = table.clone(state)
-		newState[playerName] = newSession
-		return newState
-	end,
-
-	setMode = function(state: SessionState, playerName: string, mode: Types.PlayerMode): SessionState
-		local session = state[playerName]
-		if not session then
-			return state
-		end
-
-		local newSession = table.clone(session)
-		newSession.mode = mode
-
-		local newState = table.clone(state)
-		newState[playerName] = newSession
-		return newState
-	end,
-
-	advanceCheckpoint = function(state: SessionState, playerName: string): SessionState
-		local session = state[playerName]
-		if not session then
-			return state
-		end
-
-		local newSession = table.clone(session)
-		newSession.currentCheckpoint = session.currentCheckpoint + 1
-
-		local newState = table.clone(state)
-		newState[playerName] = newSession
-		return newState
-	end,
-
-	setTouchBusy = function(state: SessionState, playerName: string, busy: boolean): SessionState
-		local session = state[playerName]
-		if not session then
-			return state
-		end
-
-		local newSession = table.clone(session)
-		newSession.touchEventBusy = busy
-
-		local newState = table.clone(state)
-		newState[playerName] = newSession
-		return newState
-	end,
-
-	finishLoading = function(state: SessionState, playerName: string): SessionState
-		local session = state[playerName]
-		if not session then
-			return state
-		end
-
-		local newSession = table.clone(session)
-		newSession.isLoadingTower = false
-
-		local newState = table.clone(state)
-		newState[playerName] = newSession
-		return newState
-	end,
-
-	incrementTimers = function(state: SessionState, deltaTime: number): SessionState
-		local newState: SessionState = {}
-		for name, session in state do
-			local newSession = table.clone(session)
-			newSession.gameTimer += deltaTime
-			if newSession.currentTower ~= "" then
-				newSession.towerTimer += deltaTime
-			end
-			newState[name] = newSession
-		end
-		return newState
-	end,
-})
-
--- Convenience getters that wrap producer.getState()
 local function get(playerName: string): PlayerInfo?
-	return producer.getState()[playerName]
+	return getSessions()[playerName]
 end
 
 local function getAll(): SessionState
-	return producer.getState()
+	return getSessions()
+end
+
+local function add(playerName: string, info: PlayerInfo)
+	setSessions(objects.set(getSessions(), playerName, info))
+end
+
+local function remove(playerName: string)
+	setSessions(objects.delete(getSessions(), playerName))
+end
+
+local function update(playerName: string, updates: { [string]: any })
+	setSessions(objects.update(getSessions(), playerName, function(session)
+		return objects.join(session, updates)
+	end))
+end
+
+local function setTower(playerName: string, towerName: string, resetTimer: boolean)
+	setSessions(objects.update(getSessions(), playerName, function(session)
+		local newSession = objects.join(session, {
+			currentTower = towerName,
+			currentCheckpoint = 1,
+			isLoadingTower = true,
+		})
+
+		if resetTimer then
+			newSession = objects.join(newSession, {
+				towerTimer = 0,
+				boostItemUsed = false,
+				boostItemNames = {},
+			})
+		end
+
+		return newSession
+	end))
+end
+
+local function resetRun(playerName: string)
+	setSessions(objects.update(getSessions(), playerName, function(session)
+		return objects.join(session, {
+			towerTimer = 0,
+			currentTower = "",
+			currentCheckpoint = 0,
+			currentTowerRush = "",
+			currentTowerRushIndex = 0,
+			currentTowerRushSplitTime = 0,
+			boostItemNames = {},
+			boostItemUsed = false,
+			debugItemUsed = false,
+		})
+	end))
+end
+
+local function setMode(playerName: string, mode: Types.PlayerMode)
+	setSessions(objects.update(getSessions(), playerName, function(session)
+		return objects.set(session, "mode", mode)
+	end))
+end
+
+local function advanceCheckpoint(playerName: string)
+	setSessions(objects.update(getSessions(), playerName, function(session)
+		return objects.set(session, "currentCheckpoint", session.currentCheckpoint + 1)
+	end))
+end
+
+local function setTouchBusy(playerName: string, busy: boolean)
+	setSessions(objects.update(getSessions(), playerName, function(session)
+		return objects.set(session, "touchEventBusy", busy)
+	end))
+end
+
+local function finishLoading(playerName: string)
+	setSessions(objects.update(getSessions(), playerName, function(session)
+		return objects.set(session, "isLoadingTower", false)
+	end))
+end
+
+local function incrementTimers(deltaTime: number)
+	setSessions(objects.map(getSessions(), function(session)
+		local newSession = objects.set(session, "gameTimer", session.gameTimer + deltaTime)
+		if newSession.currentTower ~= "" then
+			newSession = objects.set(newSession, "towerTimer", newSession.towerTimer + deltaTime)
+		end
+		return newSession
+	end))
 end
 
 return {
-	-- Read
+	getSessions = getSessions,
+	setSessions = setSessions,
 	get = get,
 	getAll = getAll,
-	-- Actions (dispatched through the producer)
-	add = function(playerName: string, info: PlayerInfo)
-		producer.add(playerName, info)
-	end,
-	remove = function(playerName: string)
-		producer.remove(playerName)
-	end,
-	update = function(playerName: string, updates: { [string]: any })
-		producer.update(playerName, updates)
-	end,
-	setTower = function(playerName: string, towerName: string, resetTimer: boolean)
-		producer.setTower(playerName, towerName, resetTimer)
-	end,
-	resetRun = function(playerName: string)
-		producer.resetRun(playerName)
-	end,
-	setMode = function(playerName: string, mode: Types.PlayerMode)
-		producer.setMode(playerName, mode)
-	end,
-	advanceCheckpoint = function(playerName: string)
-		producer.advanceCheckpoint(playerName)
-	end,
-	setTouchBusy = function(playerName: string, busy: boolean)
-		producer.setTouchBusy(playerName, busy)
-	end,
-	finishLoading = function(playerName: string)
-		producer.finishLoading(playerName)
-	end,
-	incrementTimers = function(deltaTime: number)
-		producer.incrementTimers(deltaTime)
-	end,
-	-- Expose the producer for advanced use (subscribe, observe, etc.)
-	producer = producer,
+	add = add,
+	remove = remove,
+	update = update,
+	setTower = setTower,
+	resetRun = resetRun,
+	setMode = setMode,
+	advanceCheckpoint = advanceCheckpoint,
+	setTouchBusy = setTouchBusy,
+	finishLoading = finishLoading,
+	incrementTimers = incrementTimers,
 }

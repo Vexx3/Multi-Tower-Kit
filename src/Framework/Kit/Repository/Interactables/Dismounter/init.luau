@@ -21,8 +21,8 @@ Thank you
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local _T = require(ReplicatedStorage.Framework.ClientTypes)
 local SequencerSupport = require(script.SequencerSupport)
+local _T = require(ReplicatedStorage.Framework.ClientTypes)
 
 local mountPartNames = {
 	["Zipline"] = "MountPart",

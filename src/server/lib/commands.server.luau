@@ -36,5 +36,3 @@ for _, cmdModule in Commands:GetDescendants() do
 end
 
 Players.PlayerAdded:Connect(onPlayerAdded)
-
-return nil

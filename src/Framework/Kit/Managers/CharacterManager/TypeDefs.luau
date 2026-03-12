@@ -70,15 +70,15 @@ export type Boost = {
 export type BoostData = {
 	type: string,
 	power: number,
-	
+
 	frame: typeof(GuiManager.BoostFrame)?, -- created later
-    module: Boost,
+	module: Boost,
 
 	-- values calculated on the fly, stored here to be used in
 	-- other scripts using this type
 	multiplier: number?,
 	timeLeft: number,
-	
+
 	startTime: number,
 	mode: string,
 	duration: number,
@@ -113,7 +113,7 @@ export type CharacterManager = {
 	GetActiveBoost: (self: CharacterManager, boostType: string, isPad: boolean?) -> BoostData?,
 	GetActiveBoosts: (self: CharacterManager) -> { BoostData },
 	IsBoostInfinite: (self: CharacterManager, boostData: BoostData) -> boolean,
-	
+
 	GetBoostModule: (self: CharacterManager, boostType: string) -> Boost?,
 }
 

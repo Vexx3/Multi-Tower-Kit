@@ -39,8 +39,8 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 local Workspace = game:GetService("Workspace")
 
-local _T = require(ReplicatedStorage.Framework.ClientTypes)
 local CharacterManager_Types = require(ReplicatedStorage.Framework.Kit.Managers.CharacterManager.TypeDefs)
+local _T = require(ReplicatedStorage.Framework.ClientTypes)
 
 local BoostPad = {
 	CanQueue = true,

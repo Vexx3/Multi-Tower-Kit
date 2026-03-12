@@ -165,7 +165,7 @@ function Attacher.Run(scope: _T.Scope, utility: _T.Utility)
 
 		local attachTo = nil
 		if hitPart:IsDescendantOf(character) then
-            if table.find(utility.Character.getHitbox("WholeBody"), hitPart) then
+			if table.find(utility.Character.getHitbox("WholeBody"), hitPart) then
 				attachTo = getLimb(character, hitPart, configuration.WeldToLimb)
 			end
 		else

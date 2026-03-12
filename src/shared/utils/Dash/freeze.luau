@@ -20,8 +20,8 @@
 	--!> `MissingKey: Attempt to read missing key "syrup" (a string) of frozen object "Ice Cream"`
 ]]
 local Dash = script.Parent
-local Types = require(Dash.Types)
 local Error = require(Dash.Error)
+local Types = require(Dash.Types)
 local format = require(Dash.format)
 
 -- TODO Luau: Improve type inference to make these not need to be any

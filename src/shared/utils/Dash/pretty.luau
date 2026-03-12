@@ -13,8 +13,8 @@ local assign = require(Dash.assign)
 local cycles = require(Dash.cycles)
 local includes = require(Dash.includes)
 local join = require(Dash.join)
-local map = require(Dash.map)
 local keys = require(Dash.keys)
+local map = require(Dash.map)
 local slice = require(Dash.slice)
 
 local concat = table.concat

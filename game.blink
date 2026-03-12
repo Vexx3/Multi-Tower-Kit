@@ -1,5 +1,5 @@
-option ClientOutput = "src/ReplicatedStorage/TowerGame/Network/BlinkClient.luau"
-option ServerOutput = "src/ServerScriptService/Server/Network/BlinkServer.luau"
+option ClientOutput = "src/shared/Network/BlinkClient.luau"
+option ServerOutput = "src/server/Network/BlinkServer.luau"
 
 struct ClientWinMessageInfo {
     playerName: string,
@@ -132,6 +132,13 @@ event AllJumpsRestoreState {
     Type: Reliable,
     Call: SingleAsync,
     Data: AllJumpsCheckpointState
+}
+
+event SyncState {
+    From: Server,
+    Type: Reliable,
+    Call: ManyAsync,
+    Data: unknown
 }
 
 function GetPlayerData {
